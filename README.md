@@ -7,8 +7,6 @@ Repository for plugins for openelisglobal
 
 For Building The Plugins 
 
-1. Got to the [Parent pom file](./pom.xml)
-1. set the right absolute `SystemPath path` to the `openelisglobal` dependence located under the [lib](./lib/) folder
 1. Run the Maven Build  
 
     ```mvn clean install```
