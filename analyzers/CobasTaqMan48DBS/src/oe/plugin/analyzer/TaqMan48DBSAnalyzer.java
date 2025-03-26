@@ -16,62 +16,62 @@
 
 package oe.plugin.analyzer;
 
+import static org.openelisglobal.common.services.PluginAnalyzerService.getInstance;
+
+import java.util.ArrayList;
+import java.util.List;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
 import org.openelisglobal.common.services.PluginAnalyzerService;
 import org.openelisglobal.plugin.AnalyzerImporterPlugin;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.openelisglobal.common.services.PluginAnalyzerService.getInstance;
-
-
 public class TaqMan48DBSAnalyzer implements AnalyzerImporterPlugin {
 
-	private static final String DELIMITER = "\\t";
-    public boolean connect(){
-        List<PluginAnalyzerService.TestMapping> nameMappinng = new ArrayList<PluginAnalyzerService.TestMapping>();
-        getInstance().addAnalyzerDatabaseParts("TaqMan48DBSAnalyzer", "Plugin for Cobas TaqMan48 DBS analyzer",nameMappinng);
-        getInstance().registerAnalyzer(this);
+  private static final String DELIMITER = "\\t";
+
+  public boolean connect() {
+    List<PluginAnalyzerService.TestMapping> nameMappinng =
+        new ArrayList<PluginAnalyzerService.TestMapping>();
+    getInstance()
+        .addAnalyzerDatabaseParts(
+            "TaqMan48DBSAnalyzer", "Plugin for Cobas TaqMan48 DBS analyzer", nameMappinng);
+    getInstance().registerAnalyzer(this);
+    return true;
+  }
+
+  @Override
+  public boolean isTargetAnalyzer(List<String> lines) {
+
+    int idInstrumentIndex = -1;
+    int colunmsLine = -1;
+
+    for (Integer i = 0; i < lines.size(); i++) {
+      String[] data = lines.get(i).split(DELIMITER);
+      System.out.println("LIGNE:" + i + "--" + lines.get(i));
+      for (int j = 0; j < data.length; j++) {
+        if (data[j].contains("Test")) {
+          idInstrumentIndex = j;
+          colunmsLine = i;
+        }
+      }
+      if (colunmsLine > -1) break;
+    }
+
+    if (lines.size() > colunmsLine) {
+
+      if (idInstrumentIndex == -1) {
+        return false;
+      }
+
+      String[] data = lines.get(colunmsLine + 1).split(DELIMITER);
+      if (data[idInstrumentIndex].contains("HI2QLD48")) {
         return true;
+      }
     }
+    return false;
+  }
 
-    @Override
-    public boolean isTargetAnalyzer(List<String> lines) {
-    	
-    	int idInstrumentIndex = -1;
-    	int colunmsLine=-1;
-    	
-    	 for (Integer i = 0; i < lines.size(); i++) {
-    		 String[] data = lines.get(i).split(DELIMITER);System.out.println("LIGNE:"+i+"--"+lines.get(i));
-    		 for (int j = 0; j < data.length; j++) {
-     			if (data[j].contains("Test")) {
-     				idInstrumentIndex = j;
-     				colunmsLine=i;
-     				
-     			}
-     		 }
-    		 if (colunmsLine>-1 ) break;
-    		 
-    	 }
-    	
-    	if (lines.size() > colunmsLine ) { 
-    	
-    		if (idInstrumentIndex == -1) {
-    			return false;
-    		}
-    		
-    		String[] data = lines.get(colunmsLine+1).split(DELIMITER);
-    		if (data[idInstrumentIndex].contains("HI2QLD48")) {
-    			return true;
-    		}
-
-    	} 
-    	return false;
-    }
-
-    @Override
-    public AnalyzerLineInserter getAnalyzerLineInserter() {
-        return new TaqMan48DBSAnalyzerImplementation();
-    }
+  @Override
+  public AnalyzerLineInserter getAnalyzerLineInserter() {
+    return new TaqMan48DBSAnalyzerImplementation();
+  }
 }

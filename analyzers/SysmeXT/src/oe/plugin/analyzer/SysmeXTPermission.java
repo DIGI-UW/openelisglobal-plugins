@@ -21,14 +21,14 @@ import org.openelisglobal.plugin.PermissionPlugin;
 import org.openelisglobal.role.valueholder.Role;
 import org.openelisglobal.systemmodule.valueholder.SystemModule;
 
-/**
- */
-public class SysmeXTPermission extends PermissionPlugin{
-    @Override
-    protected boolean insertPermission(){
-        PluginPermissionService service = new PluginPermissionService();
-        SystemModule module = service.getOrCreateSystemModule( "AnalyzerResults", "SysmeXT", "Results->Analyzer->SysmeXT" );
-        Role role = service.getSystemRole( "Results" );
-        return service.bindRoleToModule( role, module );
-    }
+/** */
+public class SysmeXTPermission extends PermissionPlugin {
+  @Override
+  protected boolean insertPermission() {
+    PluginPermissionService service = new PluginPermissionService();
+    SystemModule module =
+        service.getOrCreateSystemModule("AnalyzerResults", "SysmeXT", "Results->Analyzer->SysmeXT");
+    Role role = service.getSystemRole("Results");
+    return service.bindRoleToModule(role, module);
+  }
 }

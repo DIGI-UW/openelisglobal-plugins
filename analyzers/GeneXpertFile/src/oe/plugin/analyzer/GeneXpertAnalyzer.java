@@ -20,52 +20,60 @@ import static org.openelisglobal.common.services.PluginAnalyzerService.getInstan
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
 import org.openelisglobal.common.services.PluginAnalyzerService;
 import org.openelisglobal.plugin.AnalyzerImporterPlugin;
 
-
 public class GeneXpertAnalyzer implements AnalyzerImporterPlugin {
-	
-	public static final String ANALYZER_NAME = "GeneXpertAnalyzer";
 
-    @Override
-	public boolean connect(){
-		List<PluginAnalyzerService.TestMapping> nameMapping = new ArrayList<>();
+  public static final String ANALYZER_NAME = "GeneXpertAnalyzer";
 
-		nameMapping.add(
-				new PluginAnalyzerService.TestMapping(GeneXpertAnalyzerImplementation.HBV, "HEPATITIS B VIRAL LOAD",
-						GeneXpertAnalyzerImplementation.HBV_LOINC));
-		nameMapping.add(
-				new PluginAnalyzerService.TestMapping(GeneXpertAnalyzerImplementation.HCV, "HEPATITIS C VIRAL LOAD",
-						GeneXpertAnalyzerImplementation.HCV_LOINC));
-//		nameMapping.add(
-//				new PluginAnalyzerService.TestMapping(GeneXpertAnalyzerImplementation.HIV_QUAL, "​Xpert HIV-1 Qual",
-//				GeneXpertAnalyzerImplementation.HIV_QUAL_LOINC));
-		nameMapping
-				.add(new PluginAnalyzerService.TestMapping(GeneXpertAnalyzerImplementation.HIV_VIRAL, "HIV VIRAL LOAD",
-						GeneXpertAnalyzerImplementation.HIV_VIRAL_LOINC));
-		nameMapping.add(
-				new PluginAnalyzerService.TestMapping(GeneXpertAnalyzerImplementation.COV_2, "COVID-19 PCR",
-						GeneXpertAnalyzerImplementation.COV_2_LOINC));
-		getInstance().addAnalyzerDatabaseParts(ANALYZER_NAME, "Plugin for " + ANALYZER_NAME, nameMapping);
-        getInstance().registerAnalyzer(this);
+  @Override
+  public boolean connect() {
+    List<PluginAnalyzerService.TestMapping> nameMapping = new ArrayList<>();
+
+    nameMapping.add(
+        new PluginAnalyzerService.TestMapping(
+            GeneXpertAnalyzerImplementation.HBV,
+            "HEPATITIS B VIRAL LOAD",
+            GeneXpertAnalyzerImplementation.HBV_LOINC));
+    nameMapping.add(
+        new PluginAnalyzerService.TestMapping(
+            GeneXpertAnalyzerImplementation.HCV,
+            "HEPATITIS C VIRAL LOAD",
+            GeneXpertAnalyzerImplementation.HCV_LOINC));
+    //		nameMapping.add(
+    //				new PluginAnalyzerService.TestMapping(GeneXpertAnalyzerImplementation.HIV_QUAL, "​Xpert
+    //  HIV-1 Qual",
+    //				GeneXpertAnalyzerImplementation.HIV_QUAL_LOINC));
+    nameMapping.add(
+        new PluginAnalyzerService.TestMapping(
+            GeneXpertAnalyzerImplementation.HIV_VIRAL,
+            "HIV VIRAL LOAD",
+            GeneXpertAnalyzerImplementation.HIV_VIRAL_LOINC));
+    nameMapping.add(
+        new PluginAnalyzerService.TestMapping(
+            GeneXpertAnalyzerImplementation.COV_2,
+            "COVID-19 PCR",
+            GeneXpertAnalyzerImplementation.COV_2_LOINC));
+    getInstance()
+        .addAnalyzerDatabaseParts(ANALYZER_NAME, "Plugin for " + ANALYZER_NAME, nameMapping);
+    getInstance().registerAnalyzer(this);
+    return true;
+  }
+
+  @Override
+  public boolean isTargetAnalyzer(List<String> lines) {
+    for (String line : lines) {
+      if (line.contains("GeneXpert Dx System")) {
         return true;
+      }
     }
+    return true;
+  }
 
-    @Override
-    public boolean isTargetAnalyzer(List<String> lines) {
-		for (String line : lines) {
-			if (line.contains("GeneXpert Dx System")) {
-				return true;
-			}
-		}
-    	return true;
-    }
-
-    @Override
-    public AnalyzerLineInserter getAnalyzerLineInserter() {
-		return new GeneXpertAnalyzerImplementation();
-    }
+  @Override
+  public AnalyzerLineInserter getAnalyzerLineInserter() {
+    return new GeneXpertAnalyzerImplementation();
+  }
 }
