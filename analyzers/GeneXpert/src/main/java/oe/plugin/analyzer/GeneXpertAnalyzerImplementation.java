@@ -156,6 +156,9 @@ public class GeneXpertAnalyzerImplementation extends AnalyzerLineInserter implem
 	protected static final String ED = "\\"; //DEFAULT_ESCAPE_DELIMITER
 	protected static final String TEST_COMMUNICATION_IDENTIFIER = "M|1|106";
 	protected static final String TEST_MAPPING_FILE_PATH = "/var/lib/openelis-global/plugin-test-mappings/test-loinc-map.csv";
+	protected static final String CSV_TEST_MAP_COULMN_ANALYSER_NAME = "ANALYSER_TEST";
+	protected static final String CSV_TEST_MAP_COULMN_LOINC = "LOINC_CODE";
+	protected static final String CSV_TEST_MAP_COULMN_ACTUAL_NAME = "ACTUAL_NAME";
 
 	private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
 	private SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyyMMddHHmmss");
@@ -215,8 +218,9 @@ public class GeneXpertAnalyzerImplementation extends AnalyzerLineInserter implem
 		testToLoincMap.put(ANALYZER_TEST_PMN_COUNT, LOINC_PMN_COUNT);
 		testToLoincMap.put(ANALYZER_TEST_MN_PERCENT, LOINC_MN_PERCENT);
 		testToLoincMap.put(ANALYZER_TEST_TCBF_COUNT, LOINC_TCBF_COUNT);
-		loadMappingsFromCSV();
-
+		try{
+		  loadMappingsFromCSV();
+		}catch(Exception e){}
 		for (Entry<String, String> entry : testToLoincMap.entrySet()) {
 			loincToTestCodeMap.put(entry.getValue(), entry.getKey());
 			testCodeToTestsMap.put(entry.getKey(), testService.getTestsByLoincCode(entry.getValue()));
@@ -497,8 +501,8 @@ public class GeneXpertAnalyzerImplementation extends AnalyzerLineInserter implem
              CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT.withFirstRecordAsHeader())) {
 
             for (CSVRecord record : csvParser) {
-                String testName = record.get("TEST").trim();
-                String loincCode = record.get("LOINC").trim();
+                String testName = record.get(CSV_TEST_MAP_COULMN_ANALYSER_NAME).trim();
+                String loincCode = record.get(CSV_TEST_MAP_COULMN_LOINC).trim();
                 testToLoincMap.put(testName, loincCode);
             }
         } catch (IOException e) {
