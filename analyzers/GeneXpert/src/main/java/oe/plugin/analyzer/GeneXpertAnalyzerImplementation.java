@@ -16,6 +16,9 @@
 
  package oe.plugin.analyzer;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -27,6 +30,9 @@ import java.util.Map.Entry;
 import java.util.regex.Pattern;
 import java.util.Optional;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.validator.GenericValidator;
 import org.openelisglobal.analyzer.service.AnalyzerService;
 import org.openelisglobal.analyzer.valueholder.Analyzer;
@@ -149,6 +155,7 @@ public class GeneXpertAnalyzerImplementation extends AnalyzerLineInserter implem
 	protected static final String CD = "^"; //DEFAULT_COMPONENT_DELIMITER
 	protected static final String ED = "\\"; //DEFAULT_ESCAPE_DELIMITER
 	protected static final String TEST_COMMUNICATION_IDENTIFIER = "M|1|106";
+	protected static final String TEST_MAPPING_FILE_PATH = "/var/lib/openelis-global/plugin-test-mappings/test-loinc-map.csv";
 
 	private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
 	private SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyyMMddHHmmss");
@@ -208,6 +215,7 @@ public class GeneXpertAnalyzerImplementation extends AnalyzerLineInserter implem
 		testToLoincMap.put(ANALYZER_TEST_PMN_COUNT, LOINC_PMN_COUNT);
 		testToLoincMap.put(ANALYZER_TEST_MN_PERCENT, LOINC_MN_PERCENT);
 		testToLoincMap.put(ANALYZER_TEST_TCBF_COUNT, LOINC_TCBF_COUNT);
+		loadMappingsFromCSV();
 
 		for (Entry<String, String> entry : testToLoincMap.entrySet()) {
 			loincToTestCodeMap.put(entry.getValue(), entry.getKey());
@@ -290,14 +298,14 @@ public class GeneXpertAnalyzerImplementation extends AnalyzerLineInserter implem
 		String[] patientRecordFields = patientRecord.split(Pattern.quote(FD));
 		String[] orderRecordFields = orderRecord.split(Pattern.quote(FD));
 		String[] orderTestIdFields = orderRecordFields[4].split(Pattern.quote(RD));
-		String[] orderIdFields = orderRecordFields[3].split(Pattern.quote(CD));
+		String[] orderIdFields = orderRecordFields[2].split(Pattern.quote(" "));
 		String[] resultRecordFields = resultRecord.split(Pattern.quote(FD));
 		String[] resultTestIdField = resultRecordFields[2].split(Pattern.quote(CD));
-		String resultRecordAbnormalFlag = resultRecordFields[6];
+		String resultRecordAbnormalFlag = resultRecordFields.length >= 7 ? resultRecordFields[6]: "";
 		List<String> orderTestIds = new ArrayList<>();
 		for (String orderIdField : orderTestIdFields) {
 			String[] orderIds = orderIdField.split(Pattern.quote(CD));
-			String orderTestId = orderIds.length >= 5 ? orderIds[4] : "";
+			String orderTestId = orderIds.length >= 4 ? orderIds[3] : "";
 			if (GenericValidator.isBlankOrNull(orderTestId)) {
 				LogEvent.logWarn(this.getClass().getSimpleName(), "addRecordsToResults", "order analysis parameter name is not present");
 			}
@@ -335,8 +343,8 @@ public class GeneXpertAnalyzerImplementation extends AnalyzerLineInserter implem
 			LogEvent.logWarn(this.getClass().getSimpleName(), "addRecordsToResults", "abnormal flag not understood");
 		}
 		AnalyzerResults analyzerResults = addResult(results, null, "N", resultRecordFields[3], 
-			DateUtil.convertStringDateToTimestampWithPattern(resultRecordFields[12], "yyyyMMddHHmmss"), 
-			currentAccessionNumber, false, resultRecordFields[4], test);
+			DateUtil.convertStringDateToTimestampWithPattern(resultRecordFields.length>= 13?resultRecordFields[12] : "", "yyyyMMddHHmmss"), 
+			currentAccessionNumber, false, resultRecordFields.length>= 5?resultRecordFields[4]:"" , test);
 		LogEvent.logDebug(this.getClass().getName(), "addResultLine", "***" + analyzerResults.getAccessionNumber() + " "
 				+ analyzerResults.getCompleteDate() + " " + analyzerResults.getResult());
 	}
@@ -478,6 +486,25 @@ public class GeneXpertAnalyzerImplementation extends AnalyzerLineInserter implem
 		return msgBuilder.toString();
 	}
 
+	public void loadMappingsFromCSV() {
+        File file = new File(TEST_MAPPING_FILE_PATH);
+        if (!file.exists()) {
+			LogEvent.logDebug(this.getClass().getName(), "loadMappingsFromCSV", "CSV file not found: " + TEST_MAPPING_FILE_PATH);
+            return; // Exit if file doesn't exist
+        }
+
+        try (FileReader reader = new FileReader(file);
+             CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT.withFirstRecordAsHeader())) {
+
+            for (CSVRecord record : csvParser) {
+                String testName = record.get("TEST").trim();
+                String loincCode = record.get("LOINC").trim();
+                testToLoincMap.put(testName, loincCode);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
  
  }
  
