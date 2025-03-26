@@ -33,9 +33,8 @@ jobs:
       - name: Compress Folder
         run: |
           tar -czf plugins.tar.gz -C plugins .
-          ls -lh plugins.tar.gz  # Verify the TAR file is created
-          echo "FILE_PATH=plugin.tar.gz" >> $GITHUB_ENV
-          echo "FILE_NAME=plugin.tar.gz" >> $GITHUB_ENV   
+          echo "FILE_PATH=plugins.tar.gz" >> $GITHUB_ENV
+          echo "FILE_NAME=plugins.tar.gz" >> $GITHUB_ENV   
 
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
