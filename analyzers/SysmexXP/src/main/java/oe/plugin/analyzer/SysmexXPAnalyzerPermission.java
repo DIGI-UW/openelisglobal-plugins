@@ -22,15 +22,17 @@ import org.openelisglobal.role.valueholder.Role;
 import org.openelisglobal.spring.util.SpringContext;
 import org.openelisglobal.systemmodule.valueholder.SystemModule;
 
-/**
- */
+/** */
 public class SysmexXPAnalyzerPermission extends PermissionPlugin {
-    @Override
-    protected boolean insertPermission(){
-		IPluginPermissionService service = SpringContext.getBean(IPluginPermissionService.class);
-		SystemModule module = service.getOrCreateSystemModule("AnalyzerResults", SysmexXPAnalyzer.ANALYZER_NAME,
-				"Results->Analyzer->" + SysmexXPAnalyzer.ANALYZER_NAME);
-        Role role = service.getSystemRole( "Results" );
-        return service.bindRoleToModule( role, module );
-    }
+  @Override
+  protected boolean insertPermission() {
+    IPluginPermissionService service = SpringContext.getBean(IPluginPermissionService.class);
+    SystemModule module =
+        service.getOrCreateSystemModule(
+            "AnalyzerResults",
+            SysmexXPAnalyzer.ANALYZER_NAME,
+            "Results->Analyzer->" + SysmexXPAnalyzer.ANALYZER_NAME);
+    Role role = service.getSystemRole("Results");
+    return service.bindRoleToModule(role, module);
+  }
 }

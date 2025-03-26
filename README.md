@@ -12,3 +12,8 @@ For Building The Plugins
     ```mvn clean install```
 1. Find the built plugin jars under the `plugins` directory 
 
+
+ASTM PLugins
+GeneXpert (PNG) , SysmeXXN-L ,SysmexXP ,pocH-100i (HAITI)
+
+

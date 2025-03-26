@@ -20,45 +20,43 @@ import static org.openelisglobal.common.services.PluginAnalyzerService.getInstan
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
 import org.openelisglobal.common.services.PluginAnalyzerService;
 import org.openelisglobal.plugin.AnalyzerImporterPlugin;
 
-
 public class CobasC111Analyzer implements AnalyzerImporterPlugin {
 
-    public boolean connect(){
-        List<PluginAnalyzerService.TestMapping> nameMappinng = new ArrayList<PluginAnalyzerService.TestMapping>();
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("GLU2", "Glucose"));
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("CREJ2", "Créatinine"));
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("ALTL", "Transaminases GPT (37°C)"));
-        getInstance().addAnalyzerDatabaseParts("CobasC111Analyzer", "Plugin for Cobas C111 analyzer",nameMappinng);
-        getInstance().registerAnalyzer(this);
-        return true;
+  public boolean connect() {
+    List<PluginAnalyzerService.TestMapping> nameMappinng =
+        new ArrayList<PluginAnalyzerService.TestMapping>();
+    nameMappinng.add(new PluginAnalyzerService.TestMapping("GLU2", "Glucose"));
+    nameMappinng.add(new PluginAnalyzerService.TestMapping("CREJ2", "Créatinine"));
+    nameMappinng.add(new PluginAnalyzerService.TestMapping("ALTL", "Transaminases GPT (37°C)"));
+    getInstance()
+        .addAnalyzerDatabaseParts(
+            "CobasC111Analyzer", "Plugin for Cobas C111 analyzer", nameMappinng);
+    getInstance().registerAnalyzer(this);
+    return true;
+  }
+
+  @Override
+  public boolean isTargetAnalyzer(List<String> lines) {
+
+    if (getColumnsLine(lines) < 0) return false;
+
+    return true;
+  }
+
+  @Override
+  public AnalyzerLineInserter getAnalyzerLineInserter() {
+    return new CobasC111AnalyzerImplementation();
+  }
+
+  public int getColumnsLine(List<String> lines) {
+    for (int k = 0; k < lines.size(); k++) {
+      if (lines.get(k).contains("Instr")) return k;
     }
 
-    @Override
-    public boolean isTargetAnalyzer(List<String> lines) {
-    
-    	if(getColumnsLine(lines)<0) return false;
-    	 
-    	return true;
-    	
-    }
-
-    @Override
-    public AnalyzerLineInserter getAnalyzerLineInserter() {
-        return new CobasC111AnalyzerImplementation();
-    }
-
-	public int getColumnsLine(List<String> lines) {
-		for(int k=0;k<lines.size();k++){
-		if(lines.get(k).contains("Instr"))
-		return k;
-			
-		}
-		
-		return -1;
-	}
+    return -1;
+  }
 }

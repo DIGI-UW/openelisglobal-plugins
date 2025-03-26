@@ -21,15 +21,16 @@ import org.openelisglobal.plugin.PermissionPlugin;
 import org.openelisglobal.role.valueholder.Role;
 import org.openelisglobal.systemmodule.valueholder.SystemModule;
 
-/**
- */
-public class CobasIntegra400Permission extends PermissionPlugin{
-    @Override
-    protected boolean insertPermission(){
-        PluginPermissionService service = new PluginPermissionService();
-        SystemModule module = service.getOrCreateSystemModule( "AnalyzerResults", "CobasIntegra400", "Results->Analyzer->CobasIntegra400" );
-        Role role = service.getSystemRole( "Results" );
-        //Role role = service.getSystemRole( "Results" );
-        return service.bindRoleToModule( role, module );
-    }
+/** */
+public class CobasIntegra400Permission extends PermissionPlugin {
+  @Override
+  protected boolean insertPermission() {
+    PluginPermissionService service = new PluginPermissionService();
+    SystemModule module =
+        service.getOrCreateSystemModule(
+            "AnalyzerResults", "CobasIntegra400", "Results->Analyzer->CobasIntegra400");
+    Role role = service.getSystemRole("Results");
+    // Role role = service.getSystemRole( "Results" );
+    return service.bindRoleToModule(role, module);
+  }
 }
