@@ -18,15 +18,14 @@ import ca.uhn.hl7v2.model.v231.segment.ORC;
 import ca.uhn.hl7v2.model.v231.segment.PID;
 import ca.uhn.hl7v2.protocol.ReceivingApplication;
 import ca.uhn.hl7v2.protocol.ReceivingApplicationException;
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import jakarta.servlet.ServletConfig;
-import jakarta.servlet.ServletException;
-
 import org.openelisglobal.analysis.service.AnalysisService;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
 import org.openelisglobal.plugin.ServletPlugin;

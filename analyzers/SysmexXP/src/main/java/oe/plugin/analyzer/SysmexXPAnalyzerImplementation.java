@@ -122,7 +122,8 @@ public class SysmexXPAnalyzerImplementation extends AnalyzerLineInserter
   private SampleHumanService sampleHumanService = SpringContext.getBean(SampleHumanService.class);
   private AnalyzerService analyzerService = SpringContext.getBean(AnalyzerService.class);
   private AnalysisService analysisService = SpringContext.getBean(AnalysisService.class);
-  private PluginAnalyzerService pluginAnalyzerService = SpringContext.getBean(PluginAnalyzerService.class);
+  private PluginAnalyzerService pluginAnalyzerService =
+      SpringContext.getBean(PluginAnalyzerService.class);
 
   private String ANALYZER_ID;
   private Map<String, String> testToLoincMap = new HashMap<>();
@@ -158,7 +159,7 @@ public class SysmexXPAnalyzerImplementation extends AnalyzerLineInserter
     testToLoincMap.put(ANALYZER_TEST_IG_PERCENT, LOINC_IG_PERCENT);
     testToLoincMap.put(ANALYZER_TEST_MXD_COUNT, LOINC_MXD_COUNT);
     testToLoincMap.put(ANALYZER_TEST_MXD_PERCENT, LOINC_MXD_PERCENT);
-    pluginAnalyzerService.loadLoincMappingsFromCSV(testToLoincMap ,SysmexXPAnalyzer.ANALYZER_NAME);
+    pluginAnalyzerService.loadLoincMappingsFromCSV(testToLoincMap, SysmexXPAnalyzer.ANALYZER_NAME);
 
     for (Entry<String, String> entry : testToLoincMap.entrySet()) {
       loincToTestCodeMap.put(entry.getValue(), entry.getKey());

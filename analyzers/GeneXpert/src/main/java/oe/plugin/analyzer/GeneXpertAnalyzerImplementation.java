@@ -161,7 +161,8 @@ public class GeneXpertAnalyzerImplementation extends AnalyzerLineInserter
   private SampleHumanService sampleHumanService = SpringContext.getBean(SampleHumanService.class);
   private AnalyzerService analyzerService = SpringContext.getBean(AnalyzerService.class);
   private AnalysisService analysisService = SpringContext.getBean(AnalysisService.class);
-  private PluginAnalyzerService pluginAnalyzerService = SpringContext.getBean(PluginAnalyzerService.class);
+  private PluginAnalyzerService pluginAnalyzerService =
+      SpringContext.getBean(PluginAnalyzerService.class);
   private String ANALYZER_ID;
   private Map<String, String> testToLoincMap = new HashMap<>();
   private Map<String, String> loincToTestCodeMap = new HashMap<>();
@@ -210,8 +211,8 @@ public class GeneXpertAnalyzerImplementation extends AnalyzerLineInserter
     testToLoincMap.put(ANALYZER_TEST_PMN_COUNT, LOINC_PMN_COUNT);
     testToLoincMap.put(ANALYZER_TEST_MN_PERCENT, LOINC_MN_PERCENT);
     testToLoincMap.put(ANALYZER_TEST_TCBF_COUNT, LOINC_TCBF_COUNT);
-    
-    pluginAnalyzerService.loadLoincMappingsFromCSV(testToLoincMap ,GeneXpertAnalyzer.ANALYZER_NAME);
+
+    pluginAnalyzerService.loadLoincMappingsFromCSV(testToLoincMap, GeneXpertAnalyzer.ANALYZER_NAME);
     for (Entry<String, String> entry : testToLoincMap.entrySet()) {
       loincToTestCodeMap.put(entry.getValue(), entry.getKey());
       testCodeToTestsMap.put(entry.getKey(), testService.getTestsByLoincCode(entry.getValue()));
@@ -568,5 +569,4 @@ public class GeneXpertAnalyzerImplementation extends AnalyzerLineInserter
     msgBuilder.append("L|1|F\r\n");
     return msgBuilder.toString();
   }
-
 }

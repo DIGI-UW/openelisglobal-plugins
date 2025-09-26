@@ -204,8 +204,7 @@ public class GeneXpertAnalyzer implements AnalyzerImporterPlugin {
             GeneXpertAnalyzerImplementation.ANALYZER_TEST_TCBF_COUNT,
             "",
             GeneXpertAnalyzerImplementation.LOINC_TCBF_COUNT));
-    getInstance()
-        .addAnalyzerDatabaseParts(ANALYZER_NAME, ANALYZER_NAME, nameMapping, true);
+    getInstance().addAnalyzerDatabaseParts(ANALYZER_NAME, ANALYZER_NAME, nameMapping, true);
     getInstance().registerAnalyzer(this);
     return true;
   }
@@ -281,5 +280,4 @@ public class GeneXpertAnalyzer implements AnalyzerImporterPlugin {
   public AnalyzerResponder getAnalyzerResponder() {
     return new GeneXpertAnalyzerImplementation();
   }
-
 }
