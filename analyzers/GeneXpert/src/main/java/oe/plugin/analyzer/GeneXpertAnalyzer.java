@@ -18,15 +18,9 @@ package oe.plugin.analyzer;
 
 import static org.openelisglobal.common.services.PluginAnalyzerService.getInstance;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerResponder;
 import org.openelisglobal.common.log.LogEvent;
@@ -210,12 +204,8 @@ public class GeneXpertAnalyzer implements AnalyzerImporterPlugin {
             GeneXpertAnalyzerImplementation.ANALYZER_TEST_TCBF_COUNT,
             "",
             GeneXpertAnalyzerImplementation.LOINC_TCBF_COUNT));
-    try {
-      loadNamingMappingsFromCSV(nameMapping);
-    } catch (Exception e) {
-    }
     getInstance()
-        .addAnalyzerDatabaseParts("GeneXpertAnalyzer", "GeneXpertAnalyzer", nameMapping, true);
+        .addAnalyzerDatabaseParts(ANALYZER_NAME, ANALYZER_NAME, nameMapping, true);
     getInstance().registerAnalyzer(this);
     return true;
   }
@@ -292,31 +282,4 @@ public class GeneXpertAnalyzer implements AnalyzerImporterPlugin {
     return new GeneXpertAnalyzerImplementation();
   }
 
-  public void loadNamingMappingsFromCSV(List<PluginAnalyzerService.TestMapping> nameMapping) {
-    File file = new File(GeneXpertAnalyzerImplementation.TEST_MAPPING_FILE_PATH);
-    if (!file.exists()) {
-      LogEvent.logDebug(
-          this.getClass().getName(),
-          "loadMappingsFromCSV",
-          "CSV file not found: " + GeneXpertAnalyzerImplementation.TEST_MAPPING_FILE_PATH);
-      return; // Exit if file doesn't exist
-    }
-
-    try (FileReader reader = new FileReader(file);
-        CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT.withFirstRecordAsHeader())) {
-
-      for (CSVRecord record : csvParser) {
-        String analyserTestName =
-            record.get(GeneXpertAnalyzerImplementation.CSV_TEST_MAP_COULMN_ANALYSER_NAME).trim();
-        String loincCode =
-            record.get(GeneXpertAnalyzerImplementation.CSV_TEST_MAP_COULMN_LOINC).trim();
-        String actualTestName =
-            record.get(GeneXpertAnalyzerImplementation.CSV_TEST_MAP_COULMN_ACTUAL_NAME).trim();
-        nameMapping.add(
-            new PluginAnalyzerService.TestMapping(analyserTestName, actualTestName, loincCode));
-      }
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-  }
 }

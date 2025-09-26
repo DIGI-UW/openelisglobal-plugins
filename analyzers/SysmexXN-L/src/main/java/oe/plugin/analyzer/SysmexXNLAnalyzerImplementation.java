@@ -36,6 +36,7 @@ import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerReaderUtil;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerResponder;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
 import org.openelisglobal.common.log.LogEvent;
+import org.openelisglobal.common.services.PluginAnalyzerService;
 import org.openelisglobal.common.util.DateUtil;
 import org.openelisglobal.patient.valueholder.Patient;
 import org.openelisglobal.person.valueholder.Person;
@@ -48,6 +49,8 @@ import org.openelisglobal.test.valueholder.Test;
 
 public class SysmexXNLAnalyzerImplementation extends AnalyzerLineInserter
     implements AnalyzerResponder {
+
+  private PluginAnalyzerService pluginAnalyzerService = SpringContext.getBean(PluginAnalyzerService.class);    
 
   static final String ANALYZER_TEST_WBC = "WBC";
   static final String ANALYZER_TEST_RBC = "RBC";
@@ -204,6 +207,8 @@ public class SysmexXNLAnalyzerImplementation extends AnalyzerLineInserter
     testToLoincMap.put(ANALYZER_TEST_PMN_COUNT, LOINC_PMN_COUNT);
     testToLoincMap.put(ANALYZER_TEST_MN_PERCENT, LOINC_MN_PERCENT);
     testToLoincMap.put(ANALYZER_TEST_TCBF_COUNT, LOINC_TCBF_COUNT);
+
+    pluginAnalyzerService.loadLoincMappingsFromCSV(testToLoincMap ,SysmexXNLAnalyzer.ANALYZER_NAME);
 
     for (Entry<String, String> entry : testToLoincMap.entrySet()) {
       loincToTestCodeMap.put(entry.getValue(), entry.getKey());
