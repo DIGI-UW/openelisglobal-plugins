@@ -36,6 +36,7 @@ import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerReaderUtil;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerResponder;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
 import org.openelisglobal.common.log.LogEvent;
+import org.openelisglobal.common.services.PluginAnalyzerService;
 import org.openelisglobal.common.util.DateUtil;
 import org.openelisglobal.patient.valueholder.Patient;
 import org.openelisglobal.person.valueholder.Person;
@@ -121,6 +122,8 @@ public class PocH100iAnalyzerImplementation extends AnalyzerLineInserter
   private SampleHumanService sampleHumanService = SpringContext.getBean(SampleHumanService.class);
   private AnalyzerService analyzerService = SpringContext.getBean(AnalyzerService.class);
   private AnalysisService analysisService = SpringContext.getBean(AnalysisService.class);
+  private PluginAnalyzerService pluginAnalyzerService =
+      SpringContext.getBean(PluginAnalyzerService.class);
 
   private String ANALYZER_ID;
   private Map<String, String> testToLoincMap = new HashMap<>();
@@ -156,6 +159,7 @@ public class PocH100iAnalyzerImplementation extends AnalyzerLineInserter
     testToLoincMap.put(ANALYZER_TEST_IG_PERCENT, LOINC_IG_PERCENT);
     testToLoincMap.put(ANALYZER_TEST_MXD_COUNT, LOINC_MXD_COUNT);
     testToLoincMap.put(ANALYZER_TEST_MXD_PERCENT, LOINC_MXD_PERCENT);
+    pluginAnalyzerService.loadLoincMappingsFromCSV(testToLoincMap, PocH100iAnalyzer.ANALYZER_NAME);
 
     for (Entry<String, String> entry : testToLoincMap.entrySet()) {
       loincToTestCodeMap.put(entry.getValue(), entry.getKey());

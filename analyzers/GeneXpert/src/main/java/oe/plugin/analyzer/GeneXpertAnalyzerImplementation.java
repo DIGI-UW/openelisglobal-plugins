@@ -16,9 +16,6 @@
 
 package oe.plugin.analyzer;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -29,9 +26,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.regex.Pattern;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.validator.GenericValidator;
 import org.openelisglobal.analysis.service.AnalysisService;
 import org.openelisglobal.analysis.valueholder.Analysis;
@@ -42,6 +36,7 @@ import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerReaderUtil;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerResponder;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
 import org.openelisglobal.common.log.LogEvent;
+import org.openelisglobal.common.services.PluginAnalyzerService;
 import org.openelisglobal.common.util.DateUtil;
 import org.openelisglobal.patient.valueholder.Patient;
 import org.openelisglobal.person.valueholder.Person;
@@ -153,7 +148,7 @@ public class GeneXpertAnalyzerImplementation extends AnalyzerLineInserter
   protected static final String ED = "\\"; // DEFAULT_ESCAPE_DELIMITER
   protected static final String TEST_COMMUNICATION_IDENTIFIER = "M|1|106";
   protected static final String TEST_MAPPING_FILE_PATH =
-      "/var/lib/openelis-global/plugin-test-mappings/test-loinc-map.csv";
+      "/var/lib/openelis-global/analyzer/analyzer-test-map.csv";
   protected static final String CSV_TEST_MAP_COULMN_ANALYSER_NAME = "ANALYSER_TEST";
   protected static final String CSV_TEST_MAP_COULMN_LOINC = "LOINC_CODE";
   protected static final String CSV_TEST_MAP_COULMN_ACTUAL_NAME = "ACTUAL_NAME";
@@ -166,7 +161,8 @@ public class GeneXpertAnalyzerImplementation extends AnalyzerLineInserter
   private SampleHumanService sampleHumanService = SpringContext.getBean(SampleHumanService.class);
   private AnalyzerService analyzerService = SpringContext.getBean(AnalyzerService.class);
   private AnalysisService analysisService = SpringContext.getBean(AnalysisService.class);
-
+  private PluginAnalyzerService pluginAnalyzerService =
+      SpringContext.getBean(PluginAnalyzerService.class);
   private String ANALYZER_ID;
   private Map<String, String> testToLoincMap = new HashMap<>();
   private Map<String, String> loincToTestCodeMap = new HashMap<>();
@@ -215,10 +211,8 @@ public class GeneXpertAnalyzerImplementation extends AnalyzerLineInserter
     testToLoincMap.put(ANALYZER_TEST_PMN_COUNT, LOINC_PMN_COUNT);
     testToLoincMap.put(ANALYZER_TEST_MN_PERCENT, LOINC_MN_PERCENT);
     testToLoincMap.put(ANALYZER_TEST_TCBF_COUNT, LOINC_TCBF_COUNT);
-    try {
-      loadMappingsFromCSV();
-    } catch (Exception e) {
-    }
+
+    pluginAnalyzerService.loadLoincMappingsFromCSV(testToLoincMap, GeneXpertAnalyzer.ANALYZER_NAME);
     for (Entry<String, String> entry : testToLoincMap.entrySet()) {
       loincToTestCodeMap.put(entry.getValue(), entry.getKey());
       testCodeToTestsMap.put(entry.getKey(), testService.getTestsByLoincCode(entry.getValue()));
@@ -574,28 +568,5 @@ public class GeneXpertAnalyzerImplementation extends AnalyzerLineInserter
     }
     msgBuilder.append("L|1|F\r\n");
     return msgBuilder.toString();
-  }
-
-  public void loadMappingsFromCSV() {
-    File file = new File(TEST_MAPPING_FILE_PATH);
-    if (!file.exists()) {
-      LogEvent.logDebug(
-          this.getClass().getName(),
-          "loadMappingsFromCSV",
-          "CSV file not found: " + TEST_MAPPING_FILE_PATH);
-      return; // Exit if file doesn't exist
-    }
-
-    try (FileReader reader = new FileReader(file);
-        CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT.withFirstRecordAsHeader())) {
-
-      for (CSVRecord record : csvParser) {
-        String testName = record.get(CSV_TEST_MAP_COULMN_ANALYSER_NAME).trim();
-        String loincCode = record.get(CSV_TEST_MAP_COULMN_LOINC).trim();
-        testToLoincMap.put(testName, loincCode);
-      }
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
   }
 }
