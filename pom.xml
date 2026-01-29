@@ -25,6 +25,8 @@
     <module>./analyzers/SysmexXN-L</module>
     <module>./analyzers/SysmexXP</module>
     <module>./analyzers/pocH-100i</module>
+    <module>./analyzers/HoribaPentra60</module>
+    <module>./analyzers/HoribaMicros60</module>
   </modules>
 
   <properties>
