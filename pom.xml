@@ -27,6 +27,7 @@
     <module>./analyzers/pocH-100i</module>
     <module>./analyzers/HoribaPentra60</module>
     <module>./analyzers/HoribaMicros60</module>
+    <module>./analyzers/GenericASTM</module>
   </modules>
 
   <properties>
@@ -40,7 +41,7 @@
     <dependency>
       <groupId>org.openelisglobal</groupId>
       <artifactId>openelisglobal</artifactId>
-      <version>3.2.1.0</version>
+      <version>3.2.1.2</version>
     </dependency>
     <dependency>
       <groupId>commons-validator</groupId>
@@ -78,10 +79,10 @@
             </goals>
             <phase>validate</phase>
             <configuration>
-              <file>${project.basedir}/lib/openelisglobal-3.2.1.0.jar</file>
+              <file>${project.basedir}/lib/openelisglobal-3.2.1.2.jar</file>
               <groupId>org.openelisglobal</groupId>
               <artifactId>openelisglobal</artifactId>
-              <version>3.2.1.0</version>
+              <version>3.2.1.2</version>
               <packaging>jar</packaging>
             </configuration>
           </execution>

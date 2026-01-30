@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.openelisglobal</groupId>
+    <artifactId>openelisglobal-plugins</artifactId>
+    <version>1.0</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+  <groupId>org.openelisglobal.plugins</groupId>
+  <artifactId>GenericASTM</artifactId>
+
+  <version>1.0</version>
+  <description>Generic ASTM Plugin for dashboard-configured analyzers.
+    Feature: 004-analyzer-management + 011-madagascar-analyzer-integration
+
+    Unlike legacy plugins that hardcode analyzer identification and test mappings,
+    this plugin reads configuration from the database (analyzer_configuration table)
+    allowing new analyzers to be configured entirely through the 004 Dashboard UI.</description>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.4.3</version>
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <phase>install</phase>
+            <configuration>
+              <outputDirectory>${project.basedir}/../../plugins</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>target/</directory>
+                  <includes>
+                    <include>${project.build.finalName}.jar</include>
+                  </includes>
+                  <filtering>false</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+    <sourceDirectory>src/main/java</sourceDirectory>
+  </build>
+</project>
