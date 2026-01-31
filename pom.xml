@@ -29,6 +29,7 @@
     <module>./analyzers/HoribaPentra60</module>
     <module>./analyzers/HoribaMicros60</module>
     <module>./analyzers/GenericASTM</module>
+    <module>./analyzers/StagoSTart4</module>
   </modules>
 
   <properties>
