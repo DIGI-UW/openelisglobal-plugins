@@ -8,3 +8,4 @@ analyzers/**/.gitignore
 *.vscode/*
 target/*
 .DS_Store
+lib/*.jar

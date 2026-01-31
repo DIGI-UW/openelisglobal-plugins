@@ -1,33 +1,74 @@
-name: openelisglobal-plugins CI Build 
+name: openelisglobal-plugins CI Build
 on:
   push:
-    branches: [develop]
+    branches: [develop, feat/011-horiba-pentra60-micros60]
   pull_request:
-    branches: [develop]
+    branches: [develop, feat/011-horiba-pentra60-micros60]
   workflow_dispatch:
+
+# feat/011-horiba-pentra60-micros60 (GenericASTM) requires OE with AnalyzerConfiguration;
+# use demo/madagascar until that work is merged to develop.
+# Use event.pull_request.head.ref for PRs (head_ref can be empty for same-repo PRs).
+env:
+  OE_REF: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.ref || github.ref_name) == 'feat/011-horiba-pentra60-micros60' && 'demo/madagascar' || 'develop' }}
 
 jobs:
   build:
-    runs-on: ubuntu-latest   
-    steps: 
-    - name: Set up JDK 21
-      uses: actions/setup-java@v1
-      with:
-        java-version: 21
-    - name: Cache local Maven repository
-      uses: actions/cache@v4
-      with:
-        path: ~/.m2/repository
-        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-        restore-keys: |
-            ${{ runner.os }}-maven- 
-    
-    - name: Checkout openelisglobal-plugins
-      uses: actions/checkout@v2
-      with:
-        repository: ${{github.repository}} 
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: temurin
 
-    - name: Build openelisglobal-plugins
-      run: mvn clean install  
-          
-      
+      - name: Cache local Maven repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-plugins-${{ hashFiles('**/pom.xml') }}-oe-${{ env.OE_REF }}
+          restore-keys: |
+            ${{ runner.os }}-maven-plugins-
+
+      - name: Checkout openelisglobal-plugins
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+
+      - name: Checkout OpenELIS-Global-2
+        uses: actions/checkout@v4
+        with:
+          repository: DIGI-UW/OpenELIS-Global-2
+          ref: ${{ env.OE_REF }}
+          path: openelis-global-2
+          submodules: recursive
+
+      - name: Build dataexport
+        working-directory: openelis-global-2/dataexport
+        run: mvn clean install -DskipTests -Dmaven.test.skip=true
+
+      - name: Build OpenELIS-Global-2
+        working-directory: openelis-global-2
+        run: mvn clean install -DskipTests -Dmaven.test.skip=true -Dspotless.check.skip=true
+
+      - name: Create JAR from WAR and install
+        run: |
+          WAR=openelis-global-2/target/OpenELIS-Global.war
+          if [ ! -f "$WAR" ]; then
+            echo "WAR not found at $WAR"
+            exit 1
+          fi
+          OE_JAR=openelisglobal-3.2.1.2.jar
+          TMP=$(mktemp -d)
+          unzip -q "$WAR" -d "$TMP"
+          (cd "$TMP/WEB-INF/classes" && jar cf "$TMP/$OE_JAR" .)
+          mvn install:install-file \
+            -Dfile="$TMP/$OE_JAR" \
+            -DgroupId=org.openelisglobal \
+            -DartifactId=openelisglobal \
+            -Dversion=3.2.1.2 \
+            -Dpackaging=jar
+          rm -rf "$TMP"
+
+      - name: Build openelisglobal-plugins
+        run: mvn clean install
