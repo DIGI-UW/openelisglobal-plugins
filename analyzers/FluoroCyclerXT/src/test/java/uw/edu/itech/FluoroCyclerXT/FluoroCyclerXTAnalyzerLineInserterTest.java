@@ -6,8 +6,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
+import org.openelisglobal.plugin.test.PluginTestBase;
 
-public class FluoroCyclerXTAnalyzerLineInserterTest {
+public class FluoroCyclerXTAnalyzerLineInserterTest extends PluginTestBase {
 
   @Test
   public void parseLine_WithTabDelimitedLine_ReturnsRecord() {

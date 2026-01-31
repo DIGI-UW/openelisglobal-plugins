@@ -1,0 +1,28 @@
+
+X feat/011-horiba-pentra60-micros60 openelisglobal-plugins CI Build #33 · 21535258007
+Triggered via pull_request about 48 minutes ago
+
+JOBS
+X build in 2m32s (ID 62059507420)
+  ✓ Set up job
+  ✓ Set up JDK 21
+  ✓ Cache local Maven repository
+  ✓ Checkout openelisglobal-plugins
+  ✓ Checkout OpenELIS-Global-2
+  ✓ Build dataexport
+  ✓ Build OpenELIS-Global-2
+  ✓ Create JAR from WAR and install
+  X Build openelisglobal-plugins
+  ✓ Post Checkout OpenELIS-Global-2
+  ✓ Post Checkout openelisglobal-plugins
+  - Post Cache local Maven repository
+  ✓ Post Set up JDK 21
+  ✓ Complete job
+
+ANNOTATIONS
+X Process completed with exit code 1.
+build: .github#2379
+
+
+To see what failed, try: gh run view 21535258007 --log-failed
+View this run on GitHub: https://github.com/DIGI-UW/openelisglobal-plugins/actions/runs/21535258007

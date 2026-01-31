@@ -137,7 +137,8 @@ public class FluoroCyclerXTAnalyzerLineInserter extends AnalyzerLineInserter {
         AnalyzerTestNameCache.getInstance().getMappedTest(ANALYZER_NAME, testCode);
 
     if (mappedTest == null) {
-      mappedTest = AnalyzerTestNameCache.getInstance().getEmptyMappedTestName(ANALYZER_NAME, testCode);
+      mappedTest =
+          AnalyzerTestNameCache.getInstance().getEmptyMappedTestName(ANALYZER_NAME, testCode);
     }
 
     AnalyzerResults analyzerResult = new AnalyzerResults();
@@ -163,8 +164,7 @@ public class FluoroCyclerXTAnalyzerLineInserter extends AnalyzerLineInserter {
     final String interpretation;
     final String position;
 
-    FluoroCyclerRecord(
-        String sampleId, String result, String interpretation, String position) {
+    FluoroCyclerRecord(String sampleId, String result, String interpretation, String position) {
       this.sampleId = sampleId;
       this.result = result;
       this.interpretation = interpretation;
