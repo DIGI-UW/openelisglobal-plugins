@@ -99,7 +99,21 @@ protected void setupMocks() {
 }
 ```
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for:
+- Plugin architecture standards (Java 21, Maven layout, code formatting)
+- How to write and test new plugins
+- Quality requirements and prohibited patterns
+- Contribution workflow
+
 ## Analyzer Plugins
+
+### Dynamic Configuration (GenericASTM)
+
+GenericASTM allows analyzers to be configured entirely through the OpenELIS dashboard without writing Java code. See Feature 004 (analyzer-management) for details.
+
+**Note**: GenericASTM requires OpenELIS features currently on `demo/madagascar` branch. The CI workflow builds against `demo/madagascar` until these features merge to `develop`.
 
 ### ASTM Protocol
 
