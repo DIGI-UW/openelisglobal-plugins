@@ -28,7 +28,6 @@
     <module>./analyzers/pocH-100i</module>
     <module>./analyzers/HoribaPentra60</module>
     <module>./analyzers/HoribaMicros60</module>
-    <module>./analyzers/FluoroCyclerXT</module>
     <module>./analyzers/GenericASTM</module>
   </modules>
 

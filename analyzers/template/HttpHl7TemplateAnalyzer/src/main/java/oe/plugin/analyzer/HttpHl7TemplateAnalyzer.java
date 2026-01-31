@@ -31,20 +31,20 @@ public class HttpHl7TemplateAnalyzer implements AnalyzerImporterPlugin {
 	public boolean connect() {
 		List<PluginAnalyzerService.TestMapping> nameMapping = new ArrayList<>();
 		nameMapping.add(
-				new PluginAnalyzerService.TestMapping(HttpHl7TemplateAnalyzerAnalyzerImplementation.HBV, "HEPATITIS B VIRAL LOAD",
-						HttpHl7TemplateAnalyzerAnalyzerImplementation.HBV_LOINC));
+				new PluginAnalyzerService.TestMapping(HttpHl7TemplateAnalyzerImplementation.HBV, "HEPATITIS B VIRAL LOAD",
+						HttpHl7TemplateAnalyzerImplementation.HBV_LOINC));
 		nameMapping.add(
-				new PluginAnalyzerService.TestMapping(HttpHl7TemplateAnalyzerAnalyzerImplementation.HCV, "HEPATITIS C VIRAL LOAD",
-						HttpHl7TemplateAnalyzerAnalyzerImplementation.HCV_LOINC));
+				new PluginAnalyzerService.TestMapping(HttpHl7TemplateAnalyzerImplementation.HCV, "HEPATITIS C VIRAL LOAD",
+						HttpHl7TemplateAnalyzerImplementation.HCV_LOINC));
 		nameMapping.add(
-				new PluginAnalyzerService.TestMapping(HttpHl7TemplateAnalyzerAnalyzerImplementation.HIV_QUAL, "​Xpert HIV-1 Qual",
-				HttpHl7TemplateAnalyzerAnalyzerImplementation.HIV_QUAL_LOINC));
+				new PluginAnalyzerService.TestMapping(HttpHl7TemplateAnalyzerImplementation.HIV_QUAL, "​Xpert HIV-1 Qual",
+				HttpHl7TemplateAnalyzerImplementation.HIV_QUAL_LOINC));
 		nameMapping
-				.add(new PluginAnalyzerService.TestMapping(HttpHl7TemplateAnalyzerAnalyzerImplementation.HIV_VIRAL, "HIV VIRAL LOAD",
-						HttpHl7TemplateAnalyzerAnalyzerImplementation.HIV_VIRAL_LOINC));
+				.add(new PluginAnalyzerService.TestMapping(HttpHl7TemplateAnalyzerImplementation.HIV_VIRAL, "HIV VIRAL LOAD",
+						HttpHl7TemplateAnalyzerImplementation.HIV_VIRAL_LOINC));
 		nameMapping.add(
-				new PluginAnalyzerService.TestMapping(HttpHl7TemplateAnalyzerAnalyzerImplementation.COV_2, "COVID-19 PCR",
-						HttpHl7TemplateAnalyzerAnalyzerImplementation.COV_2_LOINC));
+				new PluginAnalyzerService.TestMapping(HttpHl7TemplateAnalyzerImplementation.COV_2, "COVID-19 PCR",
+						HttpHl7TemplateAnalyzerImplementation.COV_2_LOINC));
 		getInstance().addAnalyzerDatabaseParts("HttpHl7TemplateAnalyzer", "HttpHl7TemplateAnalyzer", nameMapping, true);
 		getInstance().registerAnalyzer(this);
 		return true;
