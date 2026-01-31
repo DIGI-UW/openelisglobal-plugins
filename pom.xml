@@ -7,6 +7,7 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>./test-utilities</module>
     <module>./analyzers/CobasC111</module>
     <module>./analyzers/CobasIntegra400</module>
     <module>./analyzers/CobasTaqMan48DBS</module>
@@ -27,6 +28,7 @@
     <module>./analyzers/pocH-100i</module>
     <module>./analyzers/HoribaPentra60</module>
     <module>./analyzers/HoribaMicros60</module>
+    <module>./analyzers/FluoroCyclerXT</module>
     <module>./analyzers/GenericASTM</module>
   </modules>
 
@@ -36,6 +38,23 @@
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.release>21</maven.compiler.release>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.13.1</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-core</artifactId>
+        <version>5.14.0</version>
+        <scope>test</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <dependency>
