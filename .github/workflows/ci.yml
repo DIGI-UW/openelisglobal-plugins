@@ -8,8 +8,9 @@ on:
 
 # feat/011-horiba-pentra60-micros60 (GenericASTM) requires OE with AnalyzerConfiguration;
 # use demo/madagascar until that work is merged to develop.
+# Use event.pull_request.head.ref for PRs (head_ref can be empty for same-repo PRs).
 env:
-  OE_REF: ${{ (github.event_name == 'pull_request' && github.head_ref || github.ref_name) == 'feat/011-horiba-pentra60-micros60' && 'demo/madagascar' || 'develop' }}
+  OE_REF: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.ref || github.ref_name) == 'feat/011-horiba-pentra60-micros60' && 'demo/madagascar' || 'develop' }}
 
 jobs:
   build:
