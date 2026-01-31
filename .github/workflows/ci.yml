@@ -6,8 +6,10 @@ on:
     branches: [develop, feat/011-horiba-pentra60-micros60]
   workflow_dispatch:
 
+# feat/011-horiba-pentra60-micros60 (GenericASTM) requires OE with AnalyzerConfiguration;
+# use demo/madagascar until that work is merged to develop.
 env:
-  OE_REF: "develop"
+  OE_REF: ${{ (github.event_name == 'pull_request' && github.head_ref || github.ref_name) == 'feat/011-horiba-pentra60-micros60' && 'demo/madagascar' || 'develop' }}
 
 jobs:
   build:
