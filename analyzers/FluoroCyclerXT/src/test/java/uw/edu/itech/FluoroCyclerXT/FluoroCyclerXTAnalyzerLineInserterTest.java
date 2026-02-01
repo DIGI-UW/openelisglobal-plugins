@@ -54,4 +54,18 @@ public class FluoroCyclerXTAnalyzerLineInserterTest extends PluginTestBase {
 
     assertTrue(inserter.isHeaderLine("Position;Sample ID;Result;Interpretation"));
   }
+
+  @Test
+  public void parseLine_WithCommaDelimitedLine_ReturnsRecord() {
+    FluoroCyclerXTAnalyzerLineInserter inserter = new FluoroCyclerXTAnalyzerLineInserter();
+
+    FluoroCyclerXTAnalyzerLineInserter.FluoroCyclerRecord record =
+        inserter.parseLine("SAMPLE-003,Invalid,Inconclusive,C10");
+
+    assertNotNull(record);
+    assertEquals("SAMPLE-003", record.sampleId);
+    assertEquals("Invalid", record.result);
+    assertEquals("Inconclusive", record.interpretation);
+    assertEquals("C10", record.position);
+  }
 }

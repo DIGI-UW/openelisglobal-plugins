@@ -47,7 +47,7 @@ public class FluoroCyclerXTAnalyzerLineInserter extends AnalyzerLineInserter {
   private static final int INTERPRETATION_INDEX = 2;
   private static final int POSITION_INDEX = 3;
 
-  private final AnalyzerReaderUtil readerUtil = new AnalyzerReaderUtil();
+  private AnalyzerReaderUtil readerUtil;
 
   @Override
   public boolean insert(List<String> lines, String currentUserId) {
@@ -152,10 +152,17 @@ public class FluoroCyclerXTAnalyzerLineInserter extends AnalyzerLineInserter {
 
     results.add(analyzerResult);
 
-    AnalyzerResults resultFromDB = readerUtil.createAnalyzerResultFromDB(analyzerResult);
+    AnalyzerResults resultFromDB = getReaderUtil().createAnalyzerResultFromDB(analyzerResult);
     if (resultFromDB != null) {
       results.add(resultFromDB);
     }
+  }
+
+  private AnalyzerReaderUtil getReaderUtil() {
+    if (readerUtil == null) {
+      readerUtil = new AnalyzerReaderUtil();
+    }
+    return readerUtil;
   }
 
   static class FluoroCyclerRecord {

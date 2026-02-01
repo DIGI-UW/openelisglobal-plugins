@@ -5,9 +5,9 @@ External plugin JAR for the **Hain FluoroCycler XT** PCR analyzer.
 ## Analyzer
 
 - **Type**: PCR Thermocycler
-- **Protocol**: File-based CSV import
-- **Format**: Semicolon-delimited CSV
-- **Columns**: Position, Sample ID, Result, Interpretation
+- **Protocol**: File-based delimited text import
+- **Format**: Tab, semicolon, or comma-delimited text (CSV/TSV)
+- **Columns**: Sample ID, Result, Interpretation, Position (in that order)
 
 ## Test Mappings
 

@@ -67,11 +67,16 @@ public class FluoroCyclerXTAnalyzer implements AnalyzerImporterPlugin {
       if (line == null || line.isEmpty()) {
         continue;
       }
+      // Check for explicit FluoroCycler identifier
       if (line.toLowerCase().contains("fluorocycler")) {
         return true;
       }
-      if (hasExpectedColumnCount(line, "\t") || hasExpectedColumnCount(line, ";")) {
-        return true;
+      // Check for expected header row with column names
+      String lowerLine = line.toLowerCase();
+      if (lowerLine.contains("sample") && lowerLine.contains("result")) {
+        if (lowerLine.contains("interpretation") || lowerLine.contains("position")) {
+          return true;
+        }
       }
     }
     return false;
@@ -80,9 +85,5 @@ public class FluoroCyclerXTAnalyzer implements AnalyzerImporterPlugin {
   @Override
   public AnalyzerLineInserter getAnalyzerLineInserter() {
     return new FluoroCyclerXTAnalyzerLineInserter();
-  }
-
-  private boolean hasExpectedColumnCount(String line, String delimiter) {
-    return line.split(delimiter, -1).length >= 4;
   }
 }
