@@ -90,6 +90,71 @@ Plugins MUST work generically across multiple sites. DO NOT hardcode:
 
 If customization is needed, use configuration files or database-driven settings.
 
+## Required: Lazy Initialization Pattern
+
+**All plugins MUST use lazy initialization for Spring beans and services.**
+
+This pattern allows unit testing without requiring the full Spring context and follows the framework's `AnalyzerLineInserter` base class design.
+
+### Anti-Pattern (DO NOT USE)
+
+```java
+// ❌ WRONG - Static initializers break unit testing
+static HashMap<String, Test> testNameMap = new HashMap<>();
+static String ANALYZER_ID;
+
+static {
+    testNameMap.put("GLU2", SpringContext.getBean(TestService.class).getTestByName("Glucose"));
+    ANALYZER_ID = SpringContext.getBean(AnalyzerService.class).getAnalyzerByName("MyAnalyzer").getId();
+}
+```
+
+### Correct Pattern (USE THIS)
+
+```java
+// ✅ CORRECT - Lazy initialization allows unit testing
+private TestService testService;
+private String analyzerId;
+private HashMap<String, Test> testNameMap;
+
+protected TestService getTestService() {
+    if (testService == null) {
+        testService = SpringContext.getBean(TestService.class);
+    }
+    return testService;
+}
+
+protected String getAnalyzerId() {
+    if (analyzerId == null) {
+        Analyzer analyzer = SpringContext.getBean(AnalyzerService.class)
+            .getAnalyzerByName("MyAnalyzer");
+        if (analyzer != null) {
+            analyzerId = analyzer.getId();
+        }
+    }
+    return analyzerId;
+}
+
+protected HashMap<String, Test> getTestNameMap() {
+    if (testNameMap == null) {
+        testNameMap = new HashMap<>();
+        TestService ts = getTestService();
+        testNameMap.put("GLU2", ts.getTestByName("Glucose"));
+    }
+    return testNameMap;
+}
+```
+
+**Why this matters:**
+- Static initializers run at class load time, requiring Spring context
+- Unit tests fail with `ExceptionInInitializerError` without Spring
+- Lazy initialization defers bean lookup until runtime
+- Tests can instantiate the class and verify error handling
+
+See `analyzers/AB7500Fast` or `analyzers/SysmexKX21` for reference implementations.
+
+---
+
 ## Plugin Architecture Patterns
 
 ### Pattern A: Legacy File-Based (Discouraged for New Plugins)
@@ -286,7 +351,9 @@ Before submitting PR, verify:
 
 - [ ] Java 21 (no version override in child pom)
 - [ ] Maven standard layout (`src/main/java`, `src/main/resources`)
+- [ ] **Lazy initialization pattern used** (no static SpringContext calls)
 - [ ] Tests included and passing (`mvn test`)
+- [ ] **Tests run WITHOUT @Ignore** (lazy init enables testability)
 - [ ] Code formatted (`mvn spotless:apply`)
 - [ ] No debug print statements
 - [ ] No site-specific hardcoded configurations
