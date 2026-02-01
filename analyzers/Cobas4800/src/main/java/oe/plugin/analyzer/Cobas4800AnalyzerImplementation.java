@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import org.openelisglobal.analysis.service.AnalysisService;
 import org.openelisglobal.analysis.valueholder.Analysis;
@@ -27,6 +28,7 @@ import org.openelisglobal.analyzer.valueholder.Analyzer;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerReaderUtil;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
+import org.openelisglobal.common.log.LogEvent;
 import org.openelisglobal.common.services.StatusService;
 import org.openelisglobal.common.util.DateUtil;
 import org.openelisglobal.dictionary.service.DictionaryService;
@@ -43,81 +45,231 @@ public class Cobas4800AnalyzerImplementation extends AnalyzerLineInserter {
   private static final String UNDER_THREASHOLD = "< LL";
   private static final double THREASHOLD = 20.0;
 
-  private static String RESULT_FLAG = "Result Name";
-  private static String RESULT_VALUE_FLAG = "Value";
-  private static String VL_FLAG = "HIV-1";
-  private static String EID_FLAG = "HIV-1-qual-DBS";
-  private static String TEST_FLAG = "TestType";
-  private static String ACCESSION_FLAG = "SpecimenId";
-  private static String ACCEPTED_DATE_FLAG = "AcceptedDateTime";
-  private static String TEST_TYPE_FLAG = "TestType";
-  private static String CONTROL_FLAG = "SpecimenType";
-
-  private static String NEGATIVE_ID;
-  private static String POSITIVE_ID;
-  private static String INDETERMINATE_ID;
-  private static String INVALID_ID;
-  private static String VALID_ID;
-
+  private static final String RESULT_FLAG = "Result Name";
+  private static final String RESULT_VALUE_FLAG = "Value";
+  private static final String VL_FLAG = "HIV-1";
+  private static final String EID_FLAG = "HIV-1-qual-DBS";
+  private static final String TEST_FLAG = "TestType";
+  private static final String ACCESSION_FLAG = "SpecimenId";
+  private static final String ACCEPTED_DATE_FLAG = "AcceptedDateTime";
+  private static final String TEST_TYPE_FLAG = "TestType";
+  private static final String CONTROL_FLAG = "SpecimenType";
   private static final String DATE_PATTERN = "yyyy-MM-dd HH:mm:ss";
-  static String VL_ANALYZER_ID;
-  static String EID_ANALYZER_ID;
-  private final String projectCode =
-      MessageUtil.getMessage("sample.entry.project.LART")
-          + ":"
-          + MessageUtil.getMessage("sample.entry.project.LDBS");
 
-  static HashMap<String, Test> testHeaderNameMap = new HashMap<String, Test>();
-  static HashMap<String, String> indexAnalyzerMap = new HashMap<String, String>();
-  static HashMap<String, String> resultsTypeMap = new HashMap<String, String>();
+  // Lazy-initialized services
+  private TestService testService;
+  private AnalyzerService analyzerService;
+  private SampleService sampleService;
+  private AnalysisService analysisService;
+  private DictionaryService dictionaryService;
+  private TestResultService testResultService;
+
+  // Lazy-initialized data
+  private String vlAnalyzerId;
+  private String eidAnalyzerId;
+  private Map<String, Test> testHeaderNameMap;
+  private Map<String, String> indexAnalyzerMap;
+  private Map<String, String> resultsTypeMap;
+  private String negativeId;
+  private String positiveId;
+  private String indeterminateId;
+  private String invalidId;
+  private String validId;
+  private String projectCode;
+  private String validStatusId;
+  private boolean dictionaryIdsInitialized = false;
 
   private AnalyzerReaderUtil readerUtil = new AnalyzerReaderUtil();
   private String error;
-  //  Test test = (Test)SpringContext.getBean(TestService.class).getActiveTestByName("Viral
-  // Load").get(0);
-  String validStatusId =
-      StatusService.getInstance().getStatusID(StatusService.AnalysisStatus.Finalized);
-  AnalysisService analysisService = SpringContext.getBean(AnalysisService.class);
 
-  static {
-    testHeaderNameMap.put(
-        VL_FLAG,
-        SpringContext.getBean(TestService.class)
-            .getActiveTestByName("Viral Load")
-            .get(0)); // .getTestByGUID("0e240569-c095-41c7-bfd2-049527452f16"));
-    testHeaderNameMap.put(
-        EID_FLAG,
-        SpringContext.getBean(TestService.class)
-            .getActiveTestByName("DNA PCR")
-            .get(0)); // .getTestByGUID("fe6405c8-f96b-491b-95c9-b1f635339d6a"));
-
-    resultsTypeMap.put(VL_FLAG, "A");
-    resultsTypeMap.put(EID_FLAG, "D");
-
-    AnalyzerService analyzerService = SpringContext.getBean(AnalyzerService.class);
-    Analyzer analyzer = analyzerService.getAnalyzerByName("Cobas4800VLAnalyzer");
-    VL_ANALYZER_ID = analyzer.getId();
-
-    analyzer = analyzerService.getAnalyzerByName("Cobas4800EIDAnalyzer");
-    EID_ANALYZER_ID = analyzer.getId();
-
-    indexAnalyzerMap.put(VL_FLAG, VL_ANALYZER_ID);
-    indexAnalyzerMap.put(EID_FLAG, EID_ANALYZER_ID);
-
-    DictionaryService dictionaryService = SpringContext.getBean(DictionaryService.class);
-    Test test = SpringContext.getBean(TestService.class).getActiveTestByName("DNA PCR").get(0);
-    List<TestResult> testResults =
-        SpringContext.getBean(TestResultService.class).getActiveTestResultsByTest(test.getId());
-
-    for (TestResult testResult : testResults) {
-      Dictionary dictionary = dictionaryService.getDataForId(testResult.getValue());
-      if ("Positive".equals(dictionary.getDictEntry())) POSITIVE_ID = dictionary.getId();
-      else if ("Negative".equals(dictionary.getDictEntry())) NEGATIVE_ID = dictionary.getId();
-      else if ("Invalid".equals(dictionary.getDictEntry())) INVALID_ID = dictionary.getId();
-      else if ("Valid".equals(dictionary.getDictEntry())) VALID_ID = dictionary.getId();
-      else if ("Indeterminate".equals(dictionary.getDictEntry()))
-        INDETERMINATE_ID = dictionary.getId();
+  // Lazy getters for services
+  protected TestService getTestService() {
+    if (testService == null) {
+      testService = SpringContext.getBean(TestService.class);
     }
+    return testService;
+  }
+
+  protected AnalyzerService getAnalyzerService() {
+    if (analyzerService == null) {
+      analyzerService = SpringContext.getBean(AnalyzerService.class);
+    }
+    return analyzerService;
+  }
+
+  protected SampleService getSampleService() {
+    if (sampleService == null) {
+      sampleService = SpringContext.getBean(SampleService.class);
+    }
+    return sampleService;
+  }
+
+  protected AnalysisService getAnalysisService() {
+    if (analysisService == null) {
+      analysisService = SpringContext.getBean(AnalysisService.class);
+    }
+    return analysisService;
+  }
+
+  protected DictionaryService getDictionaryService() {
+    if (dictionaryService == null) {
+      dictionaryService = SpringContext.getBean(DictionaryService.class);
+    }
+    return dictionaryService;
+  }
+
+  protected TestResultService getTestResultService() {
+    if (testResultService == null) {
+      testResultService = SpringContext.getBean(TestResultService.class);
+    }
+    return testResultService;
+  }
+
+  // Lazy getters for data
+  protected String getProjectCode() {
+    if (projectCode == null) {
+      projectCode =
+          MessageUtil.getMessage("sample.entry.project.LART")
+              + ":"
+              + MessageUtil.getMessage("sample.entry.project.LDBS");
+    }
+    return projectCode;
+  }
+
+  protected String getValidStatusId() {
+    if (validStatusId == null) {
+      validStatusId =
+          StatusService.getInstance().getStatusID(StatusService.AnalysisStatus.Finalized);
+    }
+    return validStatusId;
+  }
+
+  protected String getVlAnalyzerId() {
+    if (vlAnalyzerId == null) {
+      Analyzer analyzer = getAnalyzerService().getAnalyzerByName("Cobas4800VLAnalyzer");
+      if (analyzer != null) {
+        vlAnalyzerId = analyzer.getId();
+      } else {
+        LogEvent.logWarn(
+            this.getClass().getSimpleName(),
+            "getVlAnalyzerId",
+            "Analyzer not found: Cobas4800VLAnalyzer");
+      }
+    }
+    return vlAnalyzerId;
+  }
+
+  protected String getEidAnalyzerId() {
+    if (eidAnalyzerId == null) {
+      Analyzer analyzer = getAnalyzerService().getAnalyzerByName("Cobas4800EIDAnalyzer");
+      if (analyzer != null) {
+        eidAnalyzerId = analyzer.getId();
+      } else {
+        LogEvent.logWarn(
+            this.getClass().getSimpleName(),
+            "getEidAnalyzerId",
+            "Analyzer not found: Cobas4800EIDAnalyzer");
+      }
+    }
+    return eidAnalyzerId;
+  }
+
+  protected Map<String, Test> getTestHeaderNameMap() {
+    if (testHeaderNameMap == null) {
+      testHeaderNameMap = new HashMap<>();
+      TestService ts = getTestService();
+
+      List<Test> vlTests = ts.getActiveTestByName("Viral Load");
+      if (vlTests != null && !vlTests.isEmpty()) {
+        testHeaderNameMap.put(VL_FLAG, vlTests.get(0));
+      } else {
+        LogEvent.logWarn(
+            this.getClass().getSimpleName(), "getTestHeaderNameMap", "Test not found: Viral Load");
+      }
+
+      List<Test> pcrTests = ts.getActiveTestByName("DNA PCR");
+      if (pcrTests != null && !pcrTests.isEmpty()) {
+        testHeaderNameMap.put(EID_FLAG, pcrTests.get(0));
+      } else {
+        LogEvent.logWarn(
+            this.getClass().getSimpleName(), "getTestHeaderNameMap", "Test not found: DNA PCR");
+      }
+    }
+    return testHeaderNameMap;
+  }
+
+  protected Map<String, String> getIndexAnalyzerMap() {
+    if (indexAnalyzerMap == null) {
+      indexAnalyzerMap = new HashMap<>();
+      indexAnalyzerMap.put(VL_FLAG, getVlAnalyzerId());
+      indexAnalyzerMap.put(EID_FLAG, getEidAnalyzerId());
+    }
+    return indexAnalyzerMap;
+  }
+
+  protected Map<String, String> getResultsTypeMap() {
+    if (resultsTypeMap == null) {
+      resultsTypeMap = new HashMap<>();
+      resultsTypeMap.put(VL_FLAG, "A");
+      resultsTypeMap.put(EID_FLAG, "D");
+    }
+    return resultsTypeMap;
+  }
+
+  protected void initializeDictionaryIds() {
+    if (!dictionaryIdsInitialized) {
+      Map<String, Test> testMap = getTestHeaderNameMap();
+      Test test = testMap.get(EID_FLAG);
+      if (test != null) {
+        List<TestResult> testResults =
+            getTestResultService().getActiveTestResultsByTest(test.getId());
+        DictionaryService ds = getDictionaryService();
+
+        for (TestResult testResult : testResults) {
+          Dictionary dictionary = ds.getDataForId(testResult.getValue());
+          if (dictionary != null) {
+            String dictEntry = dictionary.getDictEntry();
+            if ("Positive".equals(dictEntry)) {
+              positiveId = dictionary.getId();
+            } else if ("Negative".equals(dictEntry)) {
+              negativeId = dictionary.getId();
+            } else if ("Invalid".equals(dictEntry)) {
+              invalidId = dictionary.getId();
+            } else if ("Valid".equals(dictEntry)) {
+              validId = dictionary.getId();
+            } else if ("Indeterminate".equals(dictEntry)) {
+              indeterminateId = dictionary.getId();
+            }
+          }
+        }
+      }
+      dictionaryIdsInitialized = true;
+    }
+  }
+
+  protected String getNegativeId() {
+    initializeDictionaryIds();
+    return negativeId;
+  }
+
+  protected String getPositiveId() {
+    initializeDictionaryIds();
+    return positiveId;
+  }
+
+  protected String getIndeterminateId() {
+    initializeDictionaryIds();
+    return indeterminateId;
+  }
+
+  protected String getInvalidId() {
+    initializeDictionaryIds();
+    return invalidId;
+  }
+
+  protected String getValidId() {
+    initializeDictionaryIds();
+    return validId;
   }
 
   public String getError() {
@@ -129,17 +281,17 @@ public class Cobas4800AnalyzerImplementation extends AnalyzerLineInserter {
       resultList.add(result);
       return;
     }
-    SampleService sampleServ = SpringContext.getBean(SampleService.class);
+    SampleService sampleServ = getSampleService();
     String labPrefix = result.getAccessionNumber().substring(0, 4);
 
-    if (!projectCode.contains(labPrefix)
+    if (!getProjectCode().contains(labPrefix)
         || sampleServ.getSampleByAccessionNumber(result.getAccessionNumber()) == null) return;
 
     List<Analysis> analyses =
-        analysisService.getAnalysisByAccessionAndTestId(
-            result.getAccessionNumber(), result.getTestId());
+        getAnalysisService()
+            .getAnalysisByAccessionAndTestId(result.getAccessionNumber(), result.getTestId());
     for (Analysis analysis : analyses) {
-      if (analysis.getStatusId().equals(validStatusId)) return;
+      if (analysis.getStatusId().equals(getValidStatusId())) return;
     }
     resultList.add(result);
 
@@ -180,7 +332,6 @@ public class Cobas4800AnalyzerImplementation extends AnalyzerLineInserter {
             return o1.getAccessionNumber().compareTo(o2.getAccessionNumber());
           }
         });
-    //  ordersExport(results);
     return persistImport(currentUserId, results);
   }
 
@@ -215,7 +366,7 @@ public class Cobas4800AnalyzerImplementation extends AnalyzerLineInserter {
     accessionNumber = accessionNumber.replace(" ", "");
     String labPrefix = accessionNumber.substring(0, 4);
 
-    if (!projectCode.contains(labPrefix) && accessionNumber.length() >= 9)
+    if (!getProjectCode().contains(labPrefix) && accessionNumber.length() >= 9)
       accessionNumber = accessionNumber.substring(0, 9);
 
     analyzerResults.setAccessionNumber(accessionNumber);
@@ -232,14 +383,19 @@ public class Cobas4800AnalyzerImplementation extends AnalyzerLineInserter {
     String testKey = line.split(TEST_TYPE_FLAG)[1];
     testKey = testKey.split("LisOrderId")[0].trim().substring(2);
     testKey = testKey.substring(0, testKey.length() - 1);
-    analyzerResults.setTestId(testHeaderNameMap.get(testKey).getId());
-    analyzerResults.setTestName(testHeaderNameMap.get(testKey).getName());
+
+    Map<String, Test> testMap = getTestHeaderNameMap();
+    Test test = testMap.get(testKey);
+    if (test != null) {
+      analyzerResults.setTestId(test.getId());
+      analyzerResults.setTestName(test.getName());
+    }
 
     // ANALYZER_ID processing
-    analyzerResults.setAnalyzerId(indexAnalyzerMap.get(testKey));
+    analyzerResults.setAnalyzerId(getIndexAnalyzerMap().get(testKey));
 
     // RESULT_TYPE processing
-    analyzerResults.setResultType(resultsTypeMap.get(testKey));
+    analyzerResults.setResultType(getResultsTypeMap().get(testKey));
 
     // RESULT processing
     line = lines.get(entry.getValue());
@@ -275,9 +431,7 @@ public class Cobas4800AnalyzerImplementation extends AnalyzerLineInserter {
         if (resultAsDouble <= THREASHOLD) {
           result = UNDER_THREASHOLD;
         } else {
-          result =
-              String.valueOf(
-                  (int) (Math.round(resultAsDouble))); // + result.substring(result.indexOf("("));
+          result = String.valueOf((int) (Math.round(resultAsDouble)));
           result = result + "(" + String.format("%.3g%n", Math.log10(resultAsDouble));
           result = result + ")";
         }
@@ -309,9 +463,7 @@ public class Cobas4800AnalyzerImplementation extends AnalyzerLineInserter {
         if (resultAsDouble <= THREASHOLD) {
           result = UNDER_THREASHOLD;
         } else {
-          result =
-              String.valueOf(
-                  (int) (Math.round(resultAsDouble))); // + result.substring(result.indexOf("("));
+          result = String.valueOf((int) (Math.round(resultAsDouble)));
           result = result + "(" + String.format("%.3g%n", Math.log10(resultAsDouble));
           result = result + ")";
         }
@@ -326,11 +478,11 @@ public class Cobas4800AnalyzerImplementation extends AnalyzerLineInserter {
   private String getEIDResults(String result) {
     result = result.replace("\"", "").trim();
 
-    if (result.toLowerCase().equals("not detected")) result = NEGATIVE_ID;
-    else if (result.toLowerCase().equals("detected")) result = POSITIVE_ID;
-    else if (result.toLowerCase().equals("invalid")) result = INVALID_ID;
-    else if (result.toLowerCase().equals("valid")) result = VALID_ID;
-    else result = INDETERMINATE_ID;
+    if (result.toLowerCase().equals("not detected")) result = getNegativeId();
+    else if (result.toLowerCase().equals("detected")) result = getPositiveId();
+    else if (result.toLowerCase().equals("invalid")) result = getInvalidId();
+    else if (result.toLowerCase().equals("valid")) result = getValidId();
+    else result = getIndeterminateId();
 
     return result;
   }

@@ -126,7 +126,8 @@ public class SysmexKX21AnalyzerImplementation extends AnalyzerLineInserter {
       testHeaderNameMap.put("HB", ts.getTestByName("Hémoglobine"));
       testHeaderNameMap.put("Hct", ts.getTestByName("Hématocrite"));
       testHeaderNameMap.put("VGM", ts.getTestByName("Volume Globulaire Moyen"));
-      testHeaderNameMap.put("TCMH", ts.getTestByName("Teneur Corpusculaire Moyenne en Hémoglobine"));
+      testHeaderNameMap.put(
+          "TCMH", ts.getTestByName("Teneur Corpusculaire Moyenne en Hémoglobine"));
       testHeaderNameMap.put(
           "CCMH", ts.getTestByName("Concentration Corpusculaire Moyenne en Hémoglobine"));
       testHeaderNameMap.put("PLT", ts.getTestByName("Plaquette"));

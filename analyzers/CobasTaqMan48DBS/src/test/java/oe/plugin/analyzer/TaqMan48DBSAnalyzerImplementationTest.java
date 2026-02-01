@@ -16,27 +16,28 @@
 
 package oe.plugin.analyzer;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 import org.openelisglobal.plugin.test.PluginTestBase;
 
-public class TaqMan96DBSAnalyzerImplementationTest extends PluginTestBase {
+public class TaqMan48DBSAnalyzerImplementationTest extends PluginTestBase {
 
   @Test
   public void testConstructor_CanInstantiateWithoutSpringContext() {
-    TaqMan96DBSAnalyzerImplementation impl = new TaqMan96DBSAnalyzerImplementation();
+    TaqMan48DBSAnalyzerImplementation impl = new TaqMan48DBSAnalyzerImplementation();
 
     assertNotNull("Implementation should be created successfully", impl);
   }
 
   @Test
-  public void testGetError_InitiallyNull() {
-    TaqMan96DBSAnalyzerImplementation impl = new TaqMan96DBSAnalyzerImplementation();
+  public void testGetError_ReturnsErrorMessage() {
+    TaqMan48DBSAnalyzerImplementation impl = new TaqMan48DBSAnalyzerImplementation();
 
     String error = impl.getError();
 
-    assertNull("Error should be null initially", error);
+    // This analyzer returns a fixed error message
+    assertEquals("Cobas TaqMan48 DBS analyzer unable to write to database", error);
   }
 }

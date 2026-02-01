@@ -22,6 +22,7 @@ import org.openelisglobal.analyzer.valueholder.Analyzer;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerReaderUtil;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
+import org.openelisglobal.common.log.LogEvent;
 import org.openelisglobal.common.services.StatusService;
 import org.openelisglobal.common.util.DateUtil;
 import org.openelisglobal.dictionary.service.DictionaryService;
@@ -40,42 +41,173 @@ public class TaqMan96DBSAnalyzerImplementation extends AnalyzerLineInserter {
   private int RESULT = 0;
   private int SAMPLE_TYPE = 0;
 
-  // private static final String DELIMITER = "\\t";
-  private static String DELIMITER = "\\t";
   private static final String DATE_PATTERN = "yyyy/MM/dd HH:mm:ss";
-  private static String NEGATIVE_ID;
-  private static String POSITIVE_ID;
-  private static String INDETERMINATE_ID;
-  private static String INVALID_ID;
-  private static String VALID_ID;
-  static String ANALYZER_ID;
+  private static final String ANALYZER_NAME = "TaqMan96DBSAnalyzer";
+
+  // Lazy-initialized services
+  private TestService testService;
+  private AnalyzerService analyzerService;
+  private SampleService sampleService;
+  private AnalysisService analysisService;
+  private DictionaryService dictionaryService;
+  private TestResultService testResultService;
+
+  // Lazy-initialized data
+  private String analyzerId;
+  private Test dnaPcrTest;
+  private String negativeId;
+  private String positiveId;
+  private String indeterminateId;
+  private String invalidId;
+  private String validId;
+  private String projectCode;
+  private String validStatusId;
+  private String delimiter = "\\t";
+  private boolean dictionaryIdsInitialized = false;
+
   private AnalyzerReaderUtil readerUtil = new AnalyzerReaderUtil();
   private String error;
-  private final String projectCode = MessageUtil.getMessage("sample.entry.project.LDBS");
 
-  static Test test = SpringContext.getBean(TestService.class).getActiveTestByName("DNA PCR").get(0);
-  String validStatusId =
-      StatusService.getInstance().getStatusID(StatusService.AnalysisStatus.Finalized);
-  AnalysisService analysisService = SpringContext.getBean(AnalysisService.class);
-
-  static {
-    AnalyzerService analyzerService = SpringContext.getBean(AnalyzerService.class);
-    Analyzer analyzer = analyzerService.getAnalyzerByName("TaqMan96DBSAnalyzer");
-    ANALYZER_ID = analyzer.getId();
-
-    DictionaryService dictionaryService = SpringContext.getBean(DictionaryService.class);
-    List<TestResult> testResults =
-        SpringContext.getBean(TestResultService.class).getActiveTestResultsByTest(test.getId());
-
-    for (TestResult testResult : testResults) {
-      Dictionary dictionary = dictionaryService.getDataForId(testResult.getValue());
-      if ("Positive".equals(dictionary.getDictEntry())) POSITIVE_ID = dictionary.getId();
-      else if ("Negative".equals(dictionary.getDictEntry())) NEGATIVE_ID = dictionary.getId();
-      else if ("Invalid".equals(dictionary.getDictEntry())) INVALID_ID = dictionary.getId();
-      else if ("Valid".equals(dictionary.getDictEntry())) VALID_ID = dictionary.getId();
-      else if ("Indeterminate".equals(dictionary.getDictEntry()))
-        INDETERMINATE_ID = dictionary.getId();
+  // Lazy getters for services
+  protected TestService getTestService() {
+    if (testService == null) {
+      testService = SpringContext.getBean(TestService.class);
     }
+    return testService;
+  }
+
+  protected AnalyzerService getAnalyzerService() {
+    if (analyzerService == null) {
+      analyzerService = SpringContext.getBean(AnalyzerService.class);
+    }
+    return analyzerService;
+  }
+
+  protected SampleService getSampleService() {
+    if (sampleService == null) {
+      sampleService = SpringContext.getBean(SampleService.class);
+    }
+    return sampleService;
+  }
+
+  protected AnalysisService getAnalysisService() {
+    if (analysisService == null) {
+      analysisService = SpringContext.getBean(AnalysisService.class);
+    }
+    return analysisService;
+  }
+
+  protected DictionaryService getDictionaryService() {
+    if (dictionaryService == null) {
+      dictionaryService = SpringContext.getBean(DictionaryService.class);
+    }
+    return dictionaryService;
+  }
+
+  protected TestResultService getTestResultService() {
+    if (testResultService == null) {
+      testResultService = SpringContext.getBean(TestResultService.class);
+    }
+    return testResultService;
+  }
+
+  // Lazy getters for data
+  protected String getProjectCode() {
+    if (projectCode == null) {
+      projectCode = MessageUtil.getMessage("sample.entry.project.LDBS");
+    }
+    return projectCode;
+  }
+
+  protected String getValidStatusId() {
+    if (validStatusId == null) {
+      validStatusId =
+          StatusService.getInstance().getStatusID(StatusService.AnalysisStatus.Finalized);
+    }
+    return validStatusId;
+  }
+
+  protected String getAnalyzerId() {
+    if (analyzerId == null) {
+      Analyzer analyzer = getAnalyzerService().getAnalyzerByName(ANALYZER_NAME);
+      if (analyzer != null) {
+        analyzerId = analyzer.getId();
+      } else {
+        LogEvent.logWarn(
+            this.getClass().getSimpleName(),
+            "getAnalyzerId",
+            "Analyzer not found: " + ANALYZER_NAME);
+      }
+    }
+    return analyzerId;
+  }
+
+  protected Test getDnaPcrTest() {
+    if (dnaPcrTest == null) {
+      List<Test> tests = getTestService().getActiveTestByName("DNA PCR");
+      if (tests != null && !tests.isEmpty()) {
+        dnaPcrTest = tests.get(0);
+      } else {
+        LogEvent.logWarn(
+            this.getClass().getSimpleName(), "getDnaPcrTest", "Test not found: DNA PCR");
+      }
+    }
+    return dnaPcrTest;
+  }
+
+  protected void initializeDictionaryIds() {
+    if (!dictionaryIdsInitialized) {
+      Test test = getDnaPcrTest();
+      if (test != null) {
+        List<TestResult> testResults =
+            getTestResultService().getActiveTestResultsByTest(test.getId());
+        DictionaryService ds = getDictionaryService();
+
+        for (TestResult testResult : testResults) {
+          Dictionary dictionary = ds.getDataForId(testResult.getValue());
+          if (dictionary != null) {
+            String dictEntry = dictionary.getDictEntry();
+            if ("Positive".equals(dictEntry)) {
+              positiveId = dictionary.getId();
+            } else if ("Negative".equals(dictEntry)) {
+              negativeId = dictionary.getId();
+            } else if ("Invalid".equals(dictEntry)) {
+              invalidId = dictionary.getId();
+            } else if ("Valid".equals(dictEntry)) {
+              validId = dictionary.getId();
+            } else if ("Indeterminate".equals(dictEntry)) {
+              indeterminateId = dictionary.getId();
+            }
+          }
+        }
+      }
+      dictionaryIdsInitialized = true;
+    }
+  }
+
+  protected String getNegativeId() {
+    initializeDictionaryIds();
+    return negativeId;
+  }
+
+  protected String getPositiveId() {
+    initializeDictionaryIds();
+    return positiveId;
+  }
+
+  protected String getIndeterminateId() {
+    initializeDictionaryIds();
+    return indeterminateId;
+  }
+
+  protected String getInvalidId() {
+    initializeDictionaryIds();
+    return invalidId;
+  }
+
+  protected String getValidId() {
+    initializeDictionaryIds();
+    return validId;
   }
 
   public boolean insert(List<String> lines, String currentUserId) {
@@ -98,25 +230,26 @@ public class TaqMan96DBSAnalyzerImplementation extends AnalyzerLineInserter {
   }
 
   private void createAnalyzerResultFromLine(String line, List<AnalyzerResults> resultList) {
-    String[] fields = line.split(DELIMITER);
+    String[] fields = line.split(delimiter);
 
     AnalyzerResults analyzerResults = new AnalyzerResults();
 
     String result = getAppropriateResults(fields[this.RESULT]);
     String accessionNumber = fields[this.ORDER_NUMBER].replace("\"", "").trim();
     accessionNumber = accessionNumber.replace(" ", "");
-    if (accessionNumber.startsWith(projectCode) && accessionNumber.length() >= 9)
+    if (accessionNumber.startsWith(getProjectCode()) && accessionNumber.length() >= 9)
       accessionNumber = accessionNumber.substring(0, 9);
 
-    analyzerResults.setAnalyzerId(ANALYZER_ID);
+    Test test = getDnaPcrTest();
+    analyzerResults.setAnalyzerId(getAnalyzerId());
     analyzerResults.setResult(result);
     analyzerResults.setCompleteDate(
         DateUtil.convertStringDateToTimestampWithPattern(
             fields[this.ORDER_DATE].replace("\"", "").trim(), DATE_PATTERN));
-    analyzerResults.setTestId(test.getId());
+    analyzerResults.setTestId(test != null ? test.getId() : null);
     analyzerResults.setIsControl(
         fields[this.RESULT].replace("\"", "").trim().toUpperCase().equals("VALID"));
-    analyzerResults.setTestName(test.getName());
+    analyzerResults.setTestName(test != null ? test.getName() : null);
     analyzerResults.setResultType("D");
 
     if (analyzerResults.getIsControl()) {
@@ -130,11 +263,11 @@ public class TaqMan96DBSAnalyzerImplementation extends AnalyzerLineInserter {
   private String getAppropriateResults(String result) {
     result = result.replace("\"", "").trim();
 
-    if (result.toLowerCase().equals("not detected dbs")) result = NEGATIVE_ID;
-    else if (result.toLowerCase().equals("detected dbs")) result = POSITIVE_ID;
-    else if (result.toLowerCase().equals("invalid")) result = INVALID_ID;
-    else if (result.toLowerCase().equals("valid")) result = VALID_ID;
-    else result = INDETERMINATE_ID;
+    if (result.toLowerCase().equals("not detected dbs")) result = getNegativeId();
+    else if (result.toLowerCase().equals("detected dbs")) result = getPositiveId();
+    else if (result.toLowerCase().equals("invalid")) result = getInvalidId();
+    else if (result.toLowerCase().equals("valid")) result = getValidId();
+    else result = getIndeterminateId();
 
     return result;
   }
@@ -158,8 +291,8 @@ public class TaqMan96DBSAnalyzerImplementation extends AnalyzerLineInserter {
 
   private boolean manageColumnsIndex(List<String> lines) {
     if (getColumnsLine(lines) < 0) return false;
-    DELIMITER = lines.get(getColumnsLine(lines)).substring(14, 15);
-    String[] fields = lines.get(getColumnsLine(lines)).split(DELIMITER);
+    delimiter = lines.get(getColumnsLine(lines)).substring(14, 15);
+    String[] fields = lines.get(getColumnsLine(lines)).split(delimiter);
 
     for (int i = 0; i < fields.length; i++) {
       String header = fields[i].replace("\"", "");
@@ -181,15 +314,15 @@ public class TaqMan96DBSAnalyzerImplementation extends AnalyzerLineInserter {
       resultList.add(result);
       return;
     }
-    SampleService sampleServ = SpringContext.getBean(SampleService.class);
-    if (!result.getAccessionNumber().startsWith(projectCode)
+    SampleService sampleServ = getSampleService();
+    if (!result.getAccessionNumber().startsWith(getProjectCode())
         || sampleServ.getSampleByAccessionNumber(result.getAccessionNumber()) == null) return;
 
     List<Analysis> analyses =
-        analysisService.getAnalysisByAccessionAndTestId(
-            result.getAccessionNumber(), result.getTestId());
+        getAnalysisService()
+            .getAnalysisByAccessionAndTestId(result.getAccessionNumber(), result.getTestId());
     for (Analysis analysis : analyses) {
-      if (analysis.getStatusId().equals(validStatusId)) return;
+      if (analysis.getStatusId().equals(getValidStatusId())) return;
     }
     resultList.add(result);
 
