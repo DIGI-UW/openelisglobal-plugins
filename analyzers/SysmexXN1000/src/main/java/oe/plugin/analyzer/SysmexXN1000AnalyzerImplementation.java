@@ -24,18 +24,135 @@ import org.openelisglobal.test.valueholder.Test;
 
 public class SysmexXN1000AnalyzerImplementation extends AnalyzerLineInserter {
 
-  public SysmexXN1000AnalyzerImplementation() {
-    ORDER_NUMBER_INDEX = 0;
-    ORDER_DAY_INDEX = 0;
-    ORDER_HOUR_INDEX = 0;
-    indexTestMap = new HashMap();
-    readerUtil = new AnalyzerReaderUtil();
-    validStatusId =
-        StatusService.getInstance()
-            .getStatusID(org.openelisglobal.common.services.StatusService.AnalysisStatus.Finalized);
-    analysisDao = SpringContext.getBean(AnalysisDAO.class);
+  private static final String ANALYZER_NAME = "SysmexXN1000Analyzer";
+  private static final String DELIMITER = ",";
+  private static final String DATE_PATTERN = "dd/MM/yyyy HH:mm:ss";
+  private static final String CONTROL_ACCESSION_PREFIX = "QC-";
+
+  private int ORDER_NUMBER_INDEX = 0;
+  private int ORDER_DAY_INDEX = 0;
+  private int ORDER_HOUR_INDEX = 0;
+
+  // Lazy-initialized services
+  private TestService testService;
+  private AnalyzerService analyzerService;
+  private SampleService sampleService;
+  private AnalysisDAO analysisDao;
+
+  // Lazy-initialized data
+  private String analyzerId;
+  private String projectCode;
+  private String validStatusId;
+  private HashMap<String, Test> testHeaderNameMap;
+  private HashMap<String, String> scaleIndexMap;
+
+  HashMap<String, String> indexTestMap = new HashMap<>();
+  private AnalyzerReaderUtil readerUtil = new AnalyzerReaderUtil();
+
+  // Lazy getter for TestService
+  protected TestService getTestService() {
+    if (testService == null) {
+      testService = SpringContext.getBean(TestService.class);
+    }
+    return testService;
   }
 
+  // Lazy getter for AnalyzerService
+  protected AnalyzerService getAnalyzerService() {
+    if (analyzerService == null) {
+      analyzerService = SpringContext.getBean(AnalyzerService.class);
+    }
+    return analyzerService;
+  }
+
+  // Lazy getter for SampleService
+  protected SampleService getSampleService() {
+    if (sampleService == null) {
+      sampleService = SpringContext.getBean(SampleService.class);
+    }
+    return sampleService;
+  }
+
+  // Lazy getter for AnalysisDAO
+  protected AnalysisDAO getAnalysisDao() {
+    if (analysisDao == null) {
+      analysisDao = SpringContext.getBean(AnalysisDAO.class);
+    }
+    return analysisDao;
+  }
+
+  // Lazy getter for analyzer ID
+  protected String getAnalyzerId() {
+    if (analyzerId == null) {
+      Analyzer analyzer = getAnalyzerService().getAnalyzerByName(ANALYZER_NAME);
+      if (analyzer != null) {
+        analyzerId = analyzer.getId();
+      }
+    }
+    return analyzerId;
+  }
+
+  // Lazy getter for project code
+  protected String getProjectCode() {
+    if (projectCode == null) {
+      projectCode = MessageUtil.getMessage("sample.entry.project.LART");
+    }
+    return projectCode;
+  }
+
+  // Lazy getter for valid status ID
+  protected String getValidStatusId() {
+    if (validStatusId == null) {
+      validStatusId =
+          StatusService.getInstance().getStatusID(StatusService.AnalysisStatus.Finalized);
+    }
+    return validStatusId;
+  }
+
+  // Lazy getter for test header name map
+  protected HashMap<String, Test> getTestHeaderNameMap() {
+    if (testHeaderNameMap == null) {
+      testHeaderNameMap = new HashMap<>();
+      TestService ts = getTestService();
+      testHeaderNameMap.put("WBC(10^3/uL)", ts.getTestByName("GB"));
+      testHeaderNameMap.put("RBC(10^6/uL)", ts.getTestByName("GR"));
+      testHeaderNameMap.put("HGB(g/dL)", ts.getTestByName("Hb"));
+      testHeaderNameMap.put("HCT(%)", ts.getTestByName("HCT"));
+      testHeaderNameMap.put("MCV(fL)", ts.getTestByName("VGM"));
+      testHeaderNameMap.put("MCH(pg)", ts.getTestByName("TCMH"));
+      testHeaderNameMap.put("MCHC(g/dL)", ts.getTestByName("CCMH"));
+      testHeaderNameMap.put("PLT(10^3/uL)", ts.getTestByName("PLQ"));
+      testHeaderNameMap.put("NEUT%(%)", ts.getTestByName("Neut %"));
+      testHeaderNameMap.put("LYMPH%(%)", ts.getTestByName("Lymph %"));
+      testHeaderNameMap.put("MONO%(%)", ts.getTestByName("Mono %"));
+      testHeaderNameMap.put("EO%(%)", ts.getTestByName("Eo %"));
+      testHeaderNameMap.put("BASO%(%)", ts.getTestByName("Baso %"));
+    }
+    return testHeaderNameMap;
+  }
+
+  // Lazy getter for scale index map
+  protected HashMap<String, String> getScaleIndexMap() {
+    if (scaleIndexMap == null) {
+      scaleIndexMap = new HashMap<>();
+      scaleIndexMap.put("WBC(10^3/uL)", "1,10^3uL");
+      scaleIndexMap.put("RBC(10^6/uL)", "1,10^6uL");
+      scaleIndexMap.put("HGB(g/dL)", "1,g/dL");
+      scaleIndexMap.put("HCT(%)", "1,%");
+      scaleIndexMap.put("MCV(fL)", "1,fL");
+      scaleIndexMap.put("MCH(pg)", "1,pg");
+      scaleIndexMap.put("MCHC(g/dL)", "1,g/dL");
+      scaleIndexMap.put("PLT(10^3/uL)", "1,10^3/uL");
+      scaleIndexMap.put("NEUT%(%)", "1,%");
+      scaleIndexMap.put("LYMPH%(%)", "1,%");
+      scaleIndexMap.put("MONO%(%)", "1,%");
+      scaleIndexMap.put("EO%(%)", "1,%");
+      scaleIndexMap.put("BASO%(%)", "1,%");
+    }
+    return scaleIndexMap;
+  }
+
+  @SuppressWarnings({"rawtypes", "unchecked"})
   public boolean insert(List lines, String currentUserId) {
     List results = new ArrayList();
     boolean columnsFound = manageColumnsIndex(lines);
@@ -60,10 +177,13 @@ public class SysmexXN1000AnalyzerImplementation extends AnalyzerLineInserter {
 
   private String[] getAppropriateResults(String result, String testKey) {
     result = result.trim();
-    String scale = (String) scaleIndexMap.get(testKey);
+    String scale = getScaleIndexMap().get(testKey);
+    if (scale == null) {
+      return new String[] {result, ""};
+    }
     String[] results = scale.split(",");
     int dem = Integer.parseInt(results[0]);
-    double d = (0.0D / 0.0D);
+    double d = Double.NaN;
     try {
       d = Double.parseDouble(result) / (double) dem;
     } catch (NumberFormatException numberformatexception) {
@@ -73,12 +193,13 @@ public class SysmexXN1000AnalyzerImplementation extends AnalyzerLineInserter {
     return results;
   }
 
+  @SuppressWarnings("rawtypes")
   private boolean manageColumnsIndex(List lines) {
     if (getColumnsLine(lines) < 0) return false;
     String[] headers = ((String) lines.get(getColumnsLine(lines))).split(",");
     for (Integer i = (0); i < headers.length; i = (i + 1)) {
       String header = headers[i].trim();
-      if (testHeaderNameMap.containsKey(header)) indexTestMap.put(i.toString(), header);
+      if (getTestHeaderNameMap().containsKey(header)) indexTestMap.put(i.toString(), header);
       else if ("Sample No.".equals(header)) ORDER_NUMBER_INDEX = i;
       else if ("Date".equals(header)) ORDER_DAY_INDEX = i;
       else if ("Time".equals(header)) ORDER_HOUR_INDEX = i;
@@ -87,6 +208,7 @@ public class SysmexXN1000AnalyzerImplementation extends AnalyzerLineInserter {
     return ORDER_NUMBER_INDEX != 0 && ORDER_DAY_INDEX != 0 && ORDER_HOUR_INDEX != 0;
   }
 
+  @SuppressWarnings("rawtypes")
   public int getColumnsLine(List lines) {
     for (int k = 0; k < lines.size(); k++) {
       String line = (String) lines.get(k);
@@ -100,18 +222,22 @@ public class SysmexXN1000AnalyzerImplementation extends AnalyzerLineInserter {
     return -1;
   }
 
+  @SuppressWarnings({"rawtypes", "unchecked"})
   private void createAnalyzerResultFromLine(String line, List resultList) {
     String fields[] = line.split(",");
     for (Integer k = (0); k < fields.length; k = (k + 1))
       if (indexTestMap.containsKey(k.toString())) {
-        String testKey = (String) indexTestMap.get(k.toString());
+        String testKey = indexTestMap.get(k.toString());
         AnalyzerResults aResult = new AnalyzerResults();
-        aResult.setTestId(((Test) testHeaderNameMap.get(testKey)).getId());
-        aResult.setTestName(((Test) testHeaderNameMap.get(testKey)).getName());
+        Test test = getTestHeaderNameMap().get(testKey);
+        if (test != null) {
+          aResult.setTestId(test.getId());
+          aResult.setTestName(test.getName());
+        }
         String result[] = getAppropriateResults(fields[k], testKey);
         aResult.setResult(result[0]);
         aResult.setUnits(result[1]);
-        aResult.setAnalyzerId(ANALYZER_ID);
+        aResult.setAnalyzerId(getAnalyzerId());
         aResult.setAccessionNumber(fields[ORDER_NUMBER_INDEX].trim());
         aResult.setResultType("N");
         String dateTime = fields[ORDER_DAY_INDEX].trim();
@@ -121,93 +247,31 @@ public class SysmexXN1000AnalyzerImplementation extends AnalyzerLineInserter {
                 .append(fields[ORDER_HOUR_INDEX].trim())
                 .toString();
         aResult.setCompleteDate(getTimestampFromDate(dateTime));
-        // System.out.println((new
         if (aResult.getAccessionNumber() != null)
-          aResult.setIsControl(aResult.getAccessionNumber().startsWith("QC-"));
+          aResult.setIsControl(aResult.getAccessionNumber().startsWith(CONTROL_ACCESSION_PREFIX));
         else aResult.setIsControl(false);
         addValueToResults(resultList, aResult);
       }
   }
 
+  @SuppressWarnings({"rawtypes", "unchecked"})
   private void addValueToResults(List resultList, AnalyzerResults result) {
     if (result.getIsControl()) {
       resultList.add(result);
       return;
     }
-    SampleService sampleServ = SpringContext.getBean(SampleService.class);
-    if (!result.getAccessionNumber().startsWith(projectCode)
-        || sampleServ.getSampleByAccessionNumber(result.getAccessionNumber()) == null) return;
+    if (!result.getAccessionNumber().startsWith(getProjectCode())
+        || getSampleService().getSampleByAccessionNumber(result.getAccessionNumber()) == null)
+      return;
     List analyses =
-        analysisDao.getAnalysisByAccessionAndTestId(
-            result.getAccessionNumber(), result.getTestId());
+        getAnalysisDao()
+            .getAnalysisByAccessionAndTestId(result.getAccessionNumber(), result.getTestId());
     for (Iterator iterator = analyses.iterator(); iterator.hasNext(); ) {
       Analysis analysis = (Analysis) iterator.next();
-      if (analysis.getStatusId().equals(validStatusId)) return;
+      if (analysis.getStatusId().equals(getValidStatusId())) return;
     }
     resultList.add(result);
     AnalyzerResults resultFromDB = readerUtil.createAnalyzerResultFromDB(result);
     if (resultFromDB != null) resultList.add(resultFromDB);
-  }
-
-  private int ORDER_NUMBER_INDEX;
-  private int ORDER_DAY_INDEX;
-  private int ORDER_HOUR_INDEX;
-  private static final String DELIMITER = ",";
-  static String ANALYZER_ID;
-  private static final String CONTROL_ACCESSION_PREFIX = "QC-";
-  static String DATE_PATTERN = "dd/MM/yyyy HH:mm:ss";
-  static HashMap testHeaderNameMap;
-  HashMap indexTestMap;
-  static HashMap scaleIndexMap;
-  private AnalyzerReaderUtil readerUtil;
-  private final String projectCode = MessageUtil.getMessage("sample.entry.project.LART");
-  String validStatusId;
-  AnalysisDAO analysisDao;
-
-  static {
-    testHeaderNameMap = new HashMap();
-    scaleIndexMap = new HashMap();
-    testHeaderNameMap.put(
-        "WBC(10^3/uL)", (SpringContext.getBean(TestService.class)).getTestByName("GB"));
-    testHeaderNameMap.put(
-        "RBC(10^6/uL)", (SpringContext.getBean(TestService.class)).getTestByName("GR"));
-    testHeaderNameMap.put(
-        "HGB(g/dL)", (SpringContext.getBean(TestService.class)).getTestByName("Hb"));
-    testHeaderNameMap.put(
-        "HCT(%)", (SpringContext.getBean(TestService.class)).getTestByName("HCT"));
-    testHeaderNameMap.put(
-        "MCV(fL)", (SpringContext.getBean(TestService.class)).getTestByName("VGM"));
-    testHeaderNameMap.put(
-        "MCH(pg)", (SpringContext.getBean(TestService.class)).getTestByName("TCMH"));
-    testHeaderNameMap.put(
-        "MCHC(g/dL)", (SpringContext.getBean(TestService.class)).getTestByName("CCMH"));
-    testHeaderNameMap.put(
-        "PLT(10^3/uL)", (SpringContext.getBean(TestService.class)).getTestByName("PLQ"));
-    testHeaderNameMap.put(
-        "NEUT%(%)", (SpringContext.getBean(TestService.class)).getTestByName("Neut %"));
-    testHeaderNameMap.put(
-        "LYMPH%(%)", (SpringContext.getBean(TestService.class)).getTestByName("Lymph %"));
-    testHeaderNameMap.put(
-        "MONO%(%)", (SpringContext.getBean(TestService.class)).getTestByName("Mono %"));
-    testHeaderNameMap.put(
-        "EO%(%)", (SpringContext.getBean(TestService.class)).getTestByName("Eo %"));
-    testHeaderNameMap.put(
-        "BASO%(%)", (SpringContext.getBean(TestService.class)).getTestByName("Baso %"));
-    scaleIndexMap.put("WBC(10^3/uL)", "1,10^3uL");
-    scaleIndexMap.put("RBC(10^6/uL)", "1,10^6uL");
-    scaleIndexMap.put("HGB(g/dL)", "1,g/dL");
-    scaleIndexMap.put("HCT(%)", "1,%");
-    scaleIndexMap.put("MCV(fL)", "1,fL");
-    scaleIndexMap.put("MCH(pg)", "1,pg");
-    scaleIndexMap.put("MCHC(g/dL)", "1,g/dL");
-    scaleIndexMap.put("PLT(10^3/uL)", "1,10^3/uL");
-    scaleIndexMap.put("NEUT%(%)", "1,%");
-    scaleIndexMap.put("LYMPH%(%)", "1,%");
-    scaleIndexMap.put("MONO%(%)", "1,%");
-    scaleIndexMap.put("EO%(%)", "1,%");
-    scaleIndexMap.put("BASO%(%)", "1,%");
-    AnalyzerService analyzerService = SpringContext.getBean(AnalyzerService.class);
-    Analyzer analyzer = analyzerService.getAnalyzerByName("SysmexXN1000Analyzer");
-    ANALYZER_ID = analyzer.getId();
   }
 }
