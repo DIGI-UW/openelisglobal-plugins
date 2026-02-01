@@ -103,9 +103,14 @@ protected void setupMocks() {
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for:
 - Plugin architecture standards (Java 21, Maven layout, code formatting)
+- **Lazy initialization pattern** (required for all Spring bean access)
 - How to write and test new plugins
 - Quality requirements and prohibited patterns
 - Contribution workflow
+
+### Key Architecture Requirement
+
+All plugins **MUST use lazy initialization** for Spring beans. Static initializers that call `SpringContext.getBean()` are prohibited as they prevent unit testing. See CONTRIBUTING.md for the required pattern.
 
 ## Analyzer Plugins
 
