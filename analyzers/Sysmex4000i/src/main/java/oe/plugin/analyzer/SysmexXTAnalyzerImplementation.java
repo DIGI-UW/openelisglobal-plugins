@@ -217,10 +217,10 @@ public class SysmexXTAnalyzerImplementation extends AnalyzerLineInserter {
 
     String[] headers = lines.get(getColumnsLine(lines)).split(DELIMITER);
 
-    for (Integer i = 0; i < headers.length; i++) {
+    for (int i = 0; i < headers.length; i++) {
       String header = headers[i].trim();
       if (getTestHeaderNameMap().containsKey(header)) {
-        indexTestMap.put(i.toString(), header);
+        indexTestMap.put(String.valueOf(i), header);
       } else if ("N' Echantillon".equals(header)) {
         ORDER_NUMBER_INDEX = i;
       } else if ("Ana. Jour".equals(header)) {
@@ -249,16 +249,18 @@ public class SysmexXTAnalyzerImplementation extends AnalyzerLineInserter {
   private void createAnalyzerResultFromLine(String line, List<AnalyzerResults> resultList) {
     String[] fields = line.split(DELIMITER);
 
-    for (Integer k = 0; k < fields.length; k++) {
+    for (int k = 0; k < fields.length; k++) {
 
-      if (indexTestMap.containsKey(k.toString())) {
-        String testKey = indexTestMap.get(k.toString());
-        AnalyzerResults aResult = new AnalyzerResults();
+      if (indexTestMap.containsKey(String.valueOf(k))) {
+        String testKey = indexTestMap.get(String.valueOf(k));
         Test test = getTestHeaderNameMap().get(testKey);
-        if (test != null) {
-          aResult.setTestId(test.getId());
-          aResult.setTestName(test.getName());
+        if (test == null) {
+          continue;
         }
+
+        AnalyzerResults aResult = new AnalyzerResults();
+        aResult.setTestId(test.getId());
+        aResult.setTestName(test.getName());
 
         String[] result = getAppropriateResults(fields[k], testKey);
         aResult.setResult(result[0]);
@@ -270,14 +272,6 @@ public class SysmexXTAnalyzerImplementation extends AnalyzerLineInserter {
         String dateTime = fields[ORDER_DAY_INDEX].trim();
         dateTime = dateTime + " " + fields[ORDER_HOUR_INDEX].trim();
         aResult.setCompleteDate(getTimestampFromDate(dateTime));
-
-        System.out.println(
-            "***"
-                + aResult.getAccessionNumber()
-                + " "
-                + aResult.getCompleteDate()
-                + " "
-                + aResult.getResult());
 
         if (aResult.getAccessionNumber() != null) {
           aResult.setIsControl(aResult.getAccessionNumber().startsWith(CONTROL_ACCESSION_PREFIX));

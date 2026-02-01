@@ -223,12 +223,16 @@ public class AB7500VLAnalyzerImplementation extends AnalyzerLineInserter {
 
       if (indexTestMap.containsKey(k.toString())) {
         String testKey = indexTestMap.get(k.toString());
+        Test test = getTestHeaderNameMap().get(testKey);
+        if (test == null) {
+          continue;
+        }
         AnalyzerResults aResult = new AnalyzerResults();
         Double resultAsDouble;
         String AccessionNumber = "";
         String resultfinal = "";
-        aResult.setTestId(getTestHeaderNameMap().get(testKey).getId());
-        aResult.setTestName(getTestHeaderNameMap().get(testKey).getName());
+        aResult.setTestId(test.getId());
+        aResult.setTestName(test.getName());
 
         // ----for result
         if (fields[VALUE_NUMBER].contains("Undetermined") && fields[k].isEmpty()) {
@@ -283,16 +287,9 @@ public class AB7500VLAnalyzerImplementation extends AnalyzerLineInserter {
   public List<Integer> getColumnsLines(List<String> lines) {
     List<Integer> linesList = new ArrayList<Integer>();
     for (int i = 0; i < lines.size(); i++) {
-      System.out.print("******* line:" + i);
-      System.out.println(":" + lines.get(i));
-
       if (lines.get(i).contains("Sample Name")) {
-        System.out.print("============== line:" + i);
-        System.out.println(":" + lines.get(i));
         linesList.add(i);
       }
-
-      // i=i+1;
     }
 
     return linesList.size() == 0 ? null : linesList;

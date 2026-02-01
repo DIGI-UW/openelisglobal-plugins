@@ -178,9 +178,9 @@ public class TaqMan48DBSAnalyzerImplementation extends AnalyzerLineInserter {
     String[] headers = lines.get(0).split(DELIMITER);
 
     Map<String, Test> testMap = getTestHeaderNameMap();
-    for (Integer i = 0; i < headers.length; i++) {
+    for (int i = 0; i < headers.length; i++) {
       if (testMap.containsKey(headers[i].replace("\"", "").trim())) {
-        indexTestMap.put(i.toString(), headers[i].replace("\"", "").trim());
+        indexTestMap.put(String.valueOf(i), headers[i].replace("\"", "").trim());
       } else if ("Order Number".equals(headers[i].replace("\"", "").trim())) {
         accessionNumberIndex = i;
       } else if ("Detection Start Date/Time".equals(headers[i].replace("\"", "").trim())) {
@@ -190,17 +190,17 @@ public class TaqMan48DBSAnalyzerImplementation extends AnalyzerLineInserter {
       }
     }
 
-    for (Integer j = 1; j < lines.size(); j++) {
+    for (int j = 1; j < lines.size(); j++) {
       String line = lines.get(j);
       String[] data = line.split(DELIMITER);
       if (line.length() == 0 || data.length == 0) {
         continue;
       }
 
-      for (Integer k = 0; k < data.length; k++) {
+      for (int k = 0; k < data.length; k++) {
 
-        if (indexTestMap.containsKey(k.toString())) {
-          String testKey = indexTestMap.get(k.toString());
+        if (indexTestMap.containsKey(String.valueOf(k))) {
+          String testKey = indexTestMap.get(String.valueOf(k));
           Test test = testMap.get(testKey);
           if (test == null) {
             continue;

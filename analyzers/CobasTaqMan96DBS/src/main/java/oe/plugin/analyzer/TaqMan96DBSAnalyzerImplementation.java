@@ -241,15 +241,19 @@ public class TaqMan96DBSAnalyzerImplementation extends AnalyzerLineInserter {
       accessionNumber = accessionNumber.substring(0, 9);
 
     Test test = getDnaPcrTest();
+    if (test == null) {
+      return;
+    }
+
     analyzerResults.setAnalyzerId(getAnalyzerId());
     analyzerResults.setResult(result);
     analyzerResults.setCompleteDate(
         DateUtil.convertStringDateToTimestampWithPattern(
             fields[this.ORDER_DATE].replace("\"", "").trim(), DATE_PATTERN));
-    analyzerResults.setTestId(test != null ? test.getId() : null);
+    analyzerResults.setTestId(test.getId());
     analyzerResults.setIsControl(
         fields[this.RESULT].replace("\"", "").trim().toUpperCase().equals("VALID"));
-    analyzerResults.setTestName(test != null ? test.getName() : null);
+    analyzerResults.setTestName(test.getName());
     analyzerResults.setResultType("D");
 
     if (analyzerResults.getIsControl()) {

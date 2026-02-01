@@ -386,10 +386,11 @@ public class Cobas4800AnalyzerImplementation extends AnalyzerLineInserter {
 
     Map<String, Test> testMap = getTestHeaderNameMap();
     Test test = testMap.get(testKey);
-    if (test != null) {
-      analyzerResults.setTestId(test.getId());
-      analyzerResults.setTestName(test.getName());
+    if (test == null) {
+      return;
     }
+    analyzerResults.setTestId(test.getId());
+    analyzerResults.setTestName(test.getName());
 
     // ANALYZER_ID processing
     analyzerResults.setAnalyzerId(getIndexAnalyzerMap().get(testKey));

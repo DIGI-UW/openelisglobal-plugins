@@ -102,8 +102,7 @@ public class CobasC111AnalyzerImplementation extends AnalyzerLineInserter {
   public boolean insert(List<String> lines, String currentUserId) {
     List<AnalyzerResults> results = new ArrayList<>();
 
-    for (Integer j = 1; j < lines.size(); j++) {
-      System.out.println("processing line #: " + j);
+    for (int j = 1; j < lines.size(); j++) {
       line = lines.get(j);
       data = line.split(";");
 
@@ -118,27 +117,21 @@ public class CobasC111AnalyzerImplementation extends AnalyzerLineInserter {
         if (data[3].contains("690") || data[3].contains("685") || data[3].contains("767")) {
           String testKey = data[8].replace("\"", "").trim();
           String date = data[4].replace("\"", "");
-          AnalyzerResults aResult = new AnalyzerResults();
 
           Test test = getTestNameMap().get(testKey);
-          if (test != null) {
-            aResult.setTestId(test.getId());
-            aResult.setTestName(test.getName());
+          if (test == null) {
+            continue;
           }
+
+          AnalyzerResults aResult = new AnalyzerResults();
+          aResult.setTestId(test.getId());
+          aResult.setTestName(test.getName());
           aResult.setResult(data[12].replace("\"", "").trim());
           aResult.setAnalyzerId(getAnalyzerId());
           aResult.setUnits(data[13].replace("\"", ""));
           aResult.setAccessionNumber(data[10].replace("\"", "").trim());
           aResult.setIsControl(CheckControl(currentAccessionNumber));
           aResult.setCompleteDate(getTimestampFromDate(date));
-
-          System.out.println(
-              "***"
-                  + aResult.getAccessionNumber()
-                  + " "
-                  + aResult.getCompleteDate()
-                  + " "
-                  + aResult.getResult());
 
           results.add(aResult);
         }

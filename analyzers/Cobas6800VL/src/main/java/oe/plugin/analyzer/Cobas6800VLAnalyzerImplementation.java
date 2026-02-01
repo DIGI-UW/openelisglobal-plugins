@@ -45,7 +45,6 @@ public class Cobas6800VLAnalyzerImplementation extends AnalyzerLineInserter {
   // Lazy-initialized data
   private String analyzerId;
   private Map<String, Test> testHeaderNameMap;
-  private Map<String, String> unitsIndexMap;
   private Test viralLoadTest;
   private String validStatusId;
   private String projectCode;
@@ -148,15 +147,6 @@ public class Cobas6800VLAnalyzerImplementation extends AnalyzerLineInserter {
       }
     }
     return testHeaderNameMap;
-  }
-
-  protected Map<String, String> getUnitsIndexMap() {
-    if (unitsIndexMap == null) {
-      unitsIndexMap = new HashMap<>();
-      unitsIndexMap.put("CD4", "");
-      unitsIndexMap.put("%CD4", "%");
-    }
-    return unitsIndexMap;
   }
 
   public String getError() {

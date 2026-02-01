@@ -197,9 +197,9 @@ public class SysmexXN1000AnalyzerImplementation extends AnalyzerLineInserter {
   private boolean manageColumnsIndex(List lines) {
     if (getColumnsLine(lines) < 0) return false;
     String[] headers = ((String) lines.get(getColumnsLine(lines))).split(",");
-    for (Integer i = (0); i < headers.length; i = (i + 1)) {
+    for (int i = 0; i < headers.length; i++) {
       String header = headers[i].trim();
-      if (getTestHeaderNameMap().containsKey(header)) indexTestMap.put(i.toString(), header);
+      if (getTestHeaderNameMap().containsKey(header)) indexTestMap.put(String.valueOf(i), header);
       else if ("Sample No.".equals(header)) ORDER_NUMBER_INDEX = i;
       else if ("Date".equals(header)) ORDER_DAY_INDEX = i;
       else if ("Time".equals(header)) ORDER_HOUR_INDEX = i;
@@ -225,15 +225,18 @@ public class SysmexXN1000AnalyzerImplementation extends AnalyzerLineInserter {
   @SuppressWarnings({"rawtypes", "unchecked"})
   private void createAnalyzerResultFromLine(String line, List resultList) {
     String fields[] = line.split(",");
-    for (Integer k = (0); k < fields.length; k = (k + 1))
-      if (indexTestMap.containsKey(k.toString())) {
-        String testKey = indexTestMap.get(k.toString());
-        AnalyzerResults aResult = new AnalyzerResults();
+    for (int k = 0; k < fields.length; k++) {
+      if (indexTestMap.containsKey(String.valueOf(k))) {
+        String testKey = indexTestMap.get(String.valueOf(k));
         Test test = getTestHeaderNameMap().get(testKey);
-        if (test != null) {
-          aResult.setTestId(test.getId());
-          aResult.setTestName(test.getName());
+        if (test == null) {
+          continue;
         }
+
+        AnalyzerResults aResult = new AnalyzerResults();
+        aResult.setTestId(test.getId());
+        aResult.setTestName(test.getName());
+
         String result[] = getAppropriateResults(fields[k], testKey);
         aResult.setResult(result[0]);
         aResult.setUnits(result[1]);
@@ -252,6 +255,7 @@ public class SysmexXN1000AnalyzerImplementation extends AnalyzerLineInserter {
         else aResult.setIsControl(false);
         addValueToResults(resultList, aResult);
       }
+    }
   }
 
   @SuppressWarnings({"rawtypes", "unchecked"})

@@ -213,6 +213,10 @@ public class TaqMan96VLAnalyzerImplementation extends AnalyzerLineInserter {
       accessionNumber = accessionNumber.substring(0, 9);
 
     Test viralLoadTest = getViralLoadTest();
+    if (viralLoadTest == null) {
+      return;
+    }
+
     analyzerResults.setAnalyzerId(getAnalyzerId());
     analyzerResults.setResult(result);
     analyzerResults.setUnits(
@@ -220,10 +224,8 @@ public class TaqMan96VLAnalyzerImplementation extends AnalyzerLineInserter {
     analyzerResults.setCompleteDate(
         DateUtil.convertStringDateToTimestampWithPattern(
             fields[ORDER_DATE].replace("\"", "").trim(), DATE_PATTERN));
-    if (viralLoadTest != null) {
-      analyzerResults.setTestId(viralLoadTest.getId());
-      analyzerResults.setTestName(viralLoadTest.getName());
-    }
+    analyzerResults.setTestId(viralLoadTest.getId());
+    analyzerResults.setTestName(viralLoadTest.getName());
     analyzerResults.setIsControl(!"S".equals(fields[SAMPLE_TYPE].replace("\"", "").trim()));
     analyzerResults.setResultType("A");
 
