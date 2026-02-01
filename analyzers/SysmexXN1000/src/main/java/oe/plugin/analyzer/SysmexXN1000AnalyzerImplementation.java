@@ -45,7 +45,7 @@ public class SysmexXN1000AnalyzerImplementation extends AnalyzerLineInserter {
       return false;
     }
     for (int i = getColumnsLine(lines) + 1; i < lines.size(); i++)
-      createAnalyzerResultFromLine(lines.get(i), results);
+      createAnalyzerResultFromLine((String) lines.get(i), results);
 
     return persistImport(currentUserId, results);
   }
@@ -75,7 +75,7 @@ public class SysmexXN1000AnalyzerImplementation extends AnalyzerLineInserter {
 
   private boolean manageColumnsIndex(List lines) {
     if (getColumnsLine(lines) < 0) return false;
-    String[] headers = lines.get(getColumnsLine(lines)).split(",");
+    String[] headers = ((String) lines.get(getColumnsLine(lines))).split(",");
     for (Integer i = (0); i < headers.length; i = (i + 1)) {
       String header = headers[i].trim();
       if (testHeaderNameMap.containsKey(header)) indexTestMap.put(i.toString(), header);
@@ -88,14 +88,15 @@ public class SysmexXN1000AnalyzerImplementation extends AnalyzerLineInserter {
   }
 
   public int getColumnsLine(List lines) {
-    for (int k = 0; k < lines.size(); k++)
-      if (lines.get(k).contains("Nickname")
-          && lines.get(k).contains("Analyzer ID")
-          && lines.get(k).contains("Date")
-          && lines.get(k).contains("Time")
-          && lines.get(k).contains("Rack")
-          && lines.get(k).contains("Sample No.")) return k;
-
+    for (int k = 0; k < lines.size(); k++) {
+      String line = (String) lines.get(k);
+      if (line.contains("Nickname")
+          && line.contains("Analyzer ID")
+          && line.contains("Date")
+          && line.contains("Time")
+          && line.contains("Rack")
+          && line.contains("Sample No.")) return k;
+    }
     return -1;
   }
 

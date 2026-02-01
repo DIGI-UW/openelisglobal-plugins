@@ -55,7 +55,7 @@ public class TaqMan48VLAnalyzer implements AnalyzerImporterPlugin {
     }
 
     if (lines.size() > getColumnsLine(lines) + 1) {
-      data = lines.get(getColumnsLine(lines) + split).split(DELIMITER);
+      data = lines.get(getColumnsLine(lines) + 1).split(DELIMITER);
       if ((data[this.InstrumentIndex].contains(COBAS_TAQMAN_VL_INDICATOR))
           || (data[this.InstrumentIndex].contains(COBAS_TAQMAN_VL_INDICATOR2))) {
         return true;
