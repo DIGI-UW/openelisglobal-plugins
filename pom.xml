@@ -10,14 +10,22 @@
     <module>./test-utilities</module>
     <module>./analyzers/CobasC111</module>
     <module>./analyzers/CobasIntegra400</module>
+    <module>./analyzers/Cobas4800</module>
+    <module>./analyzers/Cobas6800VL</module>
     <module>./analyzers/CobasTaqMan48DBS</module>
+    <module>./analyzers/CobasTaqMan48VL</module>
+    <module>./analyzers/CobasTaqMan96DBS</module>
+    <module>./analyzers/CobasTaqman96VL</module>
     <module>./analyzers/FacsCalibur</module>
     <module>./analyzers/FacsCantoII</module>
     <module>./analyzers/FacsPresto</module>
     <module>./analyzers/Fully</module>
     <module>./analyzers/Sysmex2000i</module>
     <module>./analyzers/SysmeXT</module>
+    <module>./analyzers/Sysmex4000i</module>
+    <module>./analyzers/SysmexKX21</module>
     <module>./analyzers/SysmexXT4000i</module>
+    <module>./analyzers/SysmexXN1000</module>
     <module>./analyzers/weberAnalyzer</module>
     <module>./analyzers/QuantStudio3</module>
     <module>./analyzers/GeneXpert</module>
@@ -28,6 +36,7 @@
     <module>./analyzers/pocH-100i</module>
     <module>./analyzers/HoribaPentra60</module>
     <module>./analyzers/HoribaMicros60</module>
+    <module>./analyzers/AB7500Fast</module>
     <module>./analyzers/AbbottArchitect</module>
     <module>./analyzers/FluoroCyclerXT</module>
     <module>./analyzers/GenericASTM</module>
