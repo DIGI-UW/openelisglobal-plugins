@@ -1,0 +1,105 @@
+﻿2026-01-31T00:22:51.5211909Z ##[group]Run WAR=openelis-global-2/target/OpenELIS-Global.war
+2026-01-31T00:22:51.5212429Z [36;1mWAR=openelis-global-2/target/OpenELIS-Global.war[0m
+2026-01-31T00:22:51.5212752Z [36;1mif [ ! -f "$WAR" ]; then[0m
+2026-01-31T00:22:51.5213002Z [36;1m  echo "WAR not found at $WAR"[0m
+2026-01-31T00:22:51.5213231Z [36;1m  exit 1[0m
+2026-01-31T00:22:51.5213403Z [36;1mfi[0m
+2026-01-31T00:22:51.5213592Z [36;1mOE_JAR=openelisglobal-3.2.1.2.jar[0m
+2026-01-31T00:22:51.5213851Z [36;1mTMP=$(mktemp -d)[0m
+2026-01-31T00:22:51.5214071Z [36;1munzip -q "$WAR" -d "$TMP"[0m
+2026-01-31T00:22:51.5214366Z [36;1m(cd "$TMP/WEB-INF/classes" && jar cf "$TMP/$OE_JAR" .)[0m
+2026-01-31T00:22:51.5214675Z [36;1mmvn install:install-file \[0m
+2026-01-31T00:22:51.5214923Z [36;1m  -Dfile="$TMP/$OE_JAR" \[0m
+2026-01-31T00:22:51.5215181Z [36;1m  -DgroupId=org.openelisglobal \[0m
+2026-01-31T00:22:51.5215456Z [36;1m  -DartifactId=openelisglobal \[0m
+2026-01-31T00:22:51.5215704Z [36;1m  -Dversion=3.2.1.2 \[0m
+2026-01-31T00:22:51.5215944Z [36;1m  -Dpackaging=jar[0m
+2026-01-31T00:22:51.5216158Z [36;1mrm -rf "$TMP"[0m
+2026-01-31T00:22:51.5247905Z shell: /usr/bin/bash -e {0}
+2026-01-31T00:22:51.5248139Z env:
+2026-01-31T00:22:51.5248301Z   OE_REF: develop
+2026-01-31T00:22:51.5248603Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.10-7/x64
+2026-01-31T00:22:51.5249070Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.10-7/x64
+2026-01-31T00:22:51.5249707Z ##[endgroup]
+2026-01-31T00:22:56.8166570Z [INFO] Scanning for projects...
+2026-01-31T00:22:56.9494978Z [INFO] ------------------------------------------------------------------------
+2026-01-31T00:22:56.9496968Z [INFO] Reactor Build Order:
+2026-01-31T00:22:56.9497689Z [INFO] 
+2026-01-31T00:22:56.9505373Z [INFO] openelisglobal-plugins                                             [pom]
+2026-01-31T00:22:56.9506865Z [INFO] CobasC111                                                          [jar]
+2026-01-31T00:22:56.9535093Z [INFO] CobasIntegra400                                                    [jar]
+2026-01-31T00:22:56.9536122Z [INFO] CobasTaqMan48DBS                                                   [jar]
+2026-01-31T00:22:56.9537081Z [INFO] FacsCalibur                                                        [jar]
+2026-01-31T00:22:56.9538040Z [INFO] FacsCantoII                                                        [jar]
+2026-01-31T00:22:56.9538942Z [INFO] FacsPresto                                                         [jar]
+2026-01-31T00:22:56.9541036Z [INFO] Fully                                                              [jar]
+2026-01-31T00:22:56.9542028Z [INFO] Sysmex2000i                                                        [jar]
+2026-01-31T00:22:56.9542633Z [INFO] SysmeXT                                                            [jar]
+2026-01-31T00:22:56.9543268Z [INFO] SysmexXT4000i                                                      [jar]
+2026-01-31T00:22:56.9543967Z [INFO] weberAnalyzer                                                      [jar]
+2026-01-31T00:22:56.9544654Z [INFO] QuantStudio3                                                       [jar]
+2026-01-31T00:22:56.9545313Z [INFO] GeneXpertAnalyzer                                                  [jar]
+2026-01-31T00:22:56.9545977Z [INFO] Mindray                                                            [jar]
+2026-01-31T00:22:56.9546658Z [INFO] GeneXpertFileAnalyzer                                              [jar]
+2026-01-31T00:22:56.9547387Z [INFO] SysmexXNLAnalyzer                                                  [jar]
+2026-01-31T00:22:56.9548093Z [INFO] SysmexXPAnalyzer                                                   [jar]
+2026-01-31T00:22:56.9548798Z [INFO] pocH-100iAnalyzer                                                  [jar]
+2026-01-31T00:22:56.9549695Z [INFO] HoribaPentra60                                                     [jar]
+2026-01-31T00:22:56.9550566Z [INFO] HoribaMicros60                                                     [jar]
+2026-01-31T00:22:56.9551105Z [INFO] GenericASTM                                                        [jar]
+2026-01-31T00:22:57.1536779Z Downloading from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/maven-metadata.xml
+2026-01-31T00:22:57.1540326Z Downloading from central: https://repo.maven.apache.org/maven2/com/diffplug/spotless/maven-metadata.xml
+2026-01-31T00:22:57.1541608Z Downloading from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-metadata.xml
+2026-01-31T00:22:57.4802146Z Progress (1): 3.4 kB
+2026-01-31T00:22:57.4802589Z Progress (1): 7.3 kB
+2026-01-31T00:22:57.4812317Z Progress (1): 12 kB 
+2026-01-31T00:22:57.4814488Z Progress (2): 12 kB | 4.6 kB
+2026-01-31T00:22:57.4815010Z Progress (2): 12 kB | 9.8 kB
+2026-01-31T00:22:57.4815382Z Progress (2): 12 kB | 14 kB 
+2026-01-31T00:22:57.4816698Z                            
+2026-01-31T00:22:57.4817780Z Downloaded from central: https://repo.maven.apache.org/maven2/org/apache/maven/plugins/maven-metadata.xml (14 kB at 43 kB/s)
+2026-01-31T00:22:57.4837265Z Progress (1): 16 kB
+2026-01-31T00:22:57.4837873Z Progress (1): 20 kB
+2026-01-31T00:22:57.5198837Z Progress (1): 21 kB
+2026-01-31T00:22:57.5200701Z                    
+2026-01-31T00:22:57.5201956Z Downloaded from central: https://repo.maven.apache.org/maven2/org/codehaus/mojo/maven-metadata.xml (21 kB at 56 kB/s)
+2026-01-31T00:22:57.5905143Z [INFO] 
+2026-01-31T00:22:57.5906279Z [INFO] -------------< org.openelisglobal:openelisglobal-plugins >--------------
+2026-01-31T00:22:57.5909602Z [INFO] Building openelisglobal-plugins 1.0                               [1/22]
+2026-01-31T00:22:57.5910462Z [INFO]   from pom.xml
+2026-01-31T00:22:57.5912592Z [INFO] --------------------------------[ pom ]---------------------------------
+2026-01-31T00:22:57.6007271Z [INFO] 
+2026-01-31T00:22:57.6008298Z [INFO] --- install:3.1.2:install-file (default-cli) @ openelisglobal-plugins ---
+2026-01-31T00:22:57.7231627Z [INFO] pom.xml not found in openelisglobal-3.2.1.2.jar
+2026-01-31T00:22:57.7295716Z [INFO] Installing /tmp/tmp.WCfNzQJZfu/openelisglobal-3.2.1.2.jar to /home/runner/.m2/repository/org/openelisglobal/openelisglobal/3.2.1.2/openelisglobal-3.2.1.2.jar
+2026-01-31T00:22:57.7935918Z [INFO] ------------------------------------------------------------------------
+2026-01-31T00:22:57.7937955Z [INFO] Reactor Summary:
+2026-01-31T00:22:57.7941977Z [INFO] 
+2026-01-31T00:22:57.7942798Z [INFO] openelisglobal-plugins 1.0 ......................... SUCCESS [  0.204 s]
+2026-01-31T00:22:57.7944210Z [INFO] CobasC111 1.0 ...................................... SKIPPED
+2026-01-31T00:22:57.7945132Z [INFO] CobasIntegra400 1.0 ................................ SKIPPED
+2026-01-31T00:22:57.7945959Z [INFO] CobasTaqMan48DBS 1.0 ............................... SKIPPED
+2026-01-31T00:22:57.7946969Z [INFO] FacsCalibur 1.0 .................................... SKIPPED
+2026-01-31T00:22:57.7952366Z [INFO] FacsCantoII 1.0 .................................... SKIPPED
+2026-01-31T00:22:57.7953586Z [INFO] FacsPresto 1.0 ..................................... SKIPPED
+2026-01-31T00:22:57.7954568Z [INFO] Fully 1.0 .......................................... SKIPPED
+2026-01-31T00:22:57.7956288Z [INFO] Sysmex2000i 1.0 .................................... SKIPPED
+2026-01-31T00:22:57.7956915Z [INFO] SysmeXT 1.0 ........................................ SKIPPED
+2026-01-31T00:22:57.7960630Z [INFO] SysmexXT4000i 1.0 .................................. SKIPPED
+2026-01-31T00:22:57.7961290Z [INFO] weberAnalyzer 1.0 .................................. SKIPPED
+2026-01-31T00:22:57.7961934Z [INFO] QuantStudio3 1.0 ................................... SKIPPED
+2026-01-31T00:22:57.7962564Z [INFO] GeneXpertAnalyzer 0.4 .............................. SKIPPED
+2026-01-31T00:22:57.7963186Z [INFO] Mindray 0.1 ........................................ SKIPPED
+2026-01-31T00:22:57.7963809Z [INFO] GeneXpertFileAnalyzer 0.2 .......................... SKIPPED
+2026-01-31T00:22:57.7964673Z [INFO] SysmexXNLAnalyzer 0.5 .............................. SKIPPED
+2026-01-31T00:22:57.7965301Z [INFO] SysmexXPAnalyzer 0.5 ............................... SKIPPED
+2026-01-31T00:22:57.7966146Z [INFO] pocH-100iAnalyzer 0.1 .............................. SKIPPED
+2026-01-31T00:22:57.7966777Z [INFO] HoribaPentra60 1.0 ................................. SKIPPED
+2026-01-31T00:22:57.7967390Z [INFO] HoribaMicros60 1.0 ................................. SKIPPED
+2026-01-31T00:22:57.7968006Z [INFO] GenericASTM 1.0 .................................... SKIPPED
+2026-01-31T00:22:57.7968635Z [INFO] ------------------------------------------------------------------------
+2026-01-31T00:22:57.7969337Z [INFO] BUILD SUCCESS
+2026-01-31T00:22:57.7969791Z [INFO] ------------------------------------------------------------------------
+2026-01-31T00:22:57.7970339Z [INFO] Total time:  1.000 s
+2026-01-31T00:22:57.7970721Z [INFO] Finished at: 2026-01-31T00:22:57Z
+2026-01-31T00:22:57.7971247Z [INFO] ------------------------------------------------------------------------
