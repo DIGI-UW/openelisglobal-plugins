@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.openelisglobal.analysis.service.AnalysisService;
 import org.openelisglobal.analysis.valueholder.Analysis;
 import org.openelisglobal.analyzer.service.AnalyzerService;
@@ -14,6 +15,7 @@ import org.openelisglobal.analyzer.valueholder.Analyzer;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerReaderUtil;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
+import org.openelisglobal.common.log.LogEvent;
 import org.openelisglobal.common.services.StatusService;
 import org.openelisglobal.common.util.DateUtil;
 import org.openelisglobal.internationalization.MessageUtil;
@@ -27,13 +29,124 @@ public class Cobas6800VLAnalyzerImplementation extends AnalyzerLineInserter {
   private static final String COBAS_6800_DATASET_SEPARATOR = "L|1|N";
   private static final String COBAS_6800_ACCESSION_NUMBER_FLAG = "OBR|1|";
   private static final String COBAS_6800_RESULT_FLAG = "OBX|1|";
+  private static final String UNDER_THREASHOLD = "< LL";
+  private static final double THREASHOLD = 20D;
+  private static final String RESULT_FLAG = "OBX";
+  private static final String VL_FLAG = "Load Viral";
+  private static final String DATE_PATTERN = "yyyy/MM/dd HH:mm:ss";
+  private static final String ANALYZER_NAME = "Cobas6800VLAnalyzer";
+
+  // Lazy-initialized services
+  private TestService testService;
+  private AnalyzerService analyzerService;
+  private SampleService sampleService;
+  private AnalysisService analysisService;
+
+  // Lazy-initialized data
+  private String analyzerId;
+  private Map<String, Test> testHeaderNameMap;
+  private Test viralLoadTest;
+  private String validStatusId;
+  private String projectCode;
+
+  private HashMap<String, String> indexTestMap;
+  private AnalyzerReaderUtil readerUtil;
+  private String error;
 
   public Cobas6800VLAnalyzerImplementation() {
-    indexTestMap = new HashMap();
+    indexTestMap = new HashMap<>();
     readerUtil = new AnalyzerReaderUtil();
-    test = SpringContext.getBean(TestService.class).getActiveTestByName("Viral Load").get(0);
-    validStatusId = StatusService.getInstance().getStatusID(StatusService.AnalysisStatus.Finalized);
-    analysisService = SpringContext.getBean(AnalysisService.class);
+  }
+
+  // Lazy getters for services
+  protected TestService getTestService() {
+    if (testService == null) {
+      testService = SpringContext.getBean(TestService.class);
+    }
+    return testService;
+  }
+
+  protected AnalyzerService getAnalyzerService() {
+    if (analyzerService == null) {
+      analyzerService = SpringContext.getBean(AnalyzerService.class);
+    }
+    return analyzerService;
+  }
+
+  protected SampleService getSampleService() {
+    if (sampleService == null) {
+      sampleService = SpringContext.getBean(SampleService.class);
+    }
+    return sampleService;
+  }
+
+  protected AnalysisService getAnalysisService() {
+    if (analysisService == null) {
+      analysisService = SpringContext.getBean(AnalysisService.class);
+    }
+    return analysisService;
+  }
+
+  // Lazy getters for data
+  protected String getAnalyzerId() {
+    if (analyzerId == null) {
+      Analyzer analyzer = getAnalyzerService().getAnalyzerByName(ANALYZER_NAME);
+      if (analyzer != null) {
+        analyzerId = analyzer.getId();
+      } else {
+        LogEvent.logWarn(
+            this.getClass().getSimpleName(),
+            "getAnalyzerId",
+            "Analyzer not found: " + ANALYZER_NAME);
+      }
+    }
+    return analyzerId;
+  }
+
+  protected Test getViralLoadTest() {
+    if (viralLoadTest == null) {
+      List<Test> tests = getTestService().getActiveTestByName("Viral Load");
+      if (tests != null && !tests.isEmpty()) {
+        viralLoadTest = tests.get(0);
+      } else {
+        LogEvent.logWarn(
+            this.getClass().getSimpleName(), "getViralLoadTest", "Test not found: Viral Load");
+      }
+    }
+    return viralLoadTest;
+  }
+
+  protected String getValidStatusId() {
+    if (validStatusId == null) {
+      validStatusId =
+          StatusService.getInstance().getStatusID(StatusService.AnalysisStatus.Finalized);
+    }
+    return validStatusId;
+  }
+
+  protected String getProjectCode() {
+    if (projectCode == null) {
+      projectCode = MessageUtil.getMessage("sample.entry.project.LART");
+    }
+    return projectCode;
+  }
+
+  protected Map<String, Test> getTestHeaderNameMap() {
+    if (testHeaderNameMap == null) {
+      testHeaderNameMap = new HashMap<>();
+      TestService ts = getTestService();
+
+      List<Test> vlTests = ts.getActiveTestByName("Viral Load");
+      if (vlTests != null && !vlTests.isEmpty()) {
+        testHeaderNameMap.put("Viral Load", vlTests.get(0));
+      }
+
+      List<Test> pcrTests = ts.getActiveTestByName("DNA PCR");
+      if (pcrTests != null && !pcrTests.isEmpty()) {
+        testHeaderNameMap.put("DNA PCR", pcrTests.get(0));
+      }
+    }
+    return testHeaderNameMap;
   }
 
   public String getError() {
@@ -45,14 +158,14 @@ public class Cobas6800VLAnalyzerImplementation extends AnalyzerLineInserter {
       resultList.add(result);
       return;
     }
-    SampleService sampleServ = SpringContext.getBean(SampleService.class);
-    if (!result.getAccessionNumber().startsWith(projectCode)
+    SampleService sampleServ = getSampleService();
+    if (!result.getAccessionNumber().startsWith(getProjectCode())
         || sampleServ.getSampleByAccessionNumber(result.getAccessionNumber()) == null) return;
     List<Analysis> analyses =
-        analysisService.getAnalysisByAccessionAndTestId(
-            result.getAccessionNumber(), result.getTestId());
+        getAnalysisService()
+            .getAnalysisByAccessionAndTestId(result.getAccessionNumber(), result.getTestId());
     for (Analysis analysis : analyses) {
-      if (analysis.getStatusId().equals(validStatusId)) return;
+      if (analysis.getStatusId().equals(getValidStatusId())) return;
     }
 
     resultList.add(result);
@@ -63,6 +176,10 @@ public class Cobas6800VLAnalyzerImplementation extends AnalyzerLineInserter {
   public void ordersExport(List results) {
     Connection c = null;
     Statement stmt = null;
+    Test test = getViralLoadTest();
+    if (test == null) {
+      return;
+    }
     try {
       Class.forName("org.postgresql.Driver");
       c =
@@ -123,11 +240,8 @@ public class Cobas6800VLAnalyzerImplementation extends AnalyzerLineInserter {
       c.close();
       writer.close();
     } catch (Exception e) {
-      System.err.println(
-          (new StringBuilder(String.valueOf(e.getClass().getName())))
-              .append(": ")
-              .append(e.getMessage())
-              .toString());
+      LogEvent.logError(
+          this.getClass().getSimpleName(), "ordersExport", "Error exporting orders: " + e);
     }
   }
 
@@ -180,12 +294,6 @@ public class Cobas6800VLAnalyzerImplementation extends AnalyzerLineInserter {
       createVLResultFromEntry(set, results);
     }
 
-    //		java.util.Map.Entry entry;
-    //		for (Iterator iterator = getResultsLines(lines, RESULT_FLAG, VL_FLAG).entrySet().iterator();
-    // iterator
-    //				.hasNext(); createVLResultFromEntry(lines, entry, results))
-    //			entry = (java.util.Map.Entry) iterator.next();
-
     Collections.sort(
         results,
         new Comparator<AnalyzerResults>() {
@@ -214,6 +322,11 @@ public class Cobas6800VLAnalyzerImplementation extends AnalyzerLineInserter {
   }
 
   public void createVLResultFromEntry(List<String> subLines, List<AnalyzerResults> resultList) {
+    Test test = getViralLoadTest();
+    if (test == null) {
+      return;
+    }
+
     AnalyzerResults analyzerResults = new AnalyzerResults();
 
     String accessionNumber = "";
@@ -235,11 +348,11 @@ public class Cobas6800VLAnalyzerImplementation extends AnalyzerLineInserter {
 
     accessionNumber = accessionNumber.trim();
     accessionNumber = accessionNumber.replace(" ", "");
-    if (accessionNumber.startsWith(projectCode) && accessionNumber.length() >= 9)
+    if (accessionNumber.startsWith(getProjectCode()) && accessionNumber.length() >= 9)
       accessionNumber = accessionNumber.substring(0, 9);
     result = getAppropriateResults(result);
 
-    analyzerResults.setAnalyzerId(ANALYZER_ID);
+    analyzerResults.setAnalyzerId(getAnalyzerId());
     analyzerResults.setResult(result);
     analyzerResults.setUnits("< LL".equals(result) ? "" : "cp/ml");
     analyzerResults.setCompleteDate(
@@ -262,6 +375,11 @@ public class Cobas6800VLAnalyzerImplementation extends AnalyzerLineInserter {
 
   public void createVLResultFromEntry(
       List<String> lines, java.util.Map.Entry entry, List<AnalyzerResults> resultList) {
+    Test test = getViralLoadTest();
+    if (test == null) {
+      return;
+    }
+
     AnalyzerResults analyzerResults = new AnalyzerResults();
     String line = (String) lines.get(((Integer) entry.getKey()));
     for (int i = 1; i <= 2; i++) line = line.substring(1 + line.indexOf("|"));
@@ -269,7 +387,7 @@ public class Cobas6800VLAnalyzerImplementation extends AnalyzerLineInserter {
     String accessionNumber = line.substring(0, line.indexOf("|"));
     accessionNumber = accessionNumber.trim();
     accessionNumber = accessionNumber.replace(" ", "");
-    if (accessionNumber.startsWith(projectCode) && accessionNumber.length() >= 9)
+    if (accessionNumber.startsWith(getProjectCode()) && accessionNumber.length() >= 9)
       accessionNumber = accessionNumber.substring(0, 9);
     line = (String) lines.get(((Integer) entry.getValue()));
     for (int i = 1; i <= 5; i++) line = line.substring(1 + line.indexOf("|"));
@@ -279,7 +397,7 @@ public class Cobas6800VLAnalyzerImplementation extends AnalyzerLineInserter {
     for (int i = 1; i <= 7; i++) line = line.substring(1 + line.indexOf("|"));
 
     String completedDate = line.substring(0, line.indexOf("|"));
-    analyzerResults.setAnalyzerId(ANALYZER_ID);
+    analyzerResults.setAnalyzerId(getAnalyzerId());
     analyzerResults.setResult(result);
     analyzerResults.setUnits("< LL".equals(result) ? "" : "cp/ml");
     analyzerResults.setCompleteDate(
@@ -303,6 +421,10 @@ public class Cobas6800VLAnalyzerImplementation extends AnalyzerLineInserter {
   public void ordersExport2(List results) {
     Connection c = null;
     Statement stmt = null;
+    Test test = getViralLoadTest();
+    if (test == null) {
+      return;
+    }
     try {
       Class.forName("org.postgresql.Driver");
       c =
@@ -363,11 +485,8 @@ public class Cobas6800VLAnalyzerImplementation extends AnalyzerLineInserter {
       c.close();
       writer.close();
     } catch (Exception e) {
-      System.err.println(
-          (new StringBuilder(String.valueOf(e.getClass().getName())))
-              .append(": ")
-              .append(e.getMessage())
-              .toString());
+      LogEvent.logError(
+          this.getClass().getSimpleName(), "ordersExport2", "Error exporting orders: " + e);
     }
   }
 
@@ -399,36 +518,5 @@ public class Cobas6800VLAnalyzerImplementation extends AnalyzerLineInserter {
         return "XXXX";
       }
     return result;
-  }
-
-  private static final String UNDER_THREASHOLD = "< LL";
-  private static final double THREASHOLD = 20D;
-  private static String RESULT_FLAG = "OBX";
-  private static String VL_FLAG = "Load Viral"; // private static String VL_FLAG = "Viral Load";
-  private static final String DATE_PATTERN = "yyyy/MM/dd HH:mm:ss";
-  static String ANALYZER_ID;
-  private final String projectCode = MessageUtil.getMessage("sample.entry.project.LART");
-  static HashMap testHeaderNameMap;
-  HashMap indexTestMap;
-  static HashMap unitsIndexMap;
-  private AnalyzerReaderUtil readerUtil;
-  private String error;
-  Test test;
-  String validStatusId;
-  AnalysisService analysisService;
-
-  static {
-    testHeaderNameMap = new HashMap();
-    unitsIndexMap = new HashMap();
-    testHeaderNameMap.put(
-        "Viral Load",
-        SpringContext.getBean(TestService.class).getActiveTestByName("Viral Load").get(0));
-    testHeaderNameMap.put(
-        "DNA PCR", SpringContext.getBean(TestService.class).getActiveTestByName("DNA PCR").get(0));
-    unitsIndexMap.put("CD4", "");
-    unitsIndexMap.put("%CD4", "%");
-    AnalyzerService analyzerService = SpringContext.getBean(AnalyzerService.class);
-    Analyzer analyzer = analyzerService.getAnalyzerByName("Cobas6800VLAnalyzer");
-    ANALYZER_ID = analyzer.getId();
   }
 }

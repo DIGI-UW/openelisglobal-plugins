@@ -13,7 +13,6 @@
  */
 package uw.edu.itech.StagoSTart4;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -34,9 +33,9 @@ import org.openelisglobal.plugin.test.PluginTestBase;
  *
  * <p>Feature: 011-madagascar-analyzer-integration Milestone: M11 (Stago STart 4)
  *
- * <p>Tests ASTM LIS2-A2 message parsing for Stago STart 4 coagulation analyzer. The inserter
- * should extract coagulation test results (PT, INR, APTT, Fibrinogen, TT) from ASTM R-segments
- * and map them to OpenELIS tests.
+ * <p>Tests ASTM LIS2-A2 message parsing for Stago STart 4 coagulation analyzer. The inserter should
+ * extract coagulation test results (PT, INR, APTT, Fibrinogen, TT) from ASTM R-segments and map
+ * them to OpenELIS tests.
  *
  * <p>TDD Approach: Write failing tests first, then implement to make them pass.
  */

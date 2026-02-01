@@ -17,20 +17,26 @@
 package oe.plugin.analyzer;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openelisglobal.plugin.test.PluginTestBase;
 
 public class TaqMan48VLAnalyzerImplementationTest extends PluginTestBase {
 
   @Test
-  @Ignore("Static initializer requires full Spring context - cannot be unit tested")
-  public void testGetError_ReturnsErrorMessage() {
+  public void testConstructor_CanInstantiateWithoutSpringContext() {
+    TaqMan48VLAnalyzerImplementation impl = new TaqMan48VLAnalyzerImplementation();
+
+    assertNotNull("Implementation should be created successfully", impl);
+  }
+
+  @Test
+  public void testGetError_InitiallyNull() {
     TaqMan48VLAnalyzerImplementation impl = new TaqMan48VLAnalyzerImplementation();
 
     String error = impl.getError();
 
-    assertNotNull("Error message should not be null", error);
+    assertNull("Error should be null initially", error);
   }
 }

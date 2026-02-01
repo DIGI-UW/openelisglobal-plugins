@@ -17,20 +17,29 @@
 package oe.plugin.analyzer;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openelisglobal.plugin.test.PluginTestBase;
 
 public class AB7500VLAnalyzerImplementationTest extends PluginTestBase {
 
   @Test
-  @Ignore("Static initializer requires full Spring context - cannot be unit tested")
-  public void testGetError_ReturnsErrorMessage() {
+  public void testConstructor_CanInstantiateWithoutSpringContext() {
+    // This test verifies lazy initialization - class can be instantiated
+    // without Spring context because services are not accessed until needed
+    AB7500VLAnalyzerImplementation impl = new AB7500VLAnalyzerImplementation();
+
+    assertNotNull("Implementation should be created successfully", impl);
+  }
+
+  @Test
+  public void testGetError_InitiallyNull() {
     AB7500VLAnalyzerImplementation impl = new AB7500VLAnalyzerImplementation();
 
     String error = impl.getError();
 
-    assertNotNull("Error message should not be null", error);
+    // Error is null initially - no operations have been performed yet
+    assertNull("Error should be null initially", error);
   }
 }

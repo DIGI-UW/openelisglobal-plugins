@@ -24,17 +24,15 @@ import org.openelisglobal.plugin.AnalyzerImporterPlugin;
  *
  * <p>Feature: 011-madagascar-analyzer-integration Milestone: M11 (Stago STart 4)
  *
- * <p>The STart 4 is a coagulation/hemostasis analyzer that supports dual-protocol communication:
- * - ASTM LIS2-A2 over RS232 serial connection
- * - HL7 v2.5 over Network (TCP/IP)
+ * <p>The STart 4 is a coagulation/hemostasis analyzer that supports dual-protocol communication: -
+ * ASTM LIS2-A2 over RS232 serial connection - HL7 v2.5 over Network (TCP/IP)
  *
  * <p>It produces coagulation test results including PT (Prothrombin Time), INR (International
  * Normalized Ratio), APTT (Activated Partial Thromboplastin Time), Fibrinogen, and TT (Thrombin
  * Time).
  *
- * <p>Identification:
- * - ASTM: Header contains "STAGO^START4" or "START4"
- * - HL7: MSH segment sending application contains "STAGO"
+ * <p>Identification: - ASTM: Header contains "STAGO^START4" or "START4" - HL7: MSH segment sending
+ * application contains "STAGO"
  *
  * <p>Reference: specs/011-madagascar-analyzer-integration/research.md
  */
@@ -89,8 +87,11 @@ public class StagoSTart4Analyzer implements AnalyzerImporterPlugin {
 
     // Coagulation parameters
     mappings.add(new PluginAnalyzerService.TestMapping("PT", "Prothrombin Time", "5902-2"));
-    mappings.add(new PluginAnalyzerService.TestMapping("INR", "International Normalized Ratio", "6301-6"));
-    mappings.add(new PluginAnalyzerService.TestMapping("APTT", "Activated Partial Thromboplastin Time", "3173-2"));
+    mappings.add(
+        new PluginAnalyzerService.TestMapping("INR", "International Normalized Ratio", "6301-6"));
+    mappings.add(
+        new PluginAnalyzerService.TestMapping(
+            "APTT", "Activated Partial Thromboplastin Time", "3173-2"));
     mappings.add(new PluginAnalyzerService.TestMapping("FIB", "Fibrinogen", "3255-7"));
     mappings.add(new PluginAnalyzerService.TestMapping("TT", "Thrombin Time", "3174-0"));
 
@@ -100,9 +101,8 @@ public class StagoSTart4Analyzer implements AnalyzerImporterPlugin {
   /**
    * Check if the message is from a Stago STart 4 analyzer.
    *
-   * <p>Supports dual-protocol identification:
-   * 1. ASTM: Look for "START4" or "STAGO" in H-segment (primary)
-   * 2. HL7: Look for "STAGO" in MSH segment sending application field (fallback)
+   * <p>Supports dual-protocol identification: 1. ASTM: Look for "START4" or "STAGO" in H-segment
+   * (primary) 2. HL7: Look for "STAGO" in MSH segment sending application field (fallback)
    *
    * @param lines Message lines (ASTM or HL7 format)
    * @return true if message is from STart 4
@@ -160,10 +160,7 @@ public class StagoSTart4Analyzer implements AnalyzerImporterPlugin {
 
     // Check for ASTM R (Result) segments or HL7 OBX (Observation) segments
     return lines.stream()
-        .anyMatch(
-            line ->
-                line != null
-                    && (line.startsWith("R|") || line.startsWith("OBX|")));
+        .anyMatch(line -> line != null && (line.startsWith("R|") || line.startsWith("OBX|")));
   }
 
   /**

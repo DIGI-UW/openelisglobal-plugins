@@ -87,9 +87,8 @@ public class StagoSTart4AnalyzerLineInserter extends AnalyzerLineInserter {
   /**
    * Parse message lines (ASTM or HL7 format) and persist coagulation results.
    *
-   * <p>Automatically detects message format by checking the first line:
-   * - Starts with "H|" → ASTM format
-   * - Starts with "MSH|" → HL7 format
+   * <p>Automatically detects message format by checking the first line: - Starts with "H|" → ASTM
+   * format - Starts with "MSH|" → HL7 format
    *
    * @param lines Message lines (ASTM or HL7 format)
    * @param currentUserId the user performing the import
@@ -433,8 +432,8 @@ public class StagoSTart4AnalyzerLineInserter extends AnalyzerLineInserter {
   /**
    * Extract the test code from HL7 OBX test code field.
    *
-   * <p>OBX field 3 format: {@code ^^^TEST_CODE^TEST_NAME} The test code is the 4th component
-   * (index 3) or can be extracted from the test name if code is missing.
+   * <p>OBX field 3 format: {@code ^^^TEST_CODE^TEST_NAME} The test code is the 4th component (index
+   * 3) or can be extracted from the test name if code is missing.
    *
    * @param testCodeField the OBX field 3 value
    * @return test code (e.g., "PT", "INR") or null if not found
@@ -459,8 +458,8 @@ public class StagoSTart4AnalyzerLineInserter extends AnalyzerLineInserter {
   /**
    * Get the AnalyzerReaderUtil instance, lazily initializing if needed.
    *
-   * <p>Lazy initialization prevents SpringContext.getBean() from being called at class loading time,
-   * which allows unit tests to run without Spring context.
+   * <p>Lazy initialization prevents SpringContext.getBean() from being called at class loading
+   * time, which allows unit tests to run without Spring context.
    *
    * @return the AnalyzerReaderUtil instance
    */

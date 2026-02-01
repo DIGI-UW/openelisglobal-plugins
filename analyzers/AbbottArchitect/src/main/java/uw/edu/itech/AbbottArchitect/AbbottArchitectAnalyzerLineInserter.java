@@ -30,8 +30,8 @@ import org.openelisglobal.common.log.LogEvent;
  * HL7 ORU^R01 result parser for Abbott Architect analyzers.
  *
  * <p>Extracts OBX results via {@link HL7MessageService} and maps analyzer test codes to OpenELIS
- * tests using {@link AnalyzerTestNameCache}. Results are persisted using the standard
- * {@link AnalyzerLineInserter} workflow.
+ * tests using {@link AnalyzerTestNameCache}. Results are persisted using the standard {@link
+ * AnalyzerLineInserter} workflow.
  */
 public class AbbottArchitectAnalyzerLineInserter extends AnalyzerLineInserter {
 
@@ -116,8 +116,7 @@ public class AbbottArchitectAnalyzerLineInserter extends AnalyzerLineInserter {
     return error;
   }
 
-  List<ParsedResult> parseResults(String rawMessage)
-      throws HL7MessageService.HL7ParseException {
+  List<ParsedResult> parseResults(String rawMessage) throws HL7MessageService.HL7ParseException {
     HL7MessageService.OruR01ParseResult parsed = hl7MessageService.parseOruR01(rawMessage);
     return parseResults(parsed);
   }

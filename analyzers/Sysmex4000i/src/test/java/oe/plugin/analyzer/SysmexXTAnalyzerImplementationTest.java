@@ -18,19 +18,25 @@ package oe.plugin.analyzer;
 
 import static org.junit.Assert.assertNotNull;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openelisglobal.plugin.test.PluginTestBase;
 
 public class SysmexXTAnalyzerImplementationTest extends PluginTestBase {
 
   @Test
-  @Ignore("Static initializer requires full Spring context - cannot be unit tested")
+  public void testConstructor_CanInstantiateWithoutSpringContext() {
+    SysmexXTAnalyzerImplementation impl = new SysmexXTAnalyzerImplementation();
+
+    assertNotNull("Implementation should be created successfully", impl);
+  }
+
+  @Test
   public void testGetError_ReturnsErrorMessage() {
     SysmexXTAnalyzerImplementation impl = new SysmexXTAnalyzerImplementation();
 
     String error = impl.getError();
 
+    // This analyzer returns a fixed error message
     assertNotNull("Error message should not be null", error);
   }
 }

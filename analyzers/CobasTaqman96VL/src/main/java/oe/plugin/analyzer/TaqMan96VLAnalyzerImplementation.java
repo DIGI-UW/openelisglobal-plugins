@@ -13,9 +13,6 @@
  */
 package oe.plugin.analyzer;
 
-// import java.io.File;
-// import java.io.FileWriter;
-// import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.openelisglobal.analysis.service.AnalysisService;
@@ -37,28 +34,100 @@ import org.openelisglobal.test.valueholder.Test;
 public class TaqMan96VLAnalyzerImplementation extends AnalyzerLineInserter {
   private static final String UNDER_THREASHOLD = "< LL";
   private static final double THREASHOLD = 20.0;
+  private static final String DATE_PATTERN = "yyyy/MM/dd HH:mm:ss";
+  private static final String ANALYZER_NAME = "TaqMan96VLAnalyzer";
+
   private int ORDER_NUMBER = 0;
   private int ORDER_DATE = 0;
   private int RESULT = 0;
   private int SAMPLE_TYPE = 0;
   private int UNIT = 0;
-  // private static final String DELIMITER = "\\t";
   private static String DELIMITER = "\\t";
-  private static final String DATE_PATTERN = "yyyy/MM/dd HH:mm:ss";
-  static String ANALYZER_ID;
-  private final String projectCode = MessageUtil.getMessage("sample.entry.project.LART");
+
+  // Lazy-initialized services
+  private TestService testService;
+  private AnalyzerService analyzerService;
+  private AnalysisService analysisService;
+  private SampleService sampleService;
+
+  // Lazy-initialized data
+  private String analyzerId;
+  private String projectCode;
+  private Test test;
+  private String validStatusId;
 
   private AnalyzerReaderUtil readerUtil = new AnalyzerReaderUtil();
   private String error;
-  Test test = SpringContext.getBean(TestService.class).getActiveTestByName("Viral Load").get(0);
-  String validStatusId =
-      StatusService.getInstance().getStatusID(StatusService.AnalysisStatus.Finalized);
-  AnalysisService analysisService = SpringContext.getBean(AnalysisService.class);
 
-  static {
-    AnalyzerService analyzerService = SpringContext.getBean(AnalyzerService.class);
-    Analyzer analyzer = analyzerService.getAnalyzerByName("TaqMan96VLAnalyzer");
-    ANALYZER_ID = analyzer.getId();
+  // Lazy getter for TestService
+  protected TestService getTestService() {
+    if (testService == null) {
+      testService = SpringContext.getBean(TestService.class);
+    }
+    return testService;
+  }
+
+  // Lazy getter for AnalyzerService
+  protected AnalyzerService getAnalyzerService() {
+    if (analyzerService == null) {
+      analyzerService = SpringContext.getBean(AnalyzerService.class);
+    }
+    return analyzerService;
+  }
+
+  // Lazy getter for AnalysisService
+  protected AnalysisService getAnalysisService() {
+    if (analysisService == null) {
+      analysisService = SpringContext.getBean(AnalysisService.class);
+    }
+    return analysisService;
+  }
+
+  // Lazy getter for SampleService
+  protected SampleService getSampleService() {
+    if (sampleService == null) {
+      sampleService = SpringContext.getBean(SampleService.class);
+    }
+    return sampleService;
+  }
+
+  // Lazy getter for analyzer ID
+  protected String getAnalyzerId() {
+    if (analyzerId == null) {
+      Analyzer analyzer = getAnalyzerService().getAnalyzerByName(ANALYZER_NAME);
+      if (analyzer != null) {
+        analyzerId = analyzer.getId();
+      }
+    }
+    return analyzerId;
+  }
+
+  // Lazy getter for project code
+  protected String getProjectCode() {
+    if (projectCode == null) {
+      projectCode = MessageUtil.getMessage("sample.entry.project.LART");
+    }
+    return projectCode;
+  }
+
+  // Lazy getter for viral load test
+  protected Test getViralLoadTest() {
+    if (test == null) {
+      List<Test> tests = getTestService().getActiveTestByName("Viral Load");
+      if (tests != null && !tests.isEmpty()) {
+        test = tests.get(0);
+      }
+    }
+    return test;
+  }
+
+  // Lazy getter for valid status ID
+  protected String getValidStatusId() {
+    if (validStatusId == null) {
+      validStatusId =
+          StatusService.getInstance().getStatusID(StatusService.AnalysisStatus.Finalized);
+    }
+    return validStatusId;
   }
 
   public boolean insert(List<String> lines, String currentUserId) {
@@ -115,15 +184,15 @@ public class TaqMan96VLAnalyzerImplementation extends AnalyzerLineInserter {
       resultList.add(result);
       return;
     }
-    SampleService sampleServ = SpringContext.getBean(SampleService.class);
-    if (!result.getAccessionNumber().startsWith(projectCode)
-        || sampleServ.getSampleByAccessionNumber(result.getAccessionNumber()) == null) return;
+    if (!result.getAccessionNumber().startsWith(getProjectCode())
+        || getSampleService().getSampleByAccessionNumber(result.getAccessionNumber()) == null)
+      return;
 
     List<Analysis> analyses =
-        analysisService.getAnalysisByAccessionAndTestId(
-            result.getAccessionNumber(), result.getTestId());
+        getAnalysisService()
+            .getAnalysisByAccessionAndTestId(result.getAccessionNumber(), result.getTestId());
     for (Analysis analysis : analyses) {
-      if (analysis.getStatusId().equals(validStatusId)) return;
+      if (analysis.getStatusId().equals(getValidStatusId())) return;
     }
 
     resultList.add(result);
@@ -140,19 +209,24 @@ public class TaqMan96VLAnalyzerImplementation extends AnalyzerLineInserter {
     String result = getAppropriateResults(fields[RESULT]);
     String accessionNumber = fields[this.ORDER_NUMBER].replace("\"", "").trim();
     accessionNumber = accessionNumber.replace(" ", "");
-    if (accessionNumber.startsWith(projectCode) && accessionNumber.length() >= 9)
+    if (accessionNumber.startsWith(getProjectCode()) && accessionNumber.length() >= 9)
       accessionNumber = accessionNumber.substring(0, 9);
 
-    analyzerResults.setAnalyzerId(ANALYZER_ID);
+    Test viralLoadTest = getViralLoadTest();
+    if (viralLoadTest == null) {
+      return;
+    }
+
+    analyzerResults.setAnalyzerId(getAnalyzerId());
     analyzerResults.setResult(result);
     analyzerResults.setUnits(
         UNDER_THREASHOLD.equals(result) ? "" : fields[UNIT].replace("\"", "").trim());
     analyzerResults.setCompleteDate(
         DateUtil.convertStringDateToTimestampWithPattern(
             fields[ORDER_DATE].replace("\"", "").trim(), DATE_PATTERN));
-    analyzerResults.setTestId(test.getId());
+    analyzerResults.setTestId(viralLoadTest.getId());
+    analyzerResults.setTestName(viralLoadTest.getName());
     analyzerResults.setIsControl(!"S".equals(fields[SAMPLE_TYPE].replace("\"", "").trim()));
-    analyzerResults.setTestName(test.getName());
     analyzerResults.setResultType("A");
 
     if (analyzerResults.getIsControl()) {

@@ -36,43 +36,125 @@ import org.openelisglobal.test.valueholder.Test;
 
 public class AB7500VLAnalyzerImplementation extends AnalyzerLineInserter {
 
+  private static final String DELIMITER = ",";
+  private static final String DATE_PATTERN = "yyyy-MM-dd HH:mm";
+  private static final String ANALYZER_NAME = "AB7500VLAnalyzer";
+
   private int ORDER_NUMBER = 0;
   private int TARGET_NUMBER = 0;
   private int VALUE_NUMBER = 0;
   String result = "";
   private boolean isControl = false;
-  private static final String DELIMITER = ",";
-  private static final String DATE_PATTERN = "yyyy-MM-dd HH:mm";
-  static String ANALYZER_ID;
 
-  static HashMap<String, Test> testHeaderNameMap = new HashMap<String, Test>();
+  // Lazy-initialized service references (allows unit testing without Spring context)
+  private TestService testService;
+  private AnalyzerService analyzerService;
+  private SampleService sampleService;
+
+  // Lazy-initialized data
+  private String analyzerId;
+  private HashMap<String, Test> testHeaderNameMap;
+  private HashMap<String, String> unitsIndexMap;
+  private String validStatusId;
+  private Test viralLoadTest;
+
   HashMap<String, String> indexTestMap = new HashMap<String, String>();
-  static HashMap<String, String> unitsIndexMap = new HashMap<String, String>();
 
   private AnalyzerReaderUtil readerUtil = new AnalyzerReaderUtil();
   private String error;
   String dateTime = "";
 
-  private final String accession_number_prefix =
-      MessageUtil.getMessage("sample.entry.project.LART");
-  // private final String accession_number_prefix =
-  // ConfigurationProperties.getInstance().getPropertyValue(Property.ACCESSION_NUMBER_PREFIX);
+  // Lazy-initialized to allow unit testing
+  private String accessionNumberPrefix;
 
-  String validStatusId =
-      StatusService.getInstance().getStatusID(StatusService.AnalysisStatus.Finalized);
   AnalysisDAO analysisDao = new AnalysisDAOImpl();
-  Test test =
-      (Test) SpringContext.getBean(TestService.class).getActiveTestByName("Viral Load").get(0);
 
-  static {
-    testHeaderNameMap.put(
-        "Quantity", SpringContext.getBean(TestService.class).getTestByName("Viral Load"));
+  // Lazy getter for accession number prefix
+  protected String getAccessionNumberPrefix() {
+    if (accessionNumberPrefix == null) {
+      accessionNumberPrefix = MessageUtil.getMessage("sample.entry.project.LART");
+    }
+    return accessionNumberPrefix;
+  }
 
-    unitsIndexMap.put("Quantity", "cp/ml");
+  // Lazy getter for TestService
+  protected TestService getTestService() {
+    if (testService == null) {
+      testService = SpringContext.getBean(TestService.class);
+    }
+    return testService;
+  }
 
-    AnalyzerService analyzerService = SpringContext.getBean(AnalyzerService.class);
-    Analyzer analyzer = analyzerService.getAnalyzerByName("AB7500VLAnalyzer");
-    ANALYZER_ID = analyzer.getId();
+  // Lazy getter for AnalyzerService
+  protected AnalyzerService getAnalyzerService() {
+    if (analyzerService == null) {
+      analyzerService = SpringContext.getBean(AnalyzerService.class);
+    }
+    return analyzerService;
+  }
+
+  // Lazy getter for SampleService
+  protected SampleService getSampleService() {
+    if (sampleService == null) {
+      sampleService = SpringContext.getBean(SampleService.class);
+    }
+    return sampleService;
+  }
+
+  // Lazy getter for analyzer ID
+  protected String getAnalyzerId() {
+    if (analyzerId == null) {
+      Analyzer analyzer = getAnalyzerService().getAnalyzerByName(ANALYZER_NAME);
+      if (analyzer != null) {
+        analyzerId = analyzer.getId();
+      } else {
+        error = "Analyzer not found: " + ANALYZER_NAME;
+      }
+    }
+    return analyzerId;
+  }
+
+  // Lazy getter for test name map
+  protected HashMap<String, Test> getTestHeaderNameMap() {
+    if (testHeaderNameMap == null) {
+      testHeaderNameMap = new HashMap<String, Test>();
+      Test viralLoad = getTestService().getTestByName("Viral Load");
+      if (viralLoad != null) {
+        testHeaderNameMap.put("Quantity", viralLoad);
+      } else {
+        error = "Test not found: Viral Load";
+      }
+    }
+    return testHeaderNameMap;
+  }
+
+  // Lazy getter for units map
+  protected HashMap<String, String> getUnitsIndexMap() {
+    if (unitsIndexMap == null) {
+      unitsIndexMap = new HashMap<String, String>();
+      unitsIndexMap.put("Quantity", "cp/ml");
+    }
+    return unitsIndexMap;
+  }
+
+  // Lazy getter for valid status ID
+  protected String getValidStatusId() {
+    if (validStatusId == null) {
+      validStatusId =
+          StatusService.getInstance().getStatusID(StatusService.AnalysisStatus.Finalized);
+    }
+    return validStatusId;
+  }
+
+  // Lazy getter for viral load test (used for display)
+  protected Test getViralLoadTest() {
+    if (viralLoadTest == null) {
+      List<Test> tests = getTestService().getActiveTestByName("Viral Load");
+      if (tests != null && !tests.isEmpty()) {
+        viralLoadTest = tests.get(0);
+      }
+    }
+    return viralLoadTest;
   }
 
   public boolean insert(List<String> lines, String currentUserId) {
@@ -95,7 +177,7 @@ public class AB7500VLAnalyzerImplementation extends AnalyzerLineInserter {
     for (Integer i = 0; i < headers.length; i++) {
       String header = headers[i];
 
-      if (testHeaderNameMap.containsKey(headers[i])) {
+      if (getTestHeaderNameMap().containsKey(headers[i])) {
         indexTestMap.put(i.toString(), headers[i]);
       } else if ("Sample Name".equals(header)) {
         ORDER_NUMBER = i;
@@ -117,15 +199,15 @@ public class AB7500VLAnalyzerImplementation extends AnalyzerLineInserter {
     /*
      * if (result.getIsControl()){ resultList.add(result); return; }
      */
-    SampleService sampleServ = SpringContext.getBean(SampleService.class);
-    if (!result.getAccessionNumber().startsWith(accession_number_prefix)
-        || sampleServ.getSampleByAccessionNumber(result.getAccessionNumber()) == null) return;
+    if (!result.getAccessionNumber().startsWith(getAccessionNumberPrefix())
+        || getSampleService().getSampleByAccessionNumber(result.getAccessionNumber()) == null)
+      return;
 
     List<Analysis> analyses =
         analysisDao.getAnalysisByAccessionAndTestId(
             result.getAccessionNumber(), result.getTestId());
     for (Analysis analysis : analyses) {
-      if (analysis.getStatusId().equals(validStatusId)) return;
+      if (analysis.getStatusId().equals(getValidStatusId())) return;
     }
     resultList.add(result);
 
@@ -141,12 +223,16 @@ public class AB7500VLAnalyzerImplementation extends AnalyzerLineInserter {
 
       if (indexTestMap.containsKey(k.toString())) {
         String testKey = indexTestMap.get(k.toString());
+        Test test = getTestHeaderNameMap().get(testKey);
+        if (test == null) {
+          continue;
+        }
         AnalyzerResults aResult = new AnalyzerResults();
         Double resultAsDouble;
         String AccessionNumber = "";
         String resultfinal = "";
-        aResult.setTestId(testHeaderNameMap.get(testKey).getId());
-        aResult.setTestName(testHeaderNameMap.get(testKey).getName());
+        aResult.setTestId(test.getId());
+        aResult.setTestName(test.getName());
 
         // ----for result
         if (fields[VALUE_NUMBER].contains("Undetermined") && fields[k].isEmpty()) {
@@ -176,9 +262,9 @@ public class AB7500VLAnalyzerImplementation extends AnalyzerLineInserter {
         }
 
         aResult.setResult(result);
-        aResult.setAnalyzerId(ANALYZER_ID);
+        aResult.setAnalyzerId(getAnalyzerId());
         aResult.setAccessionNumber(AccessionNumber);
-        aResult.setUnits(unitsIndexMap.get(testKey));
+        aResult.setUnits(getUnitsIndexMap().get(testKey));
         aResult.setIsControl(isControl);
         aResult.setResultType("A");
 
@@ -201,16 +287,9 @@ public class AB7500VLAnalyzerImplementation extends AnalyzerLineInserter {
   public List<Integer> getColumnsLines(List<String> lines) {
     List<Integer> linesList = new ArrayList<Integer>();
     for (int i = 0; i < lines.size(); i++) {
-      System.out.print("******* line:" + i);
-      System.out.println(":" + lines.get(i));
-
       if (lines.get(i).contains("Sample Name")) {
-        System.out.print("============== line:" + i);
-        System.out.println(":" + lines.get(i));
         linesList.add(i);
       }
-
-      // i=i+1;
     }
 
     return linesList.size() == 0 ? null : linesList;

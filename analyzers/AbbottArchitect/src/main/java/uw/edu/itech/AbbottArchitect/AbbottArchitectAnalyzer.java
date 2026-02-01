@@ -75,12 +75,12 @@ public class AbbottArchitectAnalyzer implements AnalyzerImporterPlugin {
         continue;
       }
       String[] fields = line.split("\\|", -1);
-      String sendingApp = fields.length > MSH_SENDING_APPLICATION_FIELD
-          ? fields[MSH_SENDING_APPLICATION_FIELD]
-          : "";
-      String sendingFacility = fields.length > MSH_SENDING_FACILITY_FIELD
-          ? fields[MSH_SENDING_FACILITY_FIELD]
-          : "";
+      String sendingApp =
+          fields.length > MSH_SENDING_APPLICATION_FIELD
+              ? fields[MSH_SENDING_APPLICATION_FIELD]
+              : "";
+      String sendingFacility =
+          fields.length > MSH_SENDING_FACILITY_FIELD ? fields[MSH_SENDING_FACILITY_FIELD] : "";
 
       String identifier = (sendingApp + " " + sendingFacility).toUpperCase();
       if (identifier.contains(IDENTIFIER_PRIMARY) || identifier.contains(IDENTIFIER_FALLBACK)) {
