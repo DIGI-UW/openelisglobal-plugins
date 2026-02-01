@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <version>1.0</version>
+  <analyzerImporter>
+    <extension_point>
+      <description value="Stago STart 4 Coagulation Analyzer"/>
+      <extension path="uw.edu.itech.StagoSTart4.StagoSTart4Analyzer"/>
+    </extension_point>
+  </analyzerImporter>
+</plugin>
