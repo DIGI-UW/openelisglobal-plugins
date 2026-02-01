@@ -25,7 +25,7 @@ public class AbbottArchitectAnalyzerLineInserterTest {
   @Test
   public void parseResults_extractsObxValues() throws Exception {
     String raw = Files.readString(
-        Path.of("../../../src/test/resources/testdata/hl7/abbott-architect-result.hl7"),
+        Path.of("src/test/resources/testdata/hl7/abbott-architect-result.hl7"),
         StandardCharsets.UTF_8);
 
     AbbottArchitectAnalyzerLineInserter inserter = new AbbottArchitectAnalyzerLineInserter();

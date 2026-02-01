@@ -116,7 +116,8 @@ public class AbbottArchitectAnalyzerLineInserter extends AnalyzerLineInserter {
     return error;
   }
 
-  List<ParsedResult> parseResults(String rawMessage) {
+  List<ParsedResult> parseResults(String rawMessage)
+      throws HL7MessageService.HL7ParseException {
     HL7MessageService.OruR01ParseResult parsed = hl7MessageService.parseOruR01(rawMessage);
     return parseResults(parsed);
   }

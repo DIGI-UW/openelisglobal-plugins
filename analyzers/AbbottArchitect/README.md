@@ -20,9 +20,9 @@ test mapping CSV or UI configuration:
 From the repository root:
 
 ```bash
-cd plugins/analyzers/AbbottArchitect
+cd analyzers/AbbottArchitect
 mvn clean package
 ```
 
-The built JAR is copied to `plugins/plugins/` by the module build (see
-`plugins/analyzers/AbbottArchitect/pom.xml`).
+The built JAR is copied to `plugins/` by the module build (see
+`analyzers/AbbottArchitect/pom.xml`).
