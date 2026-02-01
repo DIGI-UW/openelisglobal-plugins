@@ -82,7 +82,7 @@ public class StagoSTart4AnalyzerLineInserter extends AnalyzerLineInserter {
   // Timestamp format used by Stago ASTM messages
   private static final String ASTM_TIMESTAMP_PATTERN = "yyyyMMddHHmmss";
 
-  private final AnalyzerReaderUtil readerUtil = new AnalyzerReaderUtil();
+  private AnalyzerReaderUtil readerUtil;
 
   /**
    * Parse message lines (ASTM or HL7 format) and persist coagulation results.
@@ -297,7 +297,7 @@ public class StagoSTart4AnalyzerLineInserter extends AnalyzerLineInserter {
     results.add(analyzerResult);
 
     // Check for existing result in database (for duplicate detection)
-    AnalyzerResults resultFromDB = readerUtil.createAnalyzerResultFromDB(analyzerResult);
+    AnalyzerResults resultFromDB = getReaderUtil().createAnalyzerResultFromDB(analyzerResult);
     if (resultFromDB != null) {
       results.add(resultFromDB);
     }
@@ -374,7 +374,7 @@ public class StagoSTart4AnalyzerLineInserter extends AnalyzerLineInserter {
     results.add(analyzerResult);
 
     // Check for existing result in database (for duplicate detection)
-    AnalyzerResults resultFromDB = readerUtil.createAnalyzerResultFromDB(analyzerResult);
+    AnalyzerResults resultFromDB = getReaderUtil().createAnalyzerResultFromDB(analyzerResult);
     if (resultFromDB != null) {
       results.add(resultFromDB);
     }
@@ -454,5 +454,20 @@ public class StagoSTart4AnalyzerLineInserter extends AnalyzerLineInserter {
       return components[0].trim();
     }
     return null;
+  }
+
+  /**
+   * Get the AnalyzerReaderUtil instance, lazily initializing if needed.
+   *
+   * <p>Lazy initialization prevents SpringContext.getBean() from being called at class loading time,
+   * which allows unit tests to run without Spring context.
+   *
+   * @return the AnalyzerReaderUtil instance
+   */
+  private AnalyzerReaderUtil getReaderUtil() {
+    if (readerUtil == null) {
+      readerUtil = new AnalyzerReaderUtil();
+    }
+    return readerUtil;
   }
 }

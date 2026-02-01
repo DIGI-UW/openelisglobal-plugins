@@ -129,11 +129,13 @@ public class StagoSTart4Analyzer implements AnalyzerImporterPlugin {
     }
 
     // Check for HL7 format (MSH segment)
+    // MSH structure: MSH|encoding|SendingApp|SendingFacility|...
+    // After split by |: fields[0]=MSH, fields[1]=encoding, fields[2]=SendingApp
     for (String line : lines) {
       if (line != null && line.startsWith("MSH|")) {
         String[] fields = line.split("\\|");
-        // MSH field 3 is sending application
-        if (fields.length > 3 && fields[3].toUpperCase().contains(HL7_SENDING_APP)) {
+        // MSH-3 (sending application) is at index 2 after split
+        if (fields.length > 2 && fields[2].toUpperCase().contains(HL7_SENDING_APP)) {
           return true;
         }
       }
