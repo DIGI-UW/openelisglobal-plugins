@@ -1,8 +1,8 @@
 # GenericHL7 Plugin Architecture
 
-**Status:** 🚧 **PLANNED** - Implementation pending (Milestone M19)  
-**Version:** 1.0.0 (spec)  
-**Date:** 2026-02-02  
+**Status:** 🚧 **PLANNED** - Implementation pending (Milestone M19)
+**Version:** 1.0.0 (spec)
+**Date:** 2026-02-02
 **Feature:** specs/011-madagascar-analyzer-integration
 
 ---
@@ -92,13 +92,11 @@ ALTER TABLE analyzer_field ADD COLUMN IF NOT EXISTS hl7_subcomponent INTEGER;
 
 ---
 
-<<<<<<< HEAD
-=======
 ## Implementation Files
 
 ### 1. GenericHL7Analyzer.java
 
-**Package:** `oe.plugin.analyzer`  
+**Package:** `oe.plugin.analyzer`
 **Extends:** N/A (implements `AnalyzerImporterPlugin`)
 
 ```java
@@ -120,11 +118,11 @@ public class GenericHL7Analyzer implements AnalyzerImporterPlugin {
     public boolean isTargetAnalyzer(List<String> lines) {
         // Parse HL7 message to extract MSH-3 sending application
         String msh3 = extractMSH3(lines);
-        
+
         // Query analyzer_configuration for matching pattern
-        // WHERE is_generic_plugin = true 
+        // WHERE is_generic_plugin = true
         // AND identifier_pattern MATCHES msh3
-        
+
         return matchFound;
     }
 
@@ -132,7 +130,7 @@ public class GenericHL7Analyzer implements AnalyzerImporterPlugin {
     public AnalyzerLineInserter getAnalyzerLineInserter() {
         return new GenericHL7LineInserter();
     }
-    
+
     private String extractMSH3(List<String> lines) {
         // Parse MSH segment
         // Extract MSH-3 (Sending Application)
@@ -143,23 +141,23 @@ public class GenericHL7Analyzer implements AnalyzerImporterPlugin {
 
 **Key Methods:**
 
-1. **`isTargetAnalyzer()`**: 
+1. **`isTargetAnalyzer()`**:
    - Parse MSH-3 from HL7 message
    - Query `analyzer_configuration` for matching `identifier_pattern`
    - Return true if `is_generic_plugin=true` AND pattern matches
 
-2. **`connect()`**: 
+2. **`connect()`**:
    - Register plugin (no hardcoded test mappings)
    - Mappings loaded from database
 
-3. **`getAnalyzerLineInserter()`**: 
+3. **`getAnalyzerLineInserter()`**:
    - Return GenericHL7LineInserter instance
 
 ---
 
 ### 2. GenericHL7LineInserter.java
 
-**Package:** `oe.plugin.analyzer`  
+**Package:** `oe.plugin.analyzer`
 **Extends:** `AnalyzerLineInserter`
 
 ```java
@@ -181,13 +179,13 @@ public class GenericHL7LineInserter extends AnalyzerLineInserter {
         // 7. Create AnalyzerResults objects
         // 8. Persist via persistImport()
     }
-    
+
     private Map<String, Object> parseOBXSegment(String obxLine, AnalyzerField field) {
         // Parse OBX segment fields
         // Extract: OBX-3 (test identifier), OBX-5 (result value), OBX-6 (units)
         // Apply field.hl7_field_index, field.hl7_component
     }
-    
+
     @Override
     public String getError() {
         return "GenericHL7 analyzer unable to write to database";
@@ -223,19 +221,19 @@ public class GenericHL7LineInserter extends AnalyzerLineInserter {
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    
+
     <parent>
         <groupId>org.openelisglobal</groupId>
         <artifactId>openelisglobal-plugins</artifactId>
         <version>1.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
-    
+
     <groupId>org.openelisglobal.plugins</groupId>
     <artifactId>GenericHL7</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
-    
+
     <dependencies>
         <!-- HAPI FHIR for HL7 parsing (optional, or use custom parser) -->
         <dependency>
@@ -243,7 +241,7 @@ public class GenericHL7LineInserter extends AnalyzerLineInserter {
             <artifactId>hapi-structures-v231</artifactId>
             <version>2.3</version>
         </dependency>
-        
+
         <!-- JUnit 4 for tests -->
         <dependency>
             <groupId>junit</groupId>
@@ -292,14 +290,14 @@ public class GenericHL7LineInserter extends AnalyzerLineInserter {
 ```java
 @RunWith(MockitoJUnitRunner.class)
 public class GenericHL7AnalyzerTest {
-    
+
     @Test
     public void testIsTargetAnalyzer_WithMatchingMSH3_ReturnsTrue() {
         // Arrange: HL7 message with MSH-3 = "MINDRAY"
         // Act: Call isTargetAnalyzer()
         // Assert: Returns true (matches identifier_pattern in config)
     }
-    
+
     @Test
     public void testIsTargetAnalyzer_WithNonMatchingMSH3_ReturnsFalse() {
         // Arrange: HL7 message with MSH-3 = "UNKNOWN"
@@ -313,7 +311,7 @@ public class GenericHL7AnalyzerTest {
 
 ```java
 public class GenericHL7LineInserterTest extends PluginTestBase {
-    
+
     @Test
     public void testInsert_WithValidORU_InsertsResults() {
         // Arrange: Valid HL7 ORU^R01 message
@@ -352,13 +350,13 @@ OBX|3|NM|HGB^Hemoglobin||14.5|g/dL|12.0-16.0|N|||F
 ```xml
 <!-- CONFIG-2012: Mindray BC2000 (HL7 TCP) - USES GenericHL7 -->
 <analyzer_configuration id="CONFIG-2012"
-    analyzer_id="2012" 
+    analyzer_id="2012"
     protocol_version="HL7 v2.3.1"
     identifier_pattern="MINDRAY.*BC.?2000"
     msh3_pattern="MINDRAY"
     is_generic_plugin="true"
     status="ACTIVE"
-    fhir_uuid="b0c1d2e3-f4a5-4b4c-7d8e-9f0a1b2c3d4e" 
+    fhir_uuid="b0c1d2e3-f4a5-4b4c-7d8e-9f0a1b2c3d4e"
     sys_user_id="1"
     last_updated="2026-02-02 00:00:00" />
 ```
@@ -382,7 +380,6 @@ OBX|3|NM|HGB^Hemoglobin||14.5|g/dL|12.0-16.0|N|||F
 
 ---
 
->>>>>>> 4c650eb (feat(011): Add GenericHL7 architecture and update inventory to 36 plugins)
 ## Implementation Checklist
 
 ### Phase 4.1: Core Plugin Implementation
@@ -407,13 +404,8 @@ OBX|3|NM|HGB^Hemoglobin||14.5|g/dL|12.0-16.0|N|||F
 - [x] Create `analyzer-defaults/hl7/mindray-bc2000.json` ✅
 - [x] Create `analyzer-defaults/hl7/mindray-bc5380.json` ✅
 - [x] Create `analyzer-defaults/hl7/mindray-bs360e.json` ✅
-<<<<<<< HEAD
 - [x] Create `analyzer-defaults/hl7/abbott-architect.json` ✅
 - [x] Create `analyzer-defaults/hl7/genexpert-hl7.json` ✅
-=======
-- [ ] Create `analyzer-defaults/hl7/abbott-architect.json`
-- [ ] Create `analyzer-defaults/hl7/genexpert-hl7.json`
->>>>>>> 4c650eb (feat(011): Add GenericHL7 architecture and update inventory to 36 plugins)
 
 ### Phase 4.4: Dashboard Integration (M20)
 
@@ -433,8 +425,6 @@ OBX|3|NM|HGB^Hemoglobin||14.5|g/dL|12.0-16.0|N|||F
 
 ---
 
-<<<<<<< HEAD
-=======
 ## Dependencies
 
 ### Existing Components
@@ -505,19 +495,15 @@ OBX|3|NM|HGB^Hemoglobin||14.5|g/dL|12.0-16.0|N|||F
 
 ---
 
->>>>>>> 4c650eb (feat(011): Add GenericHL7 architecture and update inventory to 36 plugins)
 ## Related Documentation
 
 - [GenericASTM Plugin](../GenericASTM/README.md) - Similar pattern for ASTM
 - [Feature 011 Spec](../../../specs/011-madagascar-analyzer-integration/spec.md)
 - [Default Config Templates](../../../analyzer-defaults/README.md)
-<<<<<<< HEAD
-=======
 - [HL7 v2.3.1 Specification](http://www.hl7.org/)
->>>>>>> 4c650eb (feat(011): Add GenericHL7 architecture and update inventory to 36 plugins)
 
 ---
 
-**Maintained By:** OpenELIS Global Feature 011 Team  
-**Repository:** `DIGI-UW/OpenELIS-Global-2`  
+**Maintained By:** OpenELIS Global Feature 011 Team
+**Repository:** `DIGI-UW/OpenELIS-Global-2`
 **Status:** 🚧 Awaiting implementation (M19)
