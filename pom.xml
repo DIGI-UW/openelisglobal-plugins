@@ -28,6 +28,7 @@
     <module>./analyzers/SysmexXN1000</module>
     <module>./analyzers/weberAnalyzer</module>
     <module>./analyzers/QuantStudio3</module>
+    <module>./analyzers/QuantStudio7Flex</module>
     <module>./analyzers/GeneXpert</module>
     <module>./analyzers/Mindray</module>
     <module>./analyzers/GeneXpertFile</module>
