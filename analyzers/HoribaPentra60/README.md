@@ -44,13 +44,15 @@ External plugin JAR for the **Horiba ABX Pentra 60 C+** hematology analyzer.
 ## Build
 
 ```bash
-mvn clean package -pl ./analyzers/HoribaPentra60
+cd plugins/analyzers/HoribaPentra60
+mvn clean package
 ```
 
-## Deployment
+## Installation
 
-Copy `target/HoribaPentra60-1.0.jar` to `/var/lib/openelis-global/plugins/`.
+Copy `target/HoribaPentra60-*.jar` to `/var/lib/openelis-global/plugins/` and restart OpenELIS.
 
-## Feature
+---
 
-011-madagascar-analyzer-integration, Milestone M9
+**Feature:** 011-madagascar-analyzer-integration, Milestone M9  
+**Last Verified:** 2026-02-02

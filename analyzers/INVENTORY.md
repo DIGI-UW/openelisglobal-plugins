@@ -3,7 +3,7 @@
 **Version:** 1.0.0  
 **Date:** 2026-02-02  
 **Total Plugins:** 35  
-**Plugins with READMEs:** 6  
+**Plugins with READMEs:** 36  
 **Last Verified:** 2026-02-02
 
 ---

@@ -43,13 +43,15 @@ External plugin JAR for the **Horiba ABX Micros 60** hematology analyzer.
 ## Build
 
 ```bash
-mvn clean package -pl ./analyzers/HoribaMicros60
+cd plugins/analyzers/HoribaMicros60
+mvn clean package
 ```
 
-## Deployment
+## Installation
 
-Copy `target/HoribaMicros60-1.0.jar` to `/var/lib/openelis-global/plugins/`.
+Copy `target/HoribaMicros60-*.jar` to `/var/lib/openelis-global/plugins/` and restart OpenELIS.
 
-## Feature
+---
 
-011-madagascar-analyzer-integration, Milestone M10
+**Feature:** 011-madagascar-analyzer-integration, Milestone M10  
+**Last Verified:** 2026-02-02
