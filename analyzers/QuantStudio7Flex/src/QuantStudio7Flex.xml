@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <extension point="org.openelisglobal.analyzerimporter">
+    <analyzer name="QuantStudio7FlexAnalyzer"/>
+  </extension>
+  <extension point="org.openelisglobal.permissions">
+    <permission name="QuantStudio7FlexPermission"/>
+  </extension>
+  <extension point="org.openelisglobal.menu">
+    <menu name="QuantStudio7FlexMenu"/>
+  </extension>
+</plugin>
