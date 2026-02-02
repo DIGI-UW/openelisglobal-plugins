@@ -56,6 +56,7 @@ import org.openelisglobal.test.valueholder.Test;
  */
 public class QuantStudio7FlexAnalyzerImplementation extends AnalyzerLineInserter {
 
+  private static final String ANALYZER_NAME = "QuantStudio7FlexAnalyzer";
   private static final String[] CONTROL_ACCESSION_PREFIX = {"CNEG", "CPOS", "NTC", "PTC"};
 
   // QS7 Flex headers (superset of QS3 headers)
@@ -70,35 +71,89 @@ public class QuantStudio7FlexAnalyzerImplementation extends AnalyzerLineInserter
   public static final String IC_LOINC = "94745-7";
 
   private List<String> columnHeaders;
-  private HashMap<String, List<Test>> testLoincMap = new HashMap<>();
-
-  private TestService testService = SpringContext.getBean(TestService.class);
-  private SampleService sampleService = SpringContext.getBean(SampleService.class);
-  private AnalyzerService analyzerService = SpringContext.getBean(AnalyzerService.class);
-  private AnalysisService analysisService = SpringContext.getBean(AnalysisService.class);
-  private NoteService noteService = SpringContext.getBean(NoteService.class);
-
   private final String ANALYZER_NOTE = "Analyzer Note";
 
-  private String ANALYZER_ID;
+  // Lazy-initialized service references (allows unit testing without Spring context)
+  private TestService testService;
+  private SampleService sampleService;
+  private AnalyzerService analyzerService;
+  private AnalysisService analysisService;
+  private NoteService noteService;
 
-  public QuantStudio7FlexAnalyzerImplementation() {
-    // Map SARS-CoV-2 tests
-    List<Test> sarscov2Tests = testService.getTestsByLoincCode(SARSCOV2_LOINC);
-    if (sarscov2Tests != null) {
-      testLoincMap.put(SARSCOV2_LOINC, sarscov2Tests);
-    }
+  // Lazy-initialized data
+  private String analyzerId;
+  private HashMap<String, List<Test>> testLoincMap;
 
-    // Map Internal Control tests
-    List<Test> icTests = testService.getTestsByLoincCode(IC_LOINC);
-    if (icTests != null) {
-      testLoincMap.put(IC_LOINC, icTests);
+  // Lazy getter for TestService
+  protected TestService getTestService() {
+    if (testService == null) {
+      testService = SpringContext.getBean(TestService.class);
     }
+    return testService;
+  }
 
-    Analyzer analyzer = analyzerService.getAnalyzerByName("QuantStudio7FlexAnalyzer");
-    if (analyzer != null) {
-      ANALYZER_ID = analyzer.getId();
+  // Lazy getter for SampleService
+  protected SampleService getSampleService() {
+    if (sampleService == null) {
+      sampleService = SpringContext.getBean(SampleService.class);
     }
+    return sampleService;
+  }
+
+  // Lazy getter for AnalyzerService
+  protected AnalyzerService getAnalyzerService() {
+    if (analyzerService == null) {
+      analyzerService = SpringContext.getBean(AnalyzerService.class);
+    }
+    return analyzerService;
+  }
+
+  // Lazy getter for AnalysisService
+  protected AnalysisService getAnalysisService() {
+    if (analysisService == null) {
+      analysisService = SpringContext.getBean(AnalysisService.class);
+    }
+    return analysisService;
+  }
+
+  // Lazy getter for NoteService
+  protected NoteService getNoteService() {
+    if (noteService == null) {
+      noteService = SpringContext.getBean(NoteService.class);
+    }
+    return noteService;
+  }
+
+  // Lazy getter for analyzer ID
+  protected String getAnalyzerId() {
+    if (analyzerId == null) {
+      Analyzer analyzer = getAnalyzerService().getAnalyzerByName(ANALYZER_NAME);
+      if (analyzer != null) {
+        analyzerId = analyzer.getId();
+      } else {
+        LogEvent.logError(
+            this.getClass().getSimpleName(),
+            "getAnalyzerId",
+            "Analyzer '"
+                + ANALYZER_NAME
+                + "' not found in database. "
+                + "Plugin may not have been registered correctly via connect().");
+      }
+    }
+    return analyzerId;
+  }
+
+  // Lazy getter for test LOINC map
+  protected HashMap<String, List<Test>> getTestLoincMap() {
+    if (testLoincMap == null) {
+      testLoincMap = new HashMap<>();
+      // Map SARS-CoV-2 tests (IC data is captured in notes, not as separate test results)
+      List<Test> sarscov2Tests = getTestService().getTestsByLoincCode(SARSCOV2_LOINC);
+      if (sarscov2Tests != null) {
+        testLoincMap.put(SARSCOV2_LOINC, sarscov2Tests);
+      }
+    }
+    return testLoincMap;
   }
 
   public void addResultLine(
@@ -120,7 +175,7 @@ public class QuantStudio7FlexAnalyzerImplementation extends AnalyzerLineInserter
       return;
     }
 
-    Sample sample = sampleService.getSampleByAccessionNumber(currentAccessionNumber);
+    Sample sample = getSampleService().getSampleByAccessionNumber(currentAccessionNumber);
     Analysis analysis = null;
     Test test = null;
 
@@ -129,11 +184,11 @@ public class QuantStudio7FlexAnalyzerImplementation extends AnalyzerLineInserter
 
     if (sample != null) {
       // Fetch analyses once to avoid duplicate DB calls
-      List<Analysis> analyses = analysisService.getAnalysesBySampleId(sample.getId());
+      List<Analysis> analyses = getAnalysisService().getAnalysesBySampleId(sample.getId());
 
       // First pass: try to match by target-specific LOINC
       for (Analysis curAnalysis : analyses) {
-        if (testLoincMap.containsKey(curAnalysis.getTest().getLoinc())) {
+        if (getTestLoincMap().containsKey(curAnalysis.getTest().getLoinc())) {
           if (targetLoinc != null && targetLoinc.equals(curAnalysis.getTest().getLoinc())) {
             test = curAnalysis.getTest();
             analysis = curAnalysis;
@@ -144,7 +199,7 @@ public class QuantStudio7FlexAnalyzerImplementation extends AnalyzerLineInserter
       // Fallback: use any matching analysis if target-specific match not found
       if (test == null) {
         for (Analysis curAnalysis : analyses) {
-          if (testLoincMap.containsKey(curAnalysis.getTest().getLoinc())) {
+          if (getTestLoincMap().containsKey(curAnalysis.getTest().getLoinc())) {
             test = curAnalysis.getTest();
             analysis = curAnalysis;
             break;
@@ -158,7 +213,7 @@ public class QuantStudio7FlexAnalyzerImplementation extends AnalyzerLineInserter
     analyzerResult.setAccessionNumber(currentAccessionNumber);
     analyzerResult.setIsControl(isControl(currentAccessionNumber));
     analyzerResult.setCompleteDate(Timestamp.from(Instant.now()));
-    analyzerResult.setAnalyzerId(ANALYZER_ID);
+    analyzerResult.setAnalyzerId(getAnalyzerId());
     analyzerResult.setResultType("D"); // dictionary result
 
     if (test != null) {
@@ -172,7 +227,7 @@ public class QuantStudio7FlexAnalyzerImplementation extends AnalyzerLineInserter
     }
 
     if (analysis != null) {
-      noteService.insertAll(createNotesForAnalysis(analysis, resultData, currentUserId));
+      getNoteService().insertAll(createNotesForAnalysis(analysis, resultData, currentUserId));
     }
 
     LogEvent.logDebug(
@@ -190,21 +245,14 @@ public class QuantStudio7FlexAnalyzerImplementation extends AnalyzerLineInserter
     results.add(analyzerResult);
   }
 
-  /** Determine the LOINC code based on the Target column value. */
+  /**
+   * Determine the LOINC code based on the Target column value.
+   *
+   * <p>All targets map to SARS-CoV-2 test. IC (Internal Control) data is captured in notes via
+   * createNotesForAnalysis(), not as separate test results.
+   */
   private String determineTargetLoinc(String target) {
-    if (target == null) {
-      return SARSCOV2_LOINC; // Default
-    }
-    String upperTarget = target.toUpperCase();
-    if (upperTarget.contains("IC")
-        || upperTarget.contains("INTERNAL")
-        || upperTarget.contains("CONTROL")) {
-      // Check if it's actually a positive/negative control sample
-      if (!upperTarget.contains("POS") && !upperTarget.contains("NEG")) {
-        return IC_LOINC;
-      }
-    }
-    return SARSCOV2_LOINC; // Default to SARS-CoV-2
+    return SARSCOV2_LOINC;
   }
 
   private List<Note> createNotesForAnalysis(
@@ -252,8 +300,9 @@ public class QuantStudio7FlexAnalyzerImplementation extends AnalyzerLineInserter
 
   private Note createNoteForValue(
       Analysis analysis, String columnName, String value, String currentUserId) {
-    return noteService.createSavableNote(
-        analysis, NoteType.INTERNAL, columnName + " - " + value, ANALYZER_NOTE, currentUserId);
+    return getNoteService()
+        .createSavableNote(
+            analysis, NoteType.INTERNAL, columnName + " - " + value, ANALYZER_NOTE, currentUserId);
   }
 
   public boolean isColumnHeaderRow(String line) {
@@ -311,15 +360,23 @@ public class QuantStudio7FlexAnalyzerImplementation extends AnalyzerLineInserter
       if (test == null) {
         for (AnalyzerResults result : results) {
           if (!GenericValidator.isBlankOrNull(result.getTestId())) {
-            test = testService.get(result.getTestId());
+            test = getTestService().get(result.getTestId());
             break;
           }
         }
       }
       // If test is still null, use first test with appropriate LOINC
       if (test == null) {
-        if (testLoincMap.containsKey(SARSCOV2_LOINC)) {
-          test = testLoincMap.get(SARSCOV2_LOINC).get(0);
+        List<Test> testsForLoinc = getTestLoincMap().get(SARSCOV2_LOINC);
+        if (testsForLoinc != null && !testsForLoinc.isEmpty()) {
+          test = testsForLoinc.get(0);
+        } else {
+          LogEvent.logWarn(
+              this.getClass().getSimpleName(),
+              "insert",
+              "No tests configured for LOINC "
+                  + SARSCOV2_LOINC
+                  + ". Unknown test results cannot be resolved.");
         }
       }
       if (test != null) {
