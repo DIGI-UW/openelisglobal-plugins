@@ -1,10 +1,12 @@
 # OpenELIS Global Analyzer Plugins Inventory
 
-**Version:** 1.0.0  
+**Version:** 1.1.0  
 **Date:** 2026-02-02  
-**Total Plugins:** 35  
-**Plugins with READMEs:** 36  
+**Total Plugins:** 36  
+**Plugins with READMEs:** 37  
 **Last Verified:** 2026-02-02
+
+**Note:** QuantStudio7Flex plugin (#36) added via PR #42 in openelisglobal-plugins repository.
 
 ---
 
@@ -36,7 +38,8 @@
 | 22 | [Mindray](Mindray/) | Mindray | HEMATOLOGY/CHEMISTRY | HL7 | TCP/IP | [View](Mindray/README.md) |
 | 23 | [pocH-100i](pocH-100i/) | Horiba ABX | HEMATOLOGY | ASTM | RS232/TCP | [Create](pocH-100i/README.md) |
 | 24 | [QuantStudio3](QuantStudio3/) | Applied Biosystems | MOLECULAR | FILE | Filesystem | [Create](QuantStudio3/README.md) |
-| 25 | [StagoSTart4](StagoSTart4/) | Stago | COAGULATION | ASTM/HL7 | RS232/TCP | [View](StagoSTart4/README.md) |
+| 25 | [QuantStudio7Flex](../../openelisglobal-plugins/analyzers/QuantStudio7Flex/) | Thermo Fisher | MOLECULAR | FILE | Filesystem | ✅ [PR #42](https://github.com/DIGI-UW/openelisglobal-plugins/pull/42) |
+| 27 | [StagoSTart4](StagoSTart4/) | Stago | COAGULATION | ASTM/HL7 | RS232/TCP | [View](StagoSTart4/README.md) |
 | 26 | [Sysmex2000i](Sysmex2000i/) | Sysmex | HEMATOLOGY | FILE | Filesystem | [Create](Sysmex2000i/README.md) |
 | 27 | [Sysmex4000i](Sysmex4000i/) | Sysmex | HEMATOLOGY | FILE | Filesystem | [Create](Sysmex4000i/README.md) |
 | 28 | [SysmexKX21](SysmexKX21/) | Sysmex | HEMATOLOGY | FILE | Filesystem | [Create](SysmexKX21/README.md) |
@@ -67,7 +70,7 @@
 - [SysmexXP](SysmexXP/) - Sysmex, ASTM
 - [SysmexXT4000i](SysmexXT4000i/) - Sysmex, FILE
 
-### Molecular (9 analyzers)
+### Molecular (10 analyzers)
 
 - [AB7500Fast](AB7500Fast/) - Applied Biosystems, FILE
 - [Cobas4800](Cobas4800/) - Roche, FILE
@@ -79,6 +82,7 @@
 - [FluoroCyclerXT](FluoroCyclerXT/) - Hain Lifescience, FILE
 - [GeneXpertFile](GeneXpertFile/) - Cepheid, FILE
 - [GeneXpertHL7](GeneXpertHL7/) - Cepheid, HL7/HTTP
+- [QuantStudio7Flex](../../openelisglobal-plugins/analyzers/QuantStudio7Flex/) - Thermo Fisher, FILE (✅ PR #42)
 
 ### Chemistry (5 analyzers)
 
@@ -134,7 +138,7 @@
 | [SysmexXN-L](SysmexXN-L/) | RS232/TCP | H-segment contains "XN-L" |
 | [SysmexXP](SysmexXP/) | RS232/TCP | H-segment contains "XP-100" |
 
-### FILE (23 analyzers)
+### FILE (24 analyzers)
 
 | Analyzer | Delimiter | Identification Pattern |
 |----------|-----------|----------------------|
