@@ -26,19 +26,20 @@ import org.openelisglobal.systemmodule.valueholder.SystemModuleUrl;
 /**
  * QuantStudio7FlexPermission - Permission plugin for QuantStudio 7 Flex analyzer.
  *
- * M8 Milestone: Madagascar Analyzer Integration (Feature 011)
+ * <p>M8 Milestone: Madagascar Analyzer Integration (Feature 011)
  */
 public class QuantStudio7FlexPermission extends PermissionPlugin {
 
-    @Override
-    protected boolean insertPermission() {
-        IPluginPermissionService service = SpringContext.getBean(IPluginPermissionService.class);
-        SystemModule module = service.getOrCreateSystemModule(
-                "AnalyzerResults",
-                "QuantStudio7FlexAnalyzer",
-                "Results->Analyzer->QuantStudio7FlexAnalyzer");
-        Role role = service.getSystemRole("Results");
-        SystemModuleUrl moduleUrl = service.getOrCreateSystemModuleUrl(module, "/importAnalyzer");
-        return service.bindRoleToModule(role, module, moduleUrl);
-    }
+  @Override
+  protected boolean insertPermission() {
+    IPluginPermissionService service = SpringContext.getBean(IPluginPermissionService.class);
+    SystemModule module =
+        service.getOrCreateSystemModule(
+            "AnalyzerResults",
+            "QuantStudio7FlexAnalyzer",
+            "Results->Analyzer->QuantStudio7FlexAnalyzer");
+    Role role = service.getSystemRole("Results");
+    SystemModuleUrl moduleUrl = service.getOrCreateSystemModuleUrl(module, "/importAnalyzer");
+    return service.bindRoleToModule(role, module, moduleUrl);
+  }
 }

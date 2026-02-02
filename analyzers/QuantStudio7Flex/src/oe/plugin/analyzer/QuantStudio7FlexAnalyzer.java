@@ -27,77 +27,79 @@ import org.openelisglobal.plugin.AnalyzerImporterPlugin;
 /**
  * QuantStudio7FlexAnalyzer - Plugin for Thermo Fisher QuantStudio 7 Flex Real-Time PCR System.
  *
- * This plugin adapts the QuantStudio3 plugin to support QuantStudio 7 Flex CSV export format.
+ * <p>This plugin adapts the QuantStudio3 plugin to support QuantStudio 7 Flex CSV export format.
  * The QS7 Flex has additional columns compared to QS3 but the core parsing logic is similar.
  *
- * Expected CSV format (tab-delimited):
- * Well	Well Position	Sample Name	Target	Task	Reporter	Quencher	Amp Status	CT	Ct Mean	Ct SD	...
+ * <p>Expected CSV format (tab-delimited): Well Well Position Sample Name Target Task Reporter
+ * Quencher Amp Status CT Ct Mean Ct SD ...
  *
- * M8 Milestone: Madagascar Analyzer Integration (Feature 011)
+ * <p>M8 Milestone: Madagascar Analyzer Integration (Feature 011)
  */
 public class QuantStudio7FlexAnalyzer implements AnalyzerImporterPlugin {
 
-    @Override
-    public boolean connect() {
-        List<PluginAnalyzerService.TestMapping> nameMapping = new ArrayList<>();
+  @Override
+  public boolean connect() {
+    List<PluginAnalyzerService.TestMapping> nameMapping = new ArrayList<>();
 
-        // SARS-CoV-2 test mapping (same as QuantStudio3)
-        nameMapping.add(
-                new PluginAnalyzerService.TestMapping(
-                        "SARS-CoV-2 (COVID-19) RNA",
-                        "SARS-CoV-2 (COVID-19) RNA [Presence] in Respiratory specimen by qRT-PCR",
-                        QuantStudio7FlexAnalyzerImplementation.SARSCOV2_LOINC));
+    // SARS-CoV-2 test mapping (same as QuantStudio3)
+    nameMapping.add(
+        new PluginAnalyzerService.TestMapping(
+            "SARS-CoV-2 (COVID-19) RNA",
+            "SARS-CoV-2 (COVID-19) RNA [Presence] in Respiratory specimen by qRT-PCR",
+            QuantStudio7FlexAnalyzerImplementation.SARSCOV2_LOINC));
 
-        getInstance()
-                .addAnalyzerDatabaseParts(
-                        "QuantStudio7FlexAnalyzer",
-                        "QuantStudio 7 Flex Real-Time PCR System - 384 Wells",
-                        nameMapping,
-                        true);
-        getInstance().registerAnalyzer(this);
+    getInstance()
+        .addAnalyzerDatabaseParts(
+            "QuantStudio7FlexAnalyzer",
+            "QuantStudio 7 Flex Real-Time PCR System - 384 Wells",
+            nameMapping,
+            true);
+    getInstance().registerAnalyzer(this);
 
+    return true;
+  }
+
+  @Override
+  public boolean isTargetAnalyzer(List<String> lines) {
+    for (String line : lines) {
+      // Check for QuantStudio 7 Flex specific patterns
+      if (line.contains("Instrument Type")
+          && (line.matches("^.*QuantStudio.?\\s+7\\s+Flex.*")
+              || line.matches("^.*QuantStudio.?\\s+7.*"))) {
         return true;
+      }
+      // Also check for QS7 Flex specific column headers (has "Well Position" and "Target")
+      if (line.contains("Well Position")
+          && line.contains("Target")
+          && line.contains("Amp Status")) {
+        return true;
+      }
     }
+    return false;
+  }
 
-    @Override
-    public boolean isTargetAnalyzer(List<String> lines) {
-        for (String line : lines) {
-            // Check for QuantStudio 7 Flex specific patterns
-            if (line.contains("Instrument Type")
-                    && (line.matches("^.*QuantStudio.?\\s+7\\s+Flex.*")
-                            || line.matches("^.*QuantStudio.?\\s+7.*"))) {
-                return true;
-            }
-            // Also check for QS7 Flex specific column headers (has "Well Position" and "Target")
-            if (line.contains("Well Position") && line.contains("Target") && line.contains("Amp Status")) {
-                return true;
-            }
-        }
-        return false;
-    }
+  @Override
+  public AnalyzerLineInserter getAnalyzerLineInserter() {
+    return new QuantStudio7FlexAnalyzerImplementation();
+  }
 
-    @Override
-    public AnalyzerLineInserter getAnalyzerLineInserter() {
-        return new QuantStudio7FlexAnalyzerImplementation();
+  public int getColumnsLine(List<String> lines) {
+    for (int k = 0; k < lines.size(); k++) {
+      // Looking for header columns that are used for QS7 Flex
+      if (lines.get(k).contains("Sample Name")
+          && lines.get(k).contains("Target")
+          && lines.get(k).contains("CT")
+          && lines.get(k).contains("Amp Status")) {
+        return k;
+      }
+      // Fallback to QS3 pattern
+      if (lines.get(k).contains("Sample Name")
+          && lines.get(k).contains("CT")
+          && lines.get(k).contains("Ct Mean")
+          && lines.get(k).contains("Ct SD")) {
+        return k;
+      }
     }
-
-    public int getColumnsLine(List<String> lines) {
-        for (int k = 0; k < lines.size(); k++) {
-            // Looking for header columns that are used for QS7 Flex
-            if (lines.get(k).contains("Sample Name")
-                    && lines.get(k).contains("Target")
-                    && lines.get(k).contains("CT")
-                    && lines.get(k).contains("Amp Status")) {
-                return k;
-            }
-            // Fallback to QS3 pattern
-            if (lines.get(k).contains("Sample Name")
-                    && lines.get(k).contains("CT")
-                    && lines.get(k).contains("Ct Mean")
-                    && lines.get(k).contains("Ct SD")) {
-                return k;
-            }
-        }
-        return -1;
-    }
+    return -1;
+  }
 }

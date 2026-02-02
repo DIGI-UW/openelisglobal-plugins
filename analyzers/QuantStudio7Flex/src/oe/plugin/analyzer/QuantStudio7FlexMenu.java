@@ -25,40 +25,40 @@ import org.openelisglobal.plugin.MenuPlugin;
 /**
  * QuantStudio7FlexMenu - Menu plugin for QuantStudio 7 Flex analyzer.
  *
- * M8 Milestone: Madagascar Analyzer Integration (Feature 011)
+ * <p>M8 Milestone: Madagascar Analyzer Integration (Feature 011)
  */
 public class QuantStudio7FlexMenu extends MenuPlugin {
 
-    @Override
-    protected void insertMenu() {
-        PluginMenuService service = PluginMenuService.getInstance();
-        Menu menu = new Menu();
+  @Override
+  protected void insertMenu() {
+    PluginMenuService service = PluginMenuService.getInstance();
+    Menu menu = new Menu();
 
-        menu.setParent(
-                PluginMenuService.getInstance().getKnownMenu(KnownMenu.ANALYZER, "menu_results"));
-        // The order this analyzer will show on the menu relative to other analyzers
-        menu.setPresentationOrder(11);
-        // The id needs to be unique in the system
-        menu.setElementId("quantstudio7flex_analyzer_plugin");
-        // This will always be "/AnalyzerResults?type=<The name of the analyzer in
-        // the database as specified in then Analyzer class call to
-        // addAnalyzerDatabaseParts(....)
-        menu.setActionURL("/AnalyzerResults?type=QuantStudio7FlexAnalyzer");
-        // The key used for the name of the analyzer on the menu. Should not already
-        // exist in MessageResource.properties.
-        menu.setDisplayKey("banner.menu.results.quantstudio7flexanalyzer");
-        menu.setOpenInNewWindow(false);
+    menu.setParent(
+        PluginMenuService.getInstance().getKnownMenu(KnownMenu.ANALYZER, "menu_results"));
+    // The order this analyzer will show on the menu relative to other analyzers
+    menu.setPresentationOrder(11);
+    // The id needs to be unique in the system
+    menu.setElementId("quantstudio7flex_analyzer_plugin");
+    // This will always be "/AnalyzerResults?type=<The name of the analyzer in
+    // the database as specified in the Analyzer class call to
+    // addAnalyzerDatabaseParts(....)
+    menu.setActionURL("/AnalyzerResults?type=QuantStudio7FlexAnalyzer");
+    // The key used for the name of the analyzer on the menu. Should not already
+    // exist in MessageResource.properties.
+    menu.setDisplayKey("banner.menu.results.quantstudio7flexanalyzer");
+    menu.setOpenInNewWindow(false);
 
-        service.addMenu(menu);
-        // Analyzer name in English
-        service.insertLanguageKeyValue(
-                "banner.menu.results.quantstudio7flexanalyzer",
-                "QuantStudio 7 Flex",
-                Locale.ENGLISH.toLanguageTag());
-        // Analyzer name in French
-        service.insertLanguageKeyValue(
-                "banner.menu.results.quantstudio7flexanalyzer",
-                "QuantStudio 7 Flex",
-                Locale.FRENCH.toLanguageTag());
-    }
+    service.addMenu(menu);
+    // Analyzer name in English
+    service.insertLanguageKeyValue(
+        "banner.menu.results.quantstudio7flexanalyzer",
+        "QuantStudio 7 Flex",
+        Locale.ENGLISH.toLanguageTag());
+    // Analyzer name in French
+    service.insertLanguageKeyValue(
+        "banner.menu.results.quantstudio7flexanalyzer",
+        "QuantStudio 7 Flex",
+        Locale.FRENCH.toLanguageTag());
+  }
 }
