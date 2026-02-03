@@ -104,7 +104,7 @@ public class MindrayAnalyzerImplementationTest extends PluginTestBase {
   }
 
   @Test
-  public void testAddResult_WithValidLoincCode_AddsToResultList() {
+  public void testAddResult_WithKnownLoincCode_HandledWithoutException() {
     MindrayAnalyzerImplementation impl = new MindrayAnalyzerImplementation();
     List<AnalyzerResults> resultList = new ArrayList<>();
     List<AnalyzerResults> notMatchedResults = new ArrayList<>();
@@ -120,8 +120,10 @@ public class MindrayAnalyzerImplementationTest extends PluginTestBase {
         "mg/dL",
         MindrayAnalyzerImplementation.TBil_LOINC);
 
-    // Since our mock returns empty list, testId will be empty and it goes to notMatchedResults
-    assertTrue("Result should be processed without exception", notMatchedResults.size() > 0);
+    // Since our mock returns empty list, testId will be null and it goes to notMatchedResults
+    assertTrue(
+        "Result with unmapped LOINC should be added to notMatchedResults",
+        notMatchedResults.size() > 0);
   }
 
   @Test

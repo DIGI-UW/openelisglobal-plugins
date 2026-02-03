@@ -39,7 +39,7 @@
       <version>${springframework.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.openelisglobal</groupId>
+      <groupId>org.openelisglobal.plugins</groupId>
       <artifactId>test-utilities</artifactId>
       <version>1.0</version>
       <scope>test</scope>

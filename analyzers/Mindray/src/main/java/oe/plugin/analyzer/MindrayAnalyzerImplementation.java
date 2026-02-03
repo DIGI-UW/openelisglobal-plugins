@@ -182,7 +182,8 @@ public class MindrayAnalyzerImplementation extends AnalyzerLineInserter {
       analyzerResults.setTestId(tests.get(0).getId());
       analyzerResults.setTestName(tests.get(0).getLocalizedTestName().getLocalizedValue());
     } else {
-      analyzerResults.setTestId("");
+      // Leave testId as null so that unmatched results are routed correctly
+      analyzerResults.setTestId(null);
       analyzerResults.setTestName("");
     }
 
