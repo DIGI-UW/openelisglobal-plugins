@@ -83,6 +83,7 @@ public class MindrayAnalyzerImplementationTest extends PluginTestBase {
         resultList, notMatchedResults, "NM", "5.5", "ACC123", false, "mg/dL", "UNKNOWN-LOINC");
 
     // The result should be added to notMatchedResults since testId will be null
+    assertEquals("resultList should be empty for unknown LOINC", 0, resultList.size());
     assertTrue(
         "Result with unknown LOINC should be added to notMatchedResults",
         notMatchedResults.size() > 0);
@@ -98,6 +99,7 @@ public class MindrayAnalyzerImplementationTest extends PluginTestBase {
     impl.addResult(resultList, notMatchedResults, "NM", "5.5", "ACC123", false, "mg/dL", null);
 
     // The result should be added to notMatchedResults since testId will be null
+    assertEquals("resultList should be empty for null LOINC", 0, resultList.size());
     assertTrue(
         "Result with null LOINC should be added to notMatchedResults",
         notMatchedResults.size() > 0);
@@ -121,6 +123,7 @@ public class MindrayAnalyzerImplementationTest extends PluginTestBase {
         MindrayAnalyzerImplementation.TBil_LOINC);
 
     // Since our mock returns empty list, testId will be null and it goes to notMatchedResults
+    assertEquals("resultList should be empty when mock returns empty list", 0, resultList.size());
     assertTrue(
         "Result with unmapped LOINC should be added to notMatchedResults",
         notMatchedResults.size() > 0);
