@@ -43,10 +43,11 @@ GenericHL7 is a database-driven HL7 analyzer plugin that enables adding new HL7 
 │         ▼                                                    │
 │  HL7AnalyzerReader (Core Adapter)                           │
 │         │                                                    │
-│         ├──► Legacy Plugins iterate first (backward compat) │
+│         ├──► Single code path: iterate ALL registered       │
+│         │    plugins (legacy and generic in same list)      │
 │         │                                                    │
-│         └──► GenericHL7Plugin.isTargetAnalyzer()            │
-│              - Query analyzer_configuration                  │
+│         └──► First match wins: plugin.isTargetAnalyzer()     │
+│              - GenericHL7: query analyzer_configuration     │
 │              - WHERE identifier_pattern MATCHES MSH-3       │
 │              - AND is_generic_plugin = true                 │
 │              │                                               │
@@ -430,8 +431,8 @@ OBX|3|NM|HGB^Hemoglobin||14.5|g/dL|12.0-16.0|N|||F
 ### Existing Components
 
 - **HL7AnalyzerReader** (`org.openelisglobal.analyzerimport.analyzerreaders.HL7AnalyzerReader`)
-  - Core adapter that iterates through registered HL7 plugins
-  - GenericHL7 should be registered LAST (after legacy plugins)
+  - Core adapter that iterates through ALL registered HL7 plugins (single list)
+  - No separate legacy vs generic code path; iteration order depends on registration order
 
 - **AnalyzerLineInserter** (`org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter`)
   - Base class with `persistImport()` method
@@ -456,7 +457,7 @@ OBX|3|NM|HGB^Hemoglobin||14.5|g/dL|12.0-16.0|N|||F
 
 - Test with real HL7 messages from Mindray BC2000
 - Test with BC-5380 messages (slightly different format)
-- Test fallback to legacy plugins (backward compatibility)
+- Test that unknown MSH-3 does not match (no plugin selected); legacy and generic plugins share the same list
 
 ### 3. E2E Tests (Cypress)
 

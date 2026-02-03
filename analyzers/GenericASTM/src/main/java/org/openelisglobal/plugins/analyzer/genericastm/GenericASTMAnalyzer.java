@@ -78,7 +78,7 @@ public class GenericASTMAnalyzer implements AnalyzerImporterPlugin {
    */
   @Override
   public boolean connect() {
-    PluginAnalyzerService.getInstance().registerAnalyzer(this);
+    SpringContext.getBean(PluginAnalyzerService.class).registerAnalyzer(this);
     LogEvent.logInfo(
         this.getClass().getName(),
         "connect",

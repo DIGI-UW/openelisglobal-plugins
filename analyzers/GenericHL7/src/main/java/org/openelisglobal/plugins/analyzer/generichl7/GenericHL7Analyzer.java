@@ -13,6 +13,10 @@
  */
 package org.openelisglobal.plugins.analyzer.generichl7;
 
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
@@ -47,7 +51,7 @@ import org.openelisglobal.spring.util.SpringContext;
  *
  * <ol>
  *   <li>HL7 message arrives at /analyzer/hl7 endpoint
- *   <li>HL7AnalyzerReader iterates all plugins (legacy first, then generic)
+ *   <li>HL7AnalyzerReader iterates all registered plugins (single list; first match wins)
  *   <li>GenericHL7Analyzer.isTargetAnalyzer() queries DB for MSH-3 pattern match
  *   <li>If match found, getAnalyzerLineInserter() returns inserter with matched analyzer ID
  *   <li>GenericHL7LineInserter loads mappings from DB and processes OBX results
@@ -84,7 +88,7 @@ public class GenericHL7Analyzer implements AnalyzerImporterPlugin {
    */
   @Override
   public boolean connect() {
-    PluginAnalyzerService.getInstance().registerAnalyzer(this);
+    SpringContext.getBean(PluginAnalyzerService.class).registerAnalyzer(this);
     LogEvent.logInfo(
         this.getClass().getName(),
         "connect",
@@ -103,8 +107,8 @@ public class GenericHL7Analyzer implements AnalyzerImporterPlugin {
    *   <li>If match found, store configuration and return true
    * </ol>
    *
-   * <p>Note: This is called AFTER legacy plugins have had a chance to match. Legacy plugins always
-   * get priority since they have more specific identification logic.
+ * <p>Note: All plugins (legacy and generic) are in one list; the first plugin for which
+ * isTargetAnalyzer() returns true is used.
    *
    * @param lines HL7 message segment lines (MSH|..., PID|..., OBX|..., etc.)
    * @return true if message matches a generic HL7 plugin configuration
@@ -120,6 +124,15 @@ public class GenericHL7Analyzer implements AnalyzerImporterPlugin {
 
     // Extract MSH-3 (sending application) from HL7 message
     String msh3 = parseMsh3SendingApplication(lines);
+    // #region agent log
+    try {
+      int lineCount = lines != null ? lines.size() : 0;
+      Files.write(Paths.get("/home/ubuntu/OpenELIS-Global-2/.cursor/debug.log"),
+          String.format("{\"hypothesisId\":\"D\",\"location\":\"GenericHL7Analyzer.isTargetAnalyzer\",\"message\":\"msh3\",\"data\":{\"msh3\":\"%s\",\"linesSize\":%d},\"timestamp\":%d}\n",
+                  msh3 != null ? msh3.replace("\"", "'") : "null", lineCount, System.currentTimeMillis()).getBytes(StandardCharsets.UTF_8),
+          StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+    } catch (Exception ignore) {}
+    // #endregion
     if (StringUtils.isBlank(msh3)) {
       LogEvent.logDebug(
           this.getClass().getSimpleName(),
@@ -143,7 +156,14 @@ public class GenericHL7Analyzer implements AnalyzerImporterPlugin {
 
       Optional<AnalyzerConfiguration> config =
           configService.findByIdentifierPatternMatch(msh3);
-
+      // #region agent log
+      try {
+        Files.write(Paths.get("/home/ubuntu/OpenELIS-Global-2/.cursor/debug.log"),
+            String.format("{\"hypothesisId\":\"E\",\"location\":\"GenericHL7Analyzer.isTargetAnalyzer\",\"message\":\"config\",\"data\":{\"configPresent\":%s},\"timestamp\":%d}\n",
+                    config.isPresent(), System.currentTimeMillis()).getBytes(StandardCharsets.UTF_8),
+            StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+      } catch (Exception ignore) {}
+      // #endregion
       if (config.isPresent()) {
         // Store matched configuration for getAnalyzerLineInserter()
         matchedConfiguration.set(config.get());
@@ -232,10 +252,10 @@ public class GenericHL7Analyzer implements AnalyzerImporterPlugin {
     for (String line : lines) {
       if (line != null && line.startsWith("MSH|")) {
         String[] fields = line.split("\\|");
-        // MSH-3 is at index 2 (field 0=MSH, field 1=field separator, field 2=encoding, field 3=MSH-3)
-        // But since "MSH" itself takes the first position, actual index is 3
-        if (fields.length > 3 && !StringUtils.isBlank(fields[3])) {
-          return fields[3].trim();
+        // MSH segment: MSH|encoding|MSH-3 Sending Application|MSH-4 Sending Facility|...
+        // fields[0]=MSH, [1]=encoding, [2]=MSH-3, [3]=MSH-4
+        if (fields.length > 2 && !StringUtils.isBlank(fields[2])) {
+          return fields[2].trim();
         }
       }
     }
