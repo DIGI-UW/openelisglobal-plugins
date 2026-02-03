@@ -231,6 +231,11 @@ public class GenericHL7LineInserter extends AnalyzerLineInserter {
 
     // Create AnalyzerResults
     AnalyzerResults result = new AnalyzerResults();
+    String analyzerId = mappedTest.getAnalyzerId();
+    if (analyzerId == null || analyzerId.isEmpty()) {
+      analyzerId = AnalyzerTestNameCache.getInstance().getAnalyzerIdForName(analyzerName);
+    }
+    result.setAnalyzerId(analyzerId);
     result.setTestId(mappedTest.getTestId());
     result.setTestName(mappedTest.getOpenElisTestName());
     result.setResult(value);
@@ -250,20 +255,44 @@ public class GenericHL7LineInserter extends AnalyzerLineInserter {
   /**
    * Extract test code from OBX-3 field.
    *
-   * <p>OBX-3 may contain multiple components: WBC^White Blood Cells^L
-   * We extract the first component (identifier).
+   * <p>OBX-3 uses CE (Coded Element) data type with multiple components.
+   * Real-world analyzers use two common formats:
+   * - Simple: "WBC" (component 1 = code)
+   * - Complex: "^^^WBC^WHITE BLOOD CELL" (component 4 = code, component 1-3 empty)
+   *
+   * <p>Strategy (matches HL7MessageServiceImpl):
+   * 1. Try component 1 first (simple format)
+   * 2. Fallback to component 4 (common analyzer format with empty leading components)
+   * 3. Last resort: last non-empty component
    *
    * @param obx3Field OBX-3 field value
-   * @return Test code identifier
+   * @return Test code identifier, or null if not found
    */
   private String extractTestCode(String obx3Field) {
     if (StringUtils.isBlank(obx3Field)) {
       return null;
     }
 
-    // Extract first component if multi-component
-    String[] components = obx3Field.split("\\^");
-    return components[0].trim();
+    String[] components = obx3Field.split("\\^", -1); // -1 to preserve empty components
+
+    // Strategy 1: Try component 1 first (simple format: "WBC")
+    if (components.length > 0 && !StringUtils.isBlank(components[0])) {
+      return components[0].trim();
+    }
+
+    // Strategy 2: Fallback to component 4 (common format: "^^^WBC^WHITE BLOOD CELL")
+    if (components.length >= 4 && !StringUtils.isBlank(components[3])) {
+      return components[3].trim();
+    }
+
+    // Strategy 3: Last resort - try last non-empty component
+    for (int i = components.length - 1; i >= 0; i--) {
+      if (!StringUtils.isBlank(components[i])) {
+        return components[i].trim();
+      }
+    }
+
+    return null;
   }
 
   /**
