@@ -2,8 +2,7 @@
 
 **Version:** 1.1.0  
 **Date:** 2026-02-02  
-**Total Plugins:** 36  
-**Plugins with READMEs:** 37  
+**Total Plugins:** 37 
 **Last Verified:** 2026-02-02
 
 **Note:** QuantStudio7Flex plugin (#36) added via PR #42 in openelisglobal-plugins repository.
