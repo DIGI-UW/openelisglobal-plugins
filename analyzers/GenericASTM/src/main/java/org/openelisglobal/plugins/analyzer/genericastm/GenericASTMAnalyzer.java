@@ -77,6 +77,11 @@ public class GenericASTMAnalyzer implements AnalyzerImporterPlugin {
    * @return true (always succeeds - actual analyzer lookup happens in isTargetAnalyzer)
    */
   @Override
+  public boolean isGenericPlugin() {
+    return true;
+  }
+
+  @Override
   public boolean connect() {
     SpringContext.getBean(PluginAnalyzerService.class).registerAnalyzer(this);
     LogEvent.logInfo(
