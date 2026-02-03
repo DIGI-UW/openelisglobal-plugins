@@ -96,6 +96,7 @@ public class MindrayAnalyzerImplementation extends AnalyzerLineInserter {
     testLoincMap.put(ALP_LOINC, testService.getTestsByLoincCode(ALP_LOINC));
     testLoincMap.put(YGT_LOINC, testService.getTestsByLoincCode(YGT_LOINC));
     testLoincMap.put(LDH_LOINC, testService.getTestsByLoincCode(LDH_LOINC));
+    testLoincMap.put(TG_LOINC, testService.getTestsByLoincCode(TG_LOINC));
     testLoincMap.put(HDLC_LOINC, testService.getTestsByLoincCode(HDLC_LOINC));
     testLoincMap.put(TC_LOINC, testService.getTestsByLoincCode(TC_LOINC));
     testLoincMap.put(LDL_LOINC, testService.getTestsByLoincCode(LDL_LOINC));
@@ -174,15 +175,19 @@ public class MindrayAnalyzerImplementation extends AnalyzerLineInserter {
     analyzerResults.setUnits(resultUnits);
     analyzerResults.setCompleteDate(new Timestamp(new Date().getTime()));
     analyzerResults.setAccessionNumber(accessionNumber);
-    analyzerResults.setTestId(
-        testLoincMap.get(analyzerTestId).size() > 0
-            ? testLoincMap.get(analyzerTestId).get(0).getId()
-            : "");
+
+    // Add null safety checks to prevent NullPointerException
+    List<Test> tests = testLoincMap.get(analyzerTestId);
+    if (tests != null && !tests.isEmpty()) {
+      analyzerResults.setTestId(tests.get(0).getId());
+      analyzerResults.setTestName(tests.get(0).getLocalizedTestName().getLocalizedValue());
+    } else {
+      // Leave testId as null so that unmatched results are routed correctly
+      analyzerResults.setTestId(null);
+      analyzerResults.setTestName("");
+    }
+
     analyzerResults.setIsControl(isControl);
-    analyzerResults.setTestName(
-        testLoincMap.get(analyzerTestId).size() > 0
-            ? testLoincMap.get(analyzerTestId).get(0).getLocalizedTestName().getLocalizedValue()
-            : "");
     return analyzerResults;
   }
 
