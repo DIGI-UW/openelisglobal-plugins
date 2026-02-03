@@ -82,7 +82,7 @@ public class MindrayAnalyzerImplementationTest extends PluginTestBase {
     impl.addResult(
         resultList, notMatchedResults, "NM", "5.5", "ACC123", false, "mg/dL", "UNKNOWN-LOINC");
 
-    // The result should be added to notMatchedResults since testId will be empty
+    // The result should be added to notMatchedResults since testId will be null
     assertTrue(
         "Result with unknown LOINC should be added to notMatchedResults",
         notMatchedResults.size() > 0);
@@ -97,7 +97,7 @@ public class MindrayAnalyzerImplementationTest extends PluginTestBase {
     // This should not throw NullPointerException even with null LOINC code
     impl.addResult(resultList, notMatchedResults, "NM", "5.5", "ACC123", false, "mg/dL", null);
 
-    // The result should be added to notMatchedResults since testId will be empty
+    // The result should be added to notMatchedResults since testId will be null
     assertTrue(
         "Result with null LOINC should be added to notMatchedResults",
         notMatchedResults.size() > 0);
