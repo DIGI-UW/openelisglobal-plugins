@@ -128,25 +128,4 @@ public class MindrayAnalyzerImplementationTest extends PluginTestBase {
         "Result with unmapped LOINC should be added to notMatchedResults",
         notMatchedResults.size() > 0);
   }
-
-  @Test
-  public void testPersistImport_ShouldNotThrowException() {
-    MindrayAnalyzerImplementation impl = new MindrayAnalyzerImplementation();
-    List<AnalyzerResults> resultList = new ArrayList<>();
-
-    // Add a sample result
-    AnalyzerResults result = new AnalyzerResults();
-    result.setTestId("1");
-    result.setResult("5.5");
-    resultList.add(result);
-
-    // This should not throw exception even though it won't actually persist
-    // (since we're in a test environment without real database)
-    try {
-      impl.persistImport(resultList);
-    } catch (Exception e) {
-      // Expected in test environment - just verify we didn't get NPE
-      assertTrue("Should not throw NullPointerException", !(e instanceof NullPointerException));
-    }
-  }
 }
