@@ -5,7 +5,7 @@ on:
     
 env:
   OE_VERSION: 3.2.1.2
-  OE_REF: demo/madagascar
+  OE_REF: feat/011-analyzer-dashboard-fixtures
 
 jobs:
   build-and-upload-plugins:
@@ -39,8 +39,8 @@ jobs:
       - name: Build DataExport submodule (skip tests)
         run: mvn -f openelis/dataexport/pom.xml clean install -DskipTests -Dmaven.test.skip=true
 
-      - name: Build OpenELIS classes (skip tests)
-        run: mvn -f openelis/pom.xml clean compile -DskipTests -Dmaven.test.skip=true
+      - name: Build OpenELIS classes (compile only - avoids test dependency resolution)
+        run: mvn -f openelis/pom.xml clean compile -Dspotless.check.skip=true
 
       - name: Create and install OpenELIS jar dependency
         run: |

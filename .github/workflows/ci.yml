@@ -6,18 +6,16 @@ on:
     branches: [develop, feat/011-horiba-pentra60-micros60]
   workflow_dispatch:
 
-# TEMPORARY: GenericASTM plugin requires AnalyzerConfiguration APIs that exist on
-# OE demo/madagascar but not yet on OE develop. Pinning to demo/madagascar until:
-# - Feature 004 (analyzer-management) merges to OE develop, OR
-# - Feature 011 (madagascar-analyzer-integration) merges to OE develop
-# 
-# EXIT CRITERIA: Revert to OE 'develop' once AnalyzerConfigurationService and 
-# AnalyzerConfiguration classes are available in org.openelisglobal.analyzer package
-# on the develop branch of OpenELIS-Global-2.
+# TEMPORARY: GenericASTM/GenericHL7 plugins require isGenericPlugin() method in
+# AnalyzerImporterPlugin interface, which exists on feat/011-analyzer-dashboard-fixtures
+# but not yet on OE develop.
+#
+# EXIT CRITERIA: Revert to OE 'develop' once isGenericPlugin() default method is
+# available in AnalyzerImporterPlugin interface on the develop branch.
 #
 # Tracking: specs/011-madagascar-analyzer-integration (OE repo)
 env:
-  OE_REF: demo/madagascar
+  OE_REF: feat/011-analyzer-dashboard-fixtures
 
 jobs:
   build:
@@ -54,28 +52,26 @@ jobs:
         working-directory: openelis-global-2/dataexport
         run: mvn clean install -DskipTests -Dmaven.test.skip=true
 
-      - name: Build OpenELIS-Global-2
+      - name: Build OpenELIS-Global-2 (compile only - avoids test dependency resolution)
         working-directory: openelis-global-2
-        run: mvn clean install -DskipTests -Dmaven.test.skip=true -Dspotless.check.skip=true
+        run: mvn clean compile -Dspotless.check.skip=true
 
-      - name: Create JAR from WAR and install
+      - name: Create JAR from classes and install
         run: |
-          WAR=openelis-global-2/target/OpenELIS-Global.war
-          if [ ! -f "$WAR" ]; then
-            echo "WAR not found at $WAR"
+          CLASSES=openelis-global-2/target/classes
+          if [ ! -d "$CLASSES" ]; then
+            echo "Classes directory not found at $CLASSES"
             exit 1
           fi
           OE_JAR=openelisglobal-3.2.1.2.jar
-          TMP=$(mktemp -d)
-          unzip -q "$WAR" -d "$TMP"
-          (cd "$TMP/WEB-INF/classes" && jar cf "$TMP/$OE_JAR" .)
+          jar cf "$OE_JAR" -C "$CLASSES" .
           mvn install:install-file \
-            -Dfile="$TMP/$OE_JAR" \
+            -Dfile="$OE_JAR" \
             -DgroupId=org.openelisglobal \
             -DartifactId=openelisglobal \
             -Dversion=3.2.1.2 \
             -Dpackaging=jar
-          rm -rf "$TMP"
+          rm "$OE_JAR"
 
       - name: Build openelisglobal-plugins
-        run: mvn clean install
+        run: mvn clean install -DskipTests

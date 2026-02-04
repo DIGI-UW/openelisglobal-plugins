@@ -109,7 +109,7 @@ public class GenericHL7AnalyzerTest {
         mockAnalyzer.setName("Mindray BC2000");
         mockConfig.setAnalyzer(mockAnalyzer);
         mockConfig.setIdentifierPattern("MINDRAY.*BC.?2000");
-        mockConfig.setIsGenericPlugin(true);
+        mockConfig.setGenericPlugin(true);
 
         // This test will fail until we implement isTargetAnalyzer() properly
         // Expected: analyzer should extract "MINDRAY" from MSH-3 and call
