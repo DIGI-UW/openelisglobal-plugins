@@ -13,10 +13,6 @@
  */
 package org.openelisglobal.plugins.analyzer.generichl7;
 
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
@@ -33,11 +29,10 @@ import org.openelisglobal.spring.util.SpringContext;
  *
  * <p>Feature: 011-madagascar-analyzer-integration (M19)
  *
- * <p>Database-driven HL7 v2.x plugin that uses MSH-3 (sending application) pattern matching
- * to identify analyzers configured via analyzer_configuration.identifier_pattern.
+ * <p>Database-driven HL7 v2.x plugin that uses MSH-3 (sending application) pattern matching to
+ * identify analyzers configured via analyzer_configuration.identifier_pattern.
  *
- * <p>Unlike legacy HL7 plugins that hardcode analyzer identification,
- * this generic plugin:
+ * <p>Unlike legacy HL7 plugins that hardcode analyzer identification, this generic plugin:
  *
  * <ul>
  *   <li>Extracts MSH-3 from HL7 messages
@@ -112,8 +107,8 @@ public class GenericHL7Analyzer implements AnalyzerImporterPlugin {
    *   <li>If match found, store configuration and return true
    * </ol>
    *
- * <p>Note: All plugins (legacy and generic) are in one list; the first plugin for which
- * isTargetAnalyzer() returns true is used.
+   * <p>Note: All plugins (legacy and generic) are in one list; the first plugin for which
+   * isTargetAnalyzer() returns true is used.
    *
    * @param lines HL7 message segment lines (MSH|..., PID|..., OBX|..., etc.)
    * @return true if message matches a generic HL7 plugin configuration
@@ -129,15 +124,6 @@ public class GenericHL7Analyzer implements AnalyzerImporterPlugin {
 
     // Extract MSH-3 (sending application) from HL7 message
     String msh3 = parseMsh3SendingApplication(lines);
-    // #region agent log
-    try {
-      int lineCount = lines != null ? lines.size() : 0;
-      Files.write(Paths.get("/home/ubuntu/OpenELIS-Global-2/.cursor/debug.log"),
-          String.format("{\"hypothesisId\":\"D\",\"location\":\"GenericHL7Analyzer.isTargetAnalyzer\",\"message\":\"msh3\",\"data\":{\"msh3\":\"%s\",\"linesSize\":%d},\"timestamp\":%d}\n",
-                  msh3 != null ? msh3.replace("\"", "'") : "null", lineCount, System.currentTimeMillis()).getBytes(StandardCharsets.UTF_8),
-          StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-    } catch (Exception ignore) {}
-    // #endregion
     if (StringUtils.isBlank(msh3)) {
       LogEvent.logDebug(
           this.getClass().getSimpleName(),
@@ -159,16 +145,7 @@ public class GenericHL7Analyzer implements AnalyzerImporterPlugin {
         return false;
       }
 
-      Optional<AnalyzerConfiguration> config =
-          configService.findByIdentifierPatternMatch(msh3);
-      // #region agent log
-      try {
-        Files.write(Paths.get("/home/ubuntu/OpenELIS-Global-2/.cursor/debug.log"),
-            String.format("{\"hypothesisId\":\"E\",\"location\":\"GenericHL7Analyzer.isTargetAnalyzer\",\"message\":\"config\",\"data\":{\"configPresent\":%s},\"timestamp\":%d}\n",
-                    config.isPresent(), System.currentTimeMillis()).getBytes(StandardCharsets.UTF_8),
-            StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-      } catch (Exception ignore) {}
-      // #endregion
+      Optional<AnalyzerConfiguration> config = configService.findByIdentifierPatternMatch(msh3);
       if (config.isPresent()) {
         // Store matched configuration for getAnalyzerLineInserter()
         matchedConfiguration.set(config.get());
@@ -186,8 +163,7 @@ public class GenericHL7Analyzer implements AnalyzerImporterPlugin {
       }
 
     } catch (Exception e) {
-      LogEvent.logError(
-          "Error checking generic HL7 configuration for MSH-3: " + msh3, e);
+      LogEvent.logError("Error checking generic HL7 configuration for MSH-3: " + msh3, e);
     }
 
     return false;
@@ -241,12 +217,9 @@ public class GenericHL7Analyzer implements AnalyzerImporterPlugin {
   /**
    * Parse MSH-3 (sending application) from HL7 MSH segment.
    *
-   * <p>HL7 MSH segment format: MSH|^~\&|SendingApp|SendingFacility|ReceivingApp|...
-   * - Field 0: Segment ID ("MSH")
-   * - Field 1: Field separator ("|")
-   * - Field 2: Encoding characters ("^~\&")
-   * - Field 3: Sending Application (MSH-3) ← We extract this
-   * - Field 4: Sending Facility (MSH-4)
+   * <p>HL7 MSH segment format: MSH|^~\&|SendingApp|SendingFacility|ReceivingApp|... - Field 0:
+   * Segment ID ("MSH") - Field 1: Field separator ("|") - Field 2: Encoding characters ("^~\&") -
+   * Field 3: Sending Application (MSH-3) ← We extract this - Field 4: Sending Facility (MSH-4)
    *
    * <p>Returns MSH-3 value to match against analyzer_configuration.identifier_pattern.
    *

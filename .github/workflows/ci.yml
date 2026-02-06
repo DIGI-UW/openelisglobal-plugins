@@ -52,26 +52,9 @@ jobs:
         working-directory: openelis-global-2/dataexport
         run: mvn clean install -DskipTests -Dmaven.test.skip=true
 
-      - name: Build OpenELIS-Global-2 (compile only - avoids test dependency resolution)
+      - name: Build and install OpenELIS-Global-2
         working-directory: openelis-global-2
-        run: mvn clean compile -Dspotless.check.skip=true
-
-      - name: Create JAR from classes and install
-        run: |
-          CLASSES=openelis-global-2/target/classes
-          if [ ! -d "$CLASSES" ]; then
-            echo "Classes directory not found at $CLASSES"
-            exit 1
-          fi
-          OE_JAR=openelisglobal-3.2.1.2.jar
-          jar cf "$OE_JAR" -C "$CLASSES" .
-          mvn install:install-file \
-            -Dfile="$OE_JAR" \
-            -DgroupId=org.openelisglobal \
-            -DartifactId=openelisglobal \
-            -Dversion=3.2.1.2 \
-            -Dpackaging=jar
-          rm "$OE_JAR"
+        run: mvn clean install -DskipTests -Dspotless.check.skip=true
 
       - name: Build openelisglobal-plugins
         run: mvn clean install -DskipTests
