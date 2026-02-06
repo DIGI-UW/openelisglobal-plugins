@@ -23,7 +23,6 @@ import org.openelisglobal.analyzerimport.util.AnalyzerTestNameCache;
 import org.openelisglobal.analyzerimport.util.MappedTestName;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
 import org.openelisglobal.common.log.LogEvent;
-import org.openelisglobal.common.util.DateUtil;
 
 /**
  * HL7 v2.x ORU^R01 result parser for generic dashboard-configured analyzers.
@@ -38,8 +37,8 @@ import org.openelisglobal.common.util.DateUtil;
  *   <li>Creates {@link AnalyzerResults} for each observation
  * </ul>
  *
- * <p>This enables new HL7 analyzers to be configured entirely through the Dashboard UI
- * without writing Java code.
+ * <p>This enables new HL7 analyzers to be configured entirely through the Dashboard UI without
+ * writing Java code.
  *
  * <p>HL7 segment parsing:
  *
@@ -145,10 +144,7 @@ public class GenericHL7LineInserter extends AnalyzerLineInserter {
     // Validate we found results
     if (results.isEmpty()) {
       errorMessage = "No OBX segments found in HL7 message";
-      LogEvent.logWarn(
-          this.getClass().getSimpleName(),
-          "insert",
-          errorMessage);
+      LogEvent.logWarn(this.getClass().getSimpleName(), "insert", errorMessage);
       return false;
     }
 
@@ -177,7 +173,8 @@ public class GenericHL7LineInserter extends AnalyzerLineInserter {
    * @param testDate Test completion timestamp
    * @return AnalyzerResults object, or null if parsing fails
    */
-  private AnalyzerResults parseObxSegment(String obxLine, String accessionNumber, Timestamp testDate) {
+  private AnalyzerResults parseObxSegment(
+      String obxLine, String accessionNumber, Timestamp testDate) {
     String[] fields = obxLine.split("\\|", -1); // -1 to preserve trailing empty fields
 
     if (fields.length < 6) {
@@ -199,13 +196,13 @@ public class GenericHL7LineInserter extends AnalyzerLineInserter {
     }
 
     // Look up test mapping from database
-    MappedTestName mappedTest = AnalyzerTestNameCache.getInstance()
-        .getMappedTest(analyzerName, testCode);
+    MappedTestName mappedTest =
+        AnalyzerTestNameCache.getInstance().getMappedTest(analyzerName, testCode);
 
     if (mappedTest == null) {
       // No mapping found - create empty mapping for manual configuration
-      mappedTest = AnalyzerTestNameCache.getInstance()
-          .getEmptyMappedTestName(analyzerName, testCode);
+      mappedTest =
+          AnalyzerTestNameCache.getInstance().getEmptyMappedTestName(analyzerName, testCode);
       LogEvent.logDebug(
           this.getClass().getSimpleName(),
           "parseObxSegment",
@@ -246,8 +243,14 @@ public class GenericHL7LineInserter extends AnalyzerLineInserter {
     LogEvent.logDebug(
         this.getClass().getSimpleName(),
         "parseObxSegment",
-        "Parsed result: test=" + testCode + " → " + mappedTest.getOpenElisTestName()
-            + ", value=" + value + ", units=" + units);
+        "Parsed result: test="
+            + testCode
+            + " → "
+            + mappedTest.getOpenElisTestName()
+            + ", value="
+            + value
+            + ", units="
+            + units);
 
     return result;
   }
@@ -255,15 +258,13 @@ public class GenericHL7LineInserter extends AnalyzerLineInserter {
   /**
    * Extract test code from OBX-3 field.
    *
-   * <p>OBX-3 uses CE (Coded Element) data type with multiple components.
-   * Real-world analyzers use two common formats:
-   * - Simple: "WBC" (component 1 = code)
-   * - Complex: "^^^WBC^WHITE BLOOD CELL" (component 4 = code, component 1-3 empty)
+   * <p>OBX-3 uses CE (Coded Element) data type with multiple components. Real-world analyzers use
+   * two common formats: - Simple: "WBC" (component 1 = code) - Complex: "^^^WBC^WHITE BLOOD CELL"
+   * (component 4 = code, component 1-3 empty)
    *
-   * <p>Strategy (matches HL7MessageServiceImpl):
-   * 1. Try component 1 first (simple format)
-   * 2. Fallback to component 4 (common analyzer format with empty leading components)
-   * 3. Last resort: last non-empty component
+   * <p>Strategy (matches HL7MessageServiceImpl): 1. Try component 1 first (simple format) 2.
+   * Fallback to component 4 (common analyzer format with empty leading components) 3. Last resort:
+   * last non-empty component
    *
    * @param obx3Field OBX-3 field value
    * @return Test code identifier, or null if not found
@@ -298,9 +299,8 @@ public class GenericHL7LineInserter extends AnalyzerLineInserter {
   /**
    * Parse accession number from OBR segment.
    *
-   * <p>OBR format: OBR|1||ORDER123|PANEL^CBC Panel|||20260202115900
-   * - Field 2: Placer order number (may contain accession)
-   * - Field 3: Filler order number (preferred for accession)
+   * <p>OBR format: OBR|1||ORDER123|PANEL^CBC Panel|||20260202115900 - Field 2: Placer order number
+   * (may contain accession) - Field 3: Filler order number (preferred for accession)
    *
    * @param obrLine OBR segment line
    * @return Accession number, or null if not found
