@@ -11,6 +11,11 @@ import org.junit.Test;
 public class MindrayBC2000HL7Test extends AbstractMindrayHL7Test {
 
   @Override
+  protected String getAnalyzerId() {
+    return "3201";
+  }
+
+  @Override
   protected String getAnalyzerName() {
     return "Mindray BC2000";
   }

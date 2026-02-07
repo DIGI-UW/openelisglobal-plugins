@@ -11,6 +11,11 @@ import org.junit.Test;
 public class MindrayBS360EHL7Test extends AbstractMindrayHL7Test {
 
   @Override
+  protected String getAnalyzerId() {
+    return "3101";
+  }
+
+  @Override
   protected String getAnalyzerName() {
     return "Mindray BS-360E";
   }
@@ -23,6 +28,11 @@ public class MindrayBS360EHL7Test extends AbstractMindrayHL7Test {
   @Override
   protected String getFixturePath() {
     return "testdata/hl7/mindray/bs360e-chemistry-result.hl7";
+  }
+
+  @Override
+  protected String[][] getTestMappings() {
+    return new String[][] {{"CREA", "1"}, {"ALT", "2"}, {"AST", "1"}};
   }
 
   @Test

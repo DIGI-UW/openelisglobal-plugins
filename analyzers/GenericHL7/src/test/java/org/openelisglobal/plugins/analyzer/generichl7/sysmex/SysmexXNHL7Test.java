@@ -133,7 +133,10 @@ public class SysmexXNHL7Test extends BaseWebContextSensitiveTest {
       {"BASO%", "2"},
       {"NEUT#", "1"},
       {"LYMPH#", "2"},
-      {"MONO#", "1"}
+      {"MONO#", "1"},
+      {"MCV", "2"},
+      {"MCH", "1"},
+      {"MCHC", "2"}
     };
 
     for (String[] mapping : testMappings) {

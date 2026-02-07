@@ -45,18 +45,23 @@ import org.springframework.jdbc.core.JdbcTemplate;
  */
 public abstract class AbstractMindrayHL7Test extends BaseWebContextSensitiveTest {
 
-  private static final String ANALYZER_ID = "3001";
-
   @Autowired private DataSource dataSource;
   @Autowired private PluginAnalyzerService pluginAnalyzerService;
 
   protected JdbcTemplate jdbcTemplate;
+
+  protected abstract String getAnalyzerId();
 
   protected abstract String getAnalyzerName();
 
   protected abstract String getIdentifierPattern();
 
   protected abstract String getFixturePath();
+
+  /** Override in subclasses that need different OBX-to-test mappings (e.g. chemistry). */
+  protected String[][] getTestMappings() {
+    return new String[][] {{"WBC", "1"}, {"RBC", "2"}, {"HGB", "1"}, {"HCT", "2"}, {"PLT", "1"}};
+  }
 
   @Before
   public void setUp() throws Exception {
@@ -100,17 +105,19 @@ public abstract class AbstractMindrayHL7Test extends BaseWebContextSensitiveTest
         jdbcTemplate.queryForObject(
             "SELECT COUNT(*) FROM analyzer_results WHERE analyzer_id = ?",
             Integer.class,
-            Integer.parseInt(ANALYZER_ID));
+            Integer.parseInt(getAnalyzerId()));
     assertNotNull("Result count should not be null", count);
     assertTrue("Expected at least one analyzer result, got " + count, count >= 1);
   }
 
   private void cleanTestData() {
-    jdbcTemplate.execute("DELETE FROM analyzer_results WHERE analyzer_id = '" + ANALYZER_ID + "'");
-    jdbcTemplate.execute("DELETE FROM analyzer_test_map WHERE analyzer_id = '" + ANALYZER_ID + "'");
     jdbcTemplate.execute(
-        "DELETE FROM analyzer_configuration WHERE analyzer_id = '" + ANALYZER_ID + "'");
-    jdbcTemplate.execute("DELETE FROM analyzer WHERE id = '" + ANALYZER_ID + "'");
+        "DELETE FROM analyzer_results WHERE analyzer_id = '" + getAnalyzerId() + "'");
+    jdbcTemplate.execute(
+        "DELETE FROM analyzer_test_map WHERE analyzer_id = '" + getAnalyzerId() + "'");
+    jdbcTemplate.execute(
+        "DELETE FROM analyzer_configuration WHERE analyzer_id = '" + getAnalyzerId() + "'");
+    jdbcTemplate.execute("DELETE FROM analyzer WHERE id = '" + getAnalyzerId() + "'");
   }
 
   private void loadFixtures() {
@@ -119,7 +126,7 @@ public abstract class AbstractMindrayHL7Test extends BaseWebContextSensitiveTest
     jdbcTemplate.execute(
         "INSERT INTO analyzer (id, name, analyzer_type, description, is_active, last_updated) "
             + "VALUES ('"
-            + ANALYZER_ID
+            + getAnalyzerId()
             + "', '"
             + getAnalyzerName()
             + "', 'HEMATOLOGY', 'GenericHL7 test', true, NOW())");
@@ -128,27 +135,21 @@ public abstract class AbstractMindrayHL7Test extends BaseWebContextSensitiveTest
         "INSERT INTO analyzer_configuration "
             + "(id, analyzer_id, protocol_version, identifier_pattern, is_generic_plugin, status, sys_user_id, last_updated) "
             + "VALUES ('CONFIG-"
-            + ANALYZER_ID
+            + getAnalyzerId()
             + "-TEST', '"
-            + ANALYZER_ID
+            + getAnalyzerId()
             + "', 'HL7 v2.5.1', '"
             + getIdentifierPattern()
             + "', true, 'ACTIVE', '1', NOW())");
 
-    String[][] testMappings = {
-      {"WBC", "1"},
-      {"RBC", "2"},
-      {"HGB", "1"},
-      {"HCT", "2"},
-      {"PLT", "1"}
-    };
+    String[][] testMappings = getTestMappings();
 
     for (String[] mapping : testMappings) {
       jdbcTemplate.execute(
           "INSERT INTO analyzer_test_map "
               + "(analyzer_id, analyzer_test_name, test_id, last_updated) "
               + "VALUES ("
-              + ANALYZER_ID
+              + getAnalyzerId()
               + ", '"
               + mapping[0]
               + "', "
