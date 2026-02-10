@@ -1,21 +1,13 @@
 name: openelisglobal-plugins CI Build
 on:
   push:
-    branches: [develop, feat/011-horiba-pentra60-micros60]
+    branches: [develop]
   pull_request:
-    branches: [develop, feat/011-horiba-pentra60-micros60]
+    branches: [develop]
   workflow_dispatch:
 
-# TEMPORARY: GenericASTM/GenericHL7 plugins require isGenericPlugin() method in
-# AnalyzerImporterPlugin interface, which exists on feat/011-analyzer-dashboard-fixtures
-# but not yet on OE develop.
-#
-# EXIT CRITERIA: Revert to OE 'develop' once isGenericPlugin() default method is
-# available in AnalyzerImporterPlugin interface on the develop branch.
-#
-# Tracking: specs/011-madagascar-analyzer-integration (OE repo)
 env:
-  OE_REF: feat/011-analyzer-dashboard-fixtures
+  OE_REF: feat/011-madagascar-analyzer-integration
 
 jobs:
   build:

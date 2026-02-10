@@ -5,7 +5,7 @@ on:
     
 env:
   OE_VERSION: 3.2.1.2
-  OE_REF: feat/011-analyzer-dashboard-fixtures
+  OE_REF: feat/011-madagascar-analyzer-integration
 
 jobs:
   build-and-upload-plugins:
