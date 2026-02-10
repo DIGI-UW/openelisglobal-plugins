@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  OE_REF: develop
+  OE_REF: feat/011-madagascar-analyzer-integration
 
 jobs:
   build:
