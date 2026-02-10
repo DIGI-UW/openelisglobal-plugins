@@ -207,7 +207,7 @@ mvn clean package
 
 ### ASTM Analyzers
 
-1. Install and configure [ASTM-HTTP Bridge](https://github.com/DIGI-UW/astm-http-bridge)
+1. Install and configure [OpenELIS Analyzer Bridge](https://github.com/DIGI-UW/openelis-analyzer-bridge)
 2. Connect analyzer via RS232 or TCP/IP
 3. Configure analyzer in OpenELIS Dashboard
 4. Results flow bidirectionally
