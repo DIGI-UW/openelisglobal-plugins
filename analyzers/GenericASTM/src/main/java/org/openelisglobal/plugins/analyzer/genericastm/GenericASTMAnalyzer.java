@@ -15,8 +15,8 @@ package org.openelisglobal.plugins.analyzer.genericastm;
 
 import java.util.List;
 import java.util.Optional;
-import org.openelisglobal.analyzer.service.AnalyzerConfigurationService;
-import org.openelisglobal.analyzer.valueholder.AnalyzerConfiguration;
+import org.openelisglobal.analyzer.service.AnalyzerService;
+import org.openelisglobal.analyzer.valueholder.Analyzer;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
 import org.openelisglobal.common.log.LogEvent;
 import org.openelisglobal.common.services.PluginAnalyzerService;
@@ -32,7 +32,7 @@ import org.openelisglobal.spring.util.SpringContext;
  * test mappings, this generic plugin:
  *
  * <ul>
- *   <li>Reads identifier patterns from analyzer_configuration.identifier_pattern
+ *   <li>Reads identifier patterns from analyzer.identifier_pattern
  *   <li>Matches incoming ASTM messages against those patterns
  *   <li>Loads test mappings from analyzer_test_mapping table (configured via 004 Dashboard)
  * </ul>
@@ -55,13 +55,13 @@ public class GenericASTMAnalyzer implements AnalyzerImporterPlugin {
   private static final String PLUGIN_NAME = "GenericASTM";
 
   /**
-   * Thread-local storage for matched analyzer configuration.
+   * Thread-local storage for matched analyzer.
    *
    * <p>Since isTargetAnalyzer() and getAnalyzerLineInserter() are called separately by
-   * ASTMAnalyzerReader, we need to preserve the matched configuration between calls. Thread-local
+   * ASTMAnalyzerReader, we need to preserve the matched analyzer between calls. Thread-local
    * ensures thread safety for concurrent requests.
    */
-  private final ThreadLocal<AnalyzerConfiguration> matchedConfiguration = new ThreadLocal<>();
+  private final ThreadLocal<Analyzer> matchedAnalyzer = new ThreadLocal<>();
 
   /**
    * Register the generic plugin with PluginAnalyzerService.
@@ -71,7 +71,7 @@ public class GenericASTMAnalyzer implements AnalyzerImporterPlugin {
    * <ul>
    *   <li>Analyzers are created via 004 Dashboard, not plugin registration
    *   <li>Test mappings are configured via UI, not hardcoded
-   *   <li>This plugin serves MANY analyzers (one config per analyzer_configuration row)
+   *   <li>This plugin serves MANY analyzers (one config per analyzer row)
    * </ul>
    *
    * @return true (always succeeds - actual analyzer lookup happens in isTargetAnalyzer)
@@ -98,7 +98,7 @@ public class GenericASTMAnalyzer implements AnalyzerImporterPlugin {
    *
    * <ol>
    *   <li>Parse ASTM H-segment for manufacturer/model identifier
-   *   <li>Query analyzer_configuration for generic plugin configs with matching identifier_pattern
+   *   <li>Query analyzer table for generic plugin configs with matching identifier_pattern
    *   <li>If match found, store configuration and return true
    * </ol>
    *
@@ -111,7 +111,7 @@ public class GenericASTMAnalyzer implements AnalyzerImporterPlugin {
   @Override
   public boolean isTargetAnalyzer(List<String> lines) {
     // Clear any previous match from thread-local
-    matchedConfiguration.remove();
+    matchedAnalyzer.remove();
 
     if (lines == null || lines.isEmpty()) {
       return false;
@@ -127,35 +127,32 @@ public class GenericASTMAnalyzer implements AnalyzerImporterPlugin {
       return false;
     }
 
-    // Query database for matching generic plugin configuration
+    // Query database for matching analyzer with identifier pattern
     try {
-      AnalyzerConfigurationService configService =
-          SpringContext.getBean(AnalyzerConfigurationService.class);
+      AnalyzerService analyzerService = SpringContext.getBean(AnalyzerService.class);
 
-      if (configService == null) {
+      if (analyzerService == null) {
         LogEvent.logWarn(
             this.getClass().getSimpleName(),
             "isTargetAnalyzer",
-            "AnalyzerConfigurationService not available");
+            "AnalyzerService not available");
         return false;
       }
 
-      Optional<AnalyzerConfiguration> config =
-          configService.findByIdentifierPatternMatch(analyzerIdentifier);
+      Optional<Analyzer> analyzer =
+          analyzerService.findByIdentifierPatternMatch(analyzerIdentifier);
 
-      if (config.isPresent()) {
-        // Store matched configuration for getAnalyzerLineInserter()
-        matchedConfiguration.set(config.get());
+      if (analyzer.isPresent()) {
+        // Store matched analyzer for getAnalyzerLineInserter()
+        matchedAnalyzer.set(analyzer.get());
 
         LogEvent.logDebug(
             this.getClass().getSimpleName(),
             "isTargetAnalyzer",
             "Matched analyzer identifier '"
                 + analyzerIdentifier
-                + "' to configuration: "
-                + (config.get().getAnalyzer() != null
-                    ? config.get().getAnalyzer().getName()
-                    : config.get().getId()));
+                + "' to analyzer: "
+                + analyzer.get().getName());
         return true;
       }
 
@@ -191,18 +188,18 @@ public class GenericASTMAnalyzer implements AnalyzerImporterPlugin {
    */
   @Override
   public AnalyzerLineInserter getAnalyzerLineInserter() {
-    AnalyzerConfiguration config = matchedConfiguration.get();
+    Analyzer analyzer = matchedAnalyzer.get();
 
-    if (config == null || config.getAnalyzer() == null) {
+    if (analyzer == null) {
       LogEvent.logError(
           this.getClass().getSimpleName(),
           "getAnalyzerLineInserter",
-          "No matched configuration - isTargetAnalyzer() must be called first");
-      throw new IllegalStateException("No matched analyzer configuration");
+          "No matched analyzer - isTargetAnalyzer() must be called first");
+      throw new IllegalStateException("No matched analyzer");
     }
 
-    String analyzerId = config.getAnalyzer().getId();
-    String analyzerName = config.getAnalyzer().getName();
+    String analyzerId = analyzer.getId();
+    String analyzerName = analyzer.getName();
 
     LogEvent.logDebug(
         this.getClass().getSimpleName(),
@@ -218,7 +215,7 @@ public class GenericASTMAnalyzer implements AnalyzerImporterPlugin {
    * <p>ASTM H-segment format: H|\^&|||MANUFACTURER^MODEL^VERSION|...
    *
    * <p>Returns the full field 4 content (e.g., "HORIBA^YUMIZEN H500^1.0") to allow flexible pattern
-   * matching in analyzer_configuration.identifier_pattern.
+   * matching in analyzer.identifier_pattern.
    *
    * @param lines ASTM message lines
    * @return Analyzer identifier string, or null if not found

@@ -12,9 +12,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.openelisglobal.analyzer.service.AnalyzerConfigurationService;
+import org.openelisglobal.analyzer.service.AnalyzerService;
 import org.openelisglobal.analyzer.valueholder.Analyzer;
-import org.openelisglobal.analyzer.valueholder.AnalyzerConfiguration;
 
 /**
  * Unit tests for GenericHL7Analyzer plugin.
@@ -27,7 +26,7 @@ import org.openelisglobal.analyzer.valueholder.AnalyzerConfiguration;
 @RunWith(MockitoJUnitRunner.class)
 public class GenericHL7AnalyzerTest {
 
-  @Mock private AnalyzerConfigurationService mockConfigService;
+  @Mock private AnalyzerService mockAnalyzerService;
 
   private GenericHL7Analyzer analyzer;
 
@@ -70,8 +69,8 @@ public class GenericHL7AnalyzerTest {
   /**
    * Test that GenericHL7Analyzer returns true when MSH-3 matches configured pattern.
    *
-   * <p>Tests the core matching logic: 1. Extract MSH-3 from HL7 message 2. Query
-   * AnalyzerConfigurationService for pattern match 3. Return true if match found
+   * <p>Tests the core matching logic: 1. Extract MSH-3 from HL7 message 2. Query AnalyzerService
+   * for identifier pattern match 3. Return true if match found
    *
    * <p>Note: This test requires Spring context (SpringContext.getBean) which cannot be easily
    * mocked in unit tests. Use GenericHL7IntegrationTest for full end-to-end testing.
@@ -82,25 +81,19 @@ public class GenericHL7AnalyzerTest {
     // Arrange: HL7 message with MSH-3 = "MINDRAY"
     List<String> lines = Arrays.asList("MSH|^~\\&||MINDRAY||||ORU^R01|MSG001|P|2.3.1");
 
-    // Mock configuration service to return matching config
-    AnalyzerConfiguration mockConfig = new AnalyzerConfiguration();
+    // Mock analyzer with identifier pattern (2-table model — pattern on analyzer directly)
     Analyzer mockAnalyzer = new Analyzer();
     mockAnalyzer.setId("ANALYZER-001");
     mockAnalyzer.setName("Mindray BC2000");
-    mockConfig.setAnalyzer(mockAnalyzer);
-    mockConfig.setIdentifierPattern("MINDRAY.*BC.?2000");
-    mockConfig.setGenericPlugin(true);
+    mockAnalyzer.setIdentifierPattern("MINDRAY.*BC.?2000");
 
-    // This test will fail until we implement isTargetAnalyzer() properly
     // Expected: analyzer should extract "MINDRAY" from MSH-3 and call
-    // configService.findByIdentifierPatternMatch("MINDRAY")
+    // analyzerService.findByIdentifierPatternMatch("MINDRAY")
 
     // Act
     boolean result = analyzer.isTargetAnalyzer(lines);
 
     // Assert
-    // Note: This will fail because GenericHL7Analyzer is not implemented yet
-    // This is expected in TDD Red phase
     assertTrue("MSH-3 matching configured pattern should return true", result);
   }
 

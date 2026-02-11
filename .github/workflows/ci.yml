@@ -6,8 +6,16 @@ on:
     branches: [develop]
   workflow_dispatch:
 
+# TEMPORARY: GenericASTM/GenericHL7 plugins require AnalyzerService.findByIdentifierPatternMatch()
+# and the merged 2-table model (analyzer_configuration merged into analyzer), which exists on
+# fix/011-sync-remediation but not yet on feat/011 or develop.
+#
+# EXIT CRITERIA: Revert to OE 'feat/011-madagascar-analyzer-integration' once PR #2802
+# (fix/011-sync-remediation) is merged, then revert to 'develop' once feat/011 merges.
+#
+# Tracking: specs/011-madagascar-analyzer-integration (OE repo)
 env:
-  OE_REF: feat/011-madagascar-analyzer-integration
+  OE_REF: fix/011-sync-remediation
 
 jobs:
   build:
