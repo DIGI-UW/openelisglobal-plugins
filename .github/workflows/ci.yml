@@ -1,9 +1,9 @@
 name: openelisglobal-plugins CI Build
 on:
   push:
-    branches: [develop, feat/011-horiba-pentra60-micros60]
+    branches: [develop]
   pull_request:
-    branches: [develop, feat/011-horiba-pentra60-micros60]
+    branches: [develop]
   workflow_dispatch:
 
 # TEMPORARY: GenericASTM/GenericHL7 plugins require AnalyzerService.findByIdentifierPatternMatch()
