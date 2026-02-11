@@ -213,7 +213,7 @@ docker-compose restart oe.openelis.org
 
 ### Thread Safety
 
-`GenericHL7Analyzer` uses `ThreadLocal<AnalyzerConfiguration>` to safely store matched configuration between `isTargetAnalyzer()` and `getAnalyzerLineInserter()` calls, ensuring thread safety for concurrent requests.
+`GenericHL7Analyzer` uses `ThreadLocal<Analyzer>` to safely store the matched analyzer between `isTargetAnalyzer()` and `getAnalyzerLineInserter()` calls, ensuring thread safety for concurrent requests.
 
 ---
 

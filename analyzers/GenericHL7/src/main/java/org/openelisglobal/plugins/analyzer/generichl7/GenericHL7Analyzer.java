@@ -138,9 +138,7 @@ public class GenericHL7Analyzer implements AnalyzerImporterPlugin {
 
       if (analyzerService == null) {
         LogEvent.logWarn(
-            this.getClass().getSimpleName(),
-            "isTargetAnalyzer",
-            "AnalyzerService not available");
+            this.getClass().getSimpleName(), "isTargetAnalyzer", "AnalyzerService not available");
         return false;
       }
 
