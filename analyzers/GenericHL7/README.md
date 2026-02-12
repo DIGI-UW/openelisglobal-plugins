@@ -259,7 +259,7 @@ VALUES ('ANALYZER-ID', 'XYZ', (SELECT id FROM test WHERE name = 'XYZ Test'));
 - [GenericASTM Plugin](../GenericASTM/README.md) - ASTM equivalent
 - [Feature 011 Spec](../../../specs/011-madagascar-analyzer-integration/spec.md)
 - [GenericHL7 Architecture](../../../plugins/analyzers/GenericHL7/ARCHITECTURE.md)
-- [Analyzer Defaults](../../../analyzer-defaults/README.md)
+- [Analyzer Defaults](../../../projects/analyzer-defaults/README.md)
 
 ---
 
