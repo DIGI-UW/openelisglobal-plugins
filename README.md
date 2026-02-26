@@ -150,6 +150,19 @@ See [INVENTORY.md](analyzers/INVENTORY.md) for complete file format details.
 
 ## Building
 
+### Prerequisite (required once per OpenELIS version)
+
+This repository depends on `org.openelisglobal:openelisglobal:3.2.1.2` (classifier `classes`), which is not published to Maven Central.
+Build and install OpenELIS Global first:
+
+```bash
+git clone --recurse-submodules https://github.com/DIGI-UW/OpenELIS-Global-2.git
+cd OpenELIS-Global-2/dataexport && mvn clean install -DskipTests -Dmaven.test.skip=true
+cd .. && mvn clean install -DskipTests -Dspotless.check.skip=true
+```
+
+Then return to this repository and build plugins.
+
 ### Build All Plugins
 
 ```bash
@@ -159,15 +172,10 @@ mvn clean install
 ### Build Single Plugin
 
 ```bash
-mvn clean package -pl ./analyzers/PluginName
+mvn clean package -pl ./analyzers/PluginName -am
 ```
 
-Or from the plugin directory:
-
-```bash
-cd analyzers/{AnalyzerName}
-mvn clean package
-```
+Use this from the repository root (recommended). `-am` also builds required local modules (for example `test-utilities`).
 
 ---
 
@@ -376,4 +384,3 @@ GenericASTM allows analyzers to be configured entirely through the OpenELIS dash
 **Main Repository:** [OpenELIS-Global-2](https://github.com/DIGI-UW/OpenELIS-Global-2)
 
 **Last Updated:** 2026-02-02
-

@@ -315,7 +315,7 @@ mvn spotless:apply
 
 ```bash
 # Build and test your plugin
-mvn clean install -pl ./analyzers/YourAnalyzer
+mvn clean install -pl ./analyzers/YourAnalyzer -am
 
 # Verify all plugins still build
 mvn clean install
