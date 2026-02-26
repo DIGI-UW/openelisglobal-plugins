@@ -360,7 +360,8 @@ public class GenericASTMIntegrationTest extends BaseWebContextSensitiveTest {
             + " OR analyzer_id = '2006'");
     jdbcTemplate.execute("DELETE FROM analyzer_test_map WHERE analyzer_id = '2006'");
     jdbcTemplate.execute("DELETE FROM analyzer WHERE id = '2006'");
-    jdbcTemplate.execute("DELETE FROM analyzer_type WHERE id = 9999");
+    // Do NOT delete analyzer_type — it may be shared or pre-seeded by Liquibase.
+    // The ON CONFLICT DO NOTHING in loadFixtures() is safe for re-runs.
   }
 
   /**
@@ -373,19 +374,28 @@ public class GenericASTMIntegrationTest extends BaseWebContextSensitiveTest {
   private void loadFixtures() {
     jdbcTemplate.execute("SET search_path TO clinlims");
 
-    // Create analyzer_type for GenericASTM (mirrors what PluginRegistryService does at startup)
+    // Ensure an analyzer_type row exists for GenericASTM with is_generic_plugin=true.
+    // Use ON CONFLICT DO NOTHING to avoid rewriting the PK of an existing row (which would
+    // break FK relationships for other analyzers sharing this type).
     jdbcTemplate.execute(
         "INSERT INTO analyzer_type (id, name, description, protocol, plugin_class_name, is_generic_plugin, is_active, last_updated) "
-            + "VALUES (9999, 'GenericASTM', 'Generic ASTM analyzer plugin', 'ASTM', "
+            + "VALUES (nextval('analyzer_type_seq'), 'GenericASTM', 'Generic ASTM analyzer plugin', 'ASTM', "
             + "'org.openelisglobal.plugins.analyzer.genericastm.GenericASTMAnalyzer', true, true, NOW()) "
-            + "ON CONFLICT (name) DO UPDATE SET id = EXCLUDED.id");
+            + "ON CONFLICT (name) DO NOTHING");
+
+    // Resolve the actual ID (may differ from what we tried to insert if the row already existed)
+    Long analyzerTypeId =
+        jdbcTemplate.queryForObject(
+            "SELECT id FROM analyzer_type WHERE name = 'GenericASTM'", Long.class);
 
     // Insert analyzer WITH analyzer_type_id — required for findGenericAnalyzersWithPatterns() INNER
     // JOIN
     jdbcTemplate.execute(
         "INSERT INTO analyzer (id, name, analyzer_type, description, identifier_pattern, is_active, analyzer_type_id, last_updated) "
             + "VALUES ('2006', 'Mindray BA-88A', 'CHEMISTRY', 'ASTM over RS232 Serial', "
-            + "'MINDRAY.*BA-88A|BA88A', true, 9999, NOW())");
+            + "'MINDRAY.*BA-88A|BA88A', true, "
+            + analyzerTypeId
+            + ", NOW())");
 
     String[][] testMappings = {{"GLUCOSE", "1"}, {"HGB", "2"}};
 
