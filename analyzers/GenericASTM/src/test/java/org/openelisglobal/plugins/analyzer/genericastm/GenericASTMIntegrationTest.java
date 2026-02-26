@@ -199,30 +199,203 @@ public class GenericASTMIntegrationTest extends BaseWebContextSensitiveTest {
         countForAnalyzer != null && countForAnalyzer >= 2);
   }
 
-  private void cleanTestData() {
-    jdbcTemplate.execute(
-        "DELETE FROM analyzer_results WHERE accession_number LIKE '2026-A%' OR analyzer_id = '2006'");
-    jdbcTemplate.execute("DELETE FROM analyzer_test_map WHERE analyzer_id = '2006'");
-    jdbcTemplate.execute("DELETE FROM analyzer_configuration WHERE analyzer_id = '2006'");
-    jdbcTemplate.execute("DELETE FROM analyzer WHERE id = '2006'");
+  /**
+   * Test that QC samples (O.12 = "Q") are marked as control results.
+   *
+   * <p>Per ASTM E-1394-97 and Cepheid GeneXpert LIS spec, O.12 (Action Code) = "Q" indicates a QC
+   * sample. The GenericASTMLineInserter should set isControl=true for these results.
+   */
+  @Test
+  public void testGenericASTM_QcActionCode_MarksResultAsControl() throws Exception {
+    // 26-field O-record with O.12 (index 11) = "Q" for QC sample
+    String astmMessage =
+        "H|\\^&|||MINDRAY^BA-88A^1.0|INST||20260202|||ASTM^LIS2-A2^LIS2-A2\r\n"
+            + "P|1||PAT003|||M|19800101||\r\n"
+            + "O|1|QC-CTRL-001|||||||||Q|||||||||||||\r\n"
+            + "R|1|^^^GLUCOSE|100.0|mg/dL|||||20260202120000|N\r\n"
+            + "L|1|N\r\n";
+
+    InputStream stream = new ByteArrayInputStream(astmMessage.getBytes(StandardCharsets.UTF_8));
+
+    ASTMAnalyzerReader reader = new ASTMAnalyzerReader();
+    boolean streamRead = reader.readStream(stream);
+    boolean inserted = reader.insertAnalyzerData("systemUser");
+
+    assertTrue("ASTM stream should be read successfully", streamRead);
+    assertTrue("Results should be inserted successfully", inserted);
+
+    Boolean isControl =
+        jdbcTemplate.queryForObject(
+            "SELECT iscontrol FROM clinlims.analyzer_results WHERE accession_number = 'QC-CTRL-001' LIMIT 1",
+            Boolean.class);
+    assertNotNull("QC result should be persisted", isControl);
+    assertTrue("QC result should be marked as control (O.12 = 'Q')", isControl);
   }
 
   /**
-   * Load analyzer 2006 (Mindray BA-88A), its generic-plugin configuration, and test mappings. Uses
-   * test ids 1 and 2 from test-result.xml (with localization). No madagascar-analyzer-test-data.xml
-   * to avoid DBUnit column mismatch (fhir_uuid).
+   * Test that patient samples (O.12 empty) are NOT marked as control results.
+   *
+   * <p>Normal patient samples have an empty or absent Action Code field. The
+   * GenericASTMLineInserter should set isControl=false for these results.
+   */
+  @Test
+  public void testGenericASTM_PatientSample_NotMarkedAsControl() throws Exception {
+    String astmMessage =
+        "H|\\^&|||MINDRAY^BA-88A^1.0|INST||20260202|||ASTM^LIS2-A2^LIS2-A2\r\n"
+            + "P|1||PAT004|||F|19900101||\r\n"
+            + "O|1|2026-A04|||20260202120000||||\r\n"
+            + "R|1|^^^GLUCOSE|95.0|mg/dL|20260202120000|N\r\n"
+            + "L|1|N\r\n";
+
+    InputStream stream = new ByteArrayInputStream(astmMessage.getBytes(StandardCharsets.UTF_8));
+
+    ASTMAnalyzerReader reader = new ASTMAnalyzerReader();
+    reader.readStream(stream);
+    reader.insertAnalyzerData("systemUser");
+
+    Boolean isControl =
+        jdbcTemplate.queryForObject(
+            "SELECT iscontrol FROM clinlims.analyzer_results WHERE accession_number = '2026-A04' LIMIT 1",
+            Boolean.class);
+    assertNotNull("Patient result should be persisted", isControl);
+    assertFalse("Patient result should NOT be marked as control", isControl);
+  }
+
+  /**
+   * Test that trailing component delimiters are stripped from qualitative R.4 values.
+   *
+   * <p>Per Cepheid GeneXpert LIS spec, qualitative results use R.4 format: "NEGATIVE^" (value in
+   * component 1, empty component 2). The GenericASTMLineInserter should strip the trailing ^ to
+   * store "NEGATIVE".
+   */
+  @Test
+  public void testGenericASTM_TrailingCaret_StrippedFromQualitativeValue() throws Exception {
+    String astmMessage =
+        "H|\\^&|||MINDRAY^BA-88A^1.0|INST||20260202|||ASTM^LIS2-A2^LIS2-A2\r\n"
+            + "P|1||PAT005|||M|19800101||\r\n"
+            + "O|1|2026-A05|||20260202120000||||\r\n"
+            + "R|1|^^^GLUCOSE|NEGATIVE^||||||20260202120000|N\r\n"
+            + "L|1|N\r\n";
+
+    InputStream stream = new ByteArrayInputStream(astmMessage.getBytes(StandardCharsets.UTF_8));
+
+    ASTMAnalyzerReader reader = new ASTMAnalyzerReader();
+    reader.readStream(stream);
+    reader.insertAnalyzerData("systemUser");
+
+    String storedValue =
+        jdbcTemplate.queryForObject(
+            "SELECT result FROM clinlims.analyzer_results WHERE accession_number = '2026-A05' LIMIT 1",
+            String.class);
+    assertNotNull("Result should be persisted", storedValue);
+    assertFalse(
+        "Stored value should not contain trailing ^: " + storedValue, storedValue.endsWith("^"));
+    assertTrue("Stored value should be 'NEGATIVE': " + storedValue, "NEGATIVE".equals(storedValue));
+  }
+
+  /**
+   * Test that leading component delimiters are stripped from complementary R.4 values.
+   *
+   * <p>Per Cepheid GeneXpert LIS spec, complementary quantitative results use R.4 format: "^3.10"
+   * (empty component 1, value in component 2). The GenericASTMLineInserter should strip the leading
+   * ^ to store "3.10".
+   */
+  @Test
+  public void testGenericASTM_LeadingCaret_StrippedFromComplementaryValue() throws Exception {
+    String astmMessage =
+        "H|\\^&|||MINDRAY^BA-88A^1.0|INST||20260202|||ASTM^LIS2-A2^LIS2-A2\r\n"
+            + "P|1||PAT006|||M|19800101||\r\n"
+            + "O|1|2026-A06|||20260202120000||||\r\n"
+            + "R|1|^^^GLUCOSE|^3.10||||||20260202120000|N\r\n"
+            + "L|1|N\r\n";
+
+    InputStream stream = new ByteArrayInputStream(astmMessage.getBytes(StandardCharsets.UTF_8));
+
+    ASTMAnalyzerReader reader = new ASTMAnalyzerReader();
+    reader.readStream(stream);
+    reader.insertAnalyzerData("systemUser");
+
+    String storedValue =
+        jdbcTemplate.queryForObject(
+            "SELECT result FROM clinlims.analyzer_results WHERE accession_number = '2026-A06' LIMIT 1",
+            String.class);
+    assertNotNull("Result should be persisted", storedValue);
+    assertFalse(
+        "Stored value should not contain leading ^: " + storedValue, storedValue.startsWith("^"));
+    assertTrue("Stored value should be '3.10': " + storedValue, "3.10".equals(storedValue));
+  }
+
+  /**
+   * Test that normal numeric values pass through unchanged (no false stripping).
+   *
+   * <p>Values like "105.5" should be stored exactly as-is.
+   */
+  @Test
+  public void testGenericASTM_NormalNumericValue_PassesThroughUnchanged() throws Exception {
+    String astmMessage =
+        "H|\\^&|||MINDRAY^BA-88A^1.0|INST||20260202|||ASTM^LIS2-A2^LIS2-A2\r\n"
+            + "P|1||PAT007|||F|19900101||\r\n"
+            + "O|1|2026-A07|||20260202120000||||\r\n"
+            + "R|1|^^^GLUCOSE|105.5|mg/dL|20260202120000|N\r\n"
+            + "L|1|N\r\n";
+
+    InputStream stream = new ByteArrayInputStream(astmMessage.getBytes(StandardCharsets.UTF_8));
+
+    ASTMAnalyzerReader reader = new ASTMAnalyzerReader();
+    reader.readStream(stream);
+    reader.insertAnalyzerData("systemUser");
+
+    String storedValue =
+        jdbcTemplate.queryForObject(
+            "SELECT result FROM clinlims.analyzer_results WHERE accession_number = '2026-A07' LIMIT 1",
+            String.class);
+    assertNotNull("Result should be persisted", storedValue);
+    assertTrue("Normal value should be unchanged: " + storedValue, "105.5".equals(storedValue));
+  }
+
+  private void cleanTestData() {
+    jdbcTemplate.execute(
+        "DELETE FROM analyzer_results WHERE accession_number LIKE '2026-A%'"
+            + " OR accession_number LIKE 'QC-CTRL%'"
+            + " OR analyzer_id = '2006'");
+    jdbcTemplate.execute("DELETE FROM analyzer_test_map WHERE analyzer_id = '2006'");
+    jdbcTemplate.execute("DELETE FROM analyzer WHERE id = '2006'");
+    // Do NOT delete analyzer_type — it may be shared or pre-seeded by Liquibase.
+    // The ON CONFLICT DO NOTHING in loadFixtures() is safe for re-runs.
+  }
+
+  /**
+   * Load analyzer 2006 (Mindray BA-88A) and test mappings. Uses test ids 1 and 2 from
+   * test-result.xml (with localization).
+   *
+   * <p>NOTE: identifier_pattern is set on the analyzer row — this is where the runtime DAO
+   * (AnalyzerDAOImpl.findGenericAnalyzersWithPatterns) reads it from.
    */
   private void loadFixtures() {
     jdbcTemplate.execute("SET search_path TO clinlims");
 
+    // Ensure an analyzer_type row exists for GenericASTM with is_generic_plugin=true.
+    // Use ON CONFLICT DO NOTHING to avoid rewriting the PK of an existing row (which would
+    // break FK relationships for other analyzers sharing this type).
     jdbcTemplate.execute(
-        "INSERT INTO analyzer (id, name, analyzer_type, description, is_active, last_updated) "
-            + "VALUES ('2006', 'Mindray BA-88A', 'CHEMISTRY', 'ASTM over RS232 Serial', true, NOW())");
+        "INSERT INTO analyzer_type (id, name, description, protocol, plugin_class_name, is_generic_plugin, is_active, last_updated) "
+            + "VALUES (nextval('analyzer_type_seq'), 'GenericASTM', 'Generic ASTM analyzer plugin', 'ASTM', "
+            + "'org.openelisglobal.plugins.analyzer.genericastm.GenericASTMAnalyzer', true, true, NOW()) "
+            + "ON CONFLICT (name) DO NOTHING");
 
+    // Resolve the actual ID (may differ from what we tried to insert if the row already existed)
+    Long analyzerTypeId =
+        jdbcTemplate.queryForObject(
+            "SELECT id FROM analyzer_type WHERE name = 'GenericASTM'", Long.class);
+
+    // Insert analyzer WITH analyzer_type_id — required for findGenericAnalyzersWithPatterns() INNER
+    // JOIN
     jdbcTemplate.execute(
-        "INSERT INTO analyzer_configuration "
-            + "(id, analyzer_id, protocol_version, identifier_pattern, is_generic_plugin, status, sys_user_id, last_updated) "
-            + "VALUES ('CONFIG-2006', '2006', 'ASTM LIS2-A2', 'MINDRAY.*BA-88A|BA88A', true, 'ACTIVE', '1', NOW())");
+        "INSERT INTO analyzer (id, name, analyzer_type, description, identifier_pattern, is_active, analyzer_type_id, last_updated) "
+            + "VALUES ('2006', 'Mindray BA-88A', 'CHEMISTRY', 'ASTM over RS232 Serial', "
+            + "'MINDRAY.*BA-88A|BA88A', true, "
+            + analyzerTypeId
+            + ", NOW())");
 
     String[][] testMappings = {{"GLUCOSE", "1"}, {"HGB", "2"}};
 
