@@ -71,6 +71,7 @@ public class GenericASTMLineInserter extends AnalyzerLineInserter {
 
   // O-segment field indices
   private static final int O_SPECIMEN_ID_FIELD = 2;
+  private static final int O_ACTION_CODE_FIELD = 11; // O.12 (1-based) = index 11 (0-based)
 
   // Common ASTM timestamp formats
   private static final String ASTM_TIMESTAMP_PATTERN = "yyyyMMddHHmmss";
@@ -208,7 +209,8 @@ public class GenericASTMLineInserter extends AnalyzerLineInserter {
       return;
     }
 
-    String resultValue = resultFields.length > R_VALUE_FIELD ? resultFields[R_VALUE_FIELD] : "";
+    String resultValue =
+        cleanResultValue(resultFields.length > R_VALUE_FIELD ? resultFields[R_VALUE_FIELD] : "");
     String units = resultFields.length > R_UNITS_FIELD ? resultFields[R_UNITS_FIELD] : "";
     String timestampStr =
         resultFields.length > R_TIMESTAMP_FIELD ? resultFields[R_TIMESTAMP_FIELD] : "";
@@ -234,7 +236,7 @@ public class GenericASTMLineInserter extends AnalyzerLineInserter {
     analyzerResult.setResult(resultValue);
     analyzerResult.setUnits(units);
     analyzerResult.setAccessionNumber(accessionNumber);
-    analyzerResult.setIsControl(false);
+    analyzerResult.setIsControl(isQcSample(orderRecord));
 
     // Parse completion timestamp
     Timestamp completeDate = parseTimestamp(timestampStr);
@@ -259,6 +261,51 @@ public class GenericASTMLineInserter extends AnalyzerLineInserter {
             + units
             + " for accession "
             + accessionNumber);
+  }
+
+  /**
+   * Check if the O-record indicates a QC sample via Action Code (O.12).
+   *
+   * <p>Per ASTM E-1394-97 and Cepheid GeneXpert LIS spec, O.12 = "Q" indicates a QC sample. This
+   * determines whether the result is routed to the QC queue or the patient results queue.
+   *
+   * @param orderRecord the O-segment line
+   * @return true if Action Code is "Q" (QC sample)
+   */
+  private boolean isQcSample(String orderRecord) {
+    String[] fields = orderRecord.split(Pattern.quote(FIELD_DELIMITER));
+    if (fields.length > O_ACTION_CODE_FIELD) {
+      return "Q".equalsIgnoreCase(fields[O_ACTION_CODE_FIELD].trim());
+    }
+    return false;
+  }
+
+  /**
+   * Clean ASTM result value by stripping component delimiters.
+   *
+   * <p>Some analyzers (notably GeneXpert per Cepheid LIS spec) use multi-component R.4 values:
+   *
+   * <ul>
+   *   <li>Qualitative: {@code NEGATIVE^} (value in component 1, empty component 2)
+   *   <li>Quantitative complementary: {@code ^3.10} (empty component 1, value in component 2)
+   * </ul>
+   *
+   * <p>This method strips leading/trailing component delimiters to extract the clean value.
+   *
+   * @param value raw R.4 field value
+   * @return cleaned value with component delimiters removed
+   */
+  private String cleanResultValue(String value) {
+    if (value == null || value.isEmpty()) {
+      return value;
+    }
+    // Strip trailing component delimiters (e.g., "NEGATIVE^" → "NEGATIVE")
+    String cleaned = value.replaceAll("\\^+$", "");
+    // Strip leading component delimiter (e.g., "^3.10" → "3.10")
+    if (cleaned.startsWith(COMPONENT_DELIMITER)) {
+      cleaned = cleaned.substring(1);
+    }
+    return cleaned;
   }
 
   /**
