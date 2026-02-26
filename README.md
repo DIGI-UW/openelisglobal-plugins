@@ -177,6 +177,12 @@ mvn clean package -pl ./analyzers/PluginName -am
 
 Use this from the repository root (recommended). `-am` also builds required local modules (for example `test-utilities`).
 
+If you are already inside an analyzer directory, run the build from the parent aggregator:
+
+```bash
+mvn clean package -f ../../pom.xml -pl ./analyzers/PluginName -am
+```
+
 ---
 
 ## Deployment
