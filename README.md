@@ -150,6 +150,26 @@ See [INVENTORY.md](analyzers/INVENTORY.md) for complete file format details.
 
 ## Building
 
+### Prerequisites (required once per OpenELIS version)
+
+Plugins depend on `org.openelisglobal:openelisglobal:3.2.1.2` (classifier
+`classes`), which is not on Maven Central. Install it locally first.
+
+Run the install script (tries lightweight sources first, falls back to Maven build):
+
+```bash
+# From OpenELIS-Global-2 root (submodule):
+plugins/scripts/install-oe-jar.sh
+
+# Or from this repo's root:
+./scripts/install-oe-jar.sh
+```
+
+The script tries three sources in order:
+1. **GitHub release download** (~5s) — requires `gh` CLI
+2. **Docker image extraction** (~6s) — requires Docker with `itechuw/openelis-global-2` image
+3. **Local Maven build** (minutes) — only if running inside the OE2 submodule tree
+
 ### Build All Plugins
 
 ```bash
@@ -158,16 +178,14 @@ mvn clean install
 
 ### Build Single Plugin
 
-```bash
-mvn clean package -pl ./analyzers/PluginName
-```
-
-Or from the plugin directory:
+From the repository root (recommended):
 
 ```bash
-cd analyzers/{AnalyzerName}
-mvn clean package
+mvn clean package -pl :PluginArtifactId -am
 ```
+
+`-am` (also-make) ensures local dependencies like `test-utilities` are built.
+Use `:ArtifactId` syntax (e.g., `:CobasC111`, `:GeneXpert`).
 
 ---
 
@@ -338,7 +356,7 @@ All plugins **MUST use lazy initialization** for Spring beans. Static initialize
 
 GenericASTM allows analyzers to be configured entirely through the OpenELIS dashboard without writing Java code. See Feature 004 (analyzer-management) for details.
 
-**Note**: GenericASTM requires OpenELIS features currently on `demo/madagascar` branch. The CI workflow builds against `demo/madagascar` until these features merge to `develop`.
+**Note**: GenericASTM requires the 2-table analyzer model, available on `develop` since feat/011 merged.
 
 ### Modifying Existing Plugins
 
@@ -376,4 +394,3 @@ GenericASTM allows analyzers to be configured entirely through the OpenELIS dash
 **Main Repository:** [OpenELIS-Global-2](https://github.com/DIGI-UW/OpenELIS-Global-2)
 
 **Last Updated:** 2026-02-02
-
