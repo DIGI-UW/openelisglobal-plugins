@@ -314,8 +314,11 @@ mvn spotless:apply
 ### 6. Test Build
 
 ```bash
-# Build and test your plugin
-mvn clean install -pl ./analyzers/YourAnalyzer -am
+# First time? Install the OpenELIS classes JAR:
+# (from OpenELIS-Global-2 root) plugins/scripts/install-oe-jar.sh
+
+# Build and test your plugin (from repo root)
+mvn clean install -pl :YourAnalyzer -am
 
 # Verify all plugins still build
 mvn clean install

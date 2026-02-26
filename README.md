@@ -150,15 +150,26 @@ See [INVENTORY.md](analyzers/INVENTORY.md) for complete file format details.
 
 ## Building
 
-### Prerequisite (required once per OpenELIS version)
+### Prerequisites (required once per OpenELIS version)
 
-This repository depends on `org.openelisglobal:openelisglobal:3.2.1.2` (classifier `classes`), which is not published to Maven Central.
-Build and install OpenELIS Global first:
+Plugins depend on `org.openelisglobal:openelisglobal:3.2.1.2` (classifier
+`classes`), which is not on Maven Central. Install it locally first.
+
+**Submodule users** (plugins checked out inside OpenELIS-Global-2):
 
 ```bash
-git clone --recurse-submodules https://github.com/DIGI-UW/OpenELIS-Global-2.git
-cd OpenELIS-Global-2/dataexport && mvn clean install -DskipTests -Dmaven.test.skip=true
-cd .. && mvn clean install -DskipTests -Dspotless.check.skip=true
+plugins/scripts/install-oe-jar.sh
+```
+
+**Standalone clone:**
+
+```bash
+git clone https://github.com/DIGI-UW/OpenELIS-Global-2.git
+cd OpenELIS-Global-2
+git checkout 3.2.1.2          # must match version in plugins pom.xml
+cd dataexport && mvn clean install -DskipTests -Dmaven.test.skip=true && cd ..
+# Both flags needed: -DskipTests (Surefire) + -Dmaven.test.skip (Failsafe)
+mvn clean install -DskipTests -Dmaven.test.skip=true -Dspotless.check.skip=true
 ```
 
 Then return to this repository and build plugins.
@@ -171,17 +182,14 @@ mvn clean install
 
 ### Build Single Plugin
 
-```bash
-mvn clean package -pl ./analyzers/PluginName -am
-```
-
-Use this from the repository root (recommended). `-am` also builds required local modules (for example `test-utilities`).
-
-If you are already inside an analyzer directory, run the build from the parent aggregator:
+From the repository root (recommended):
 
 ```bash
-mvn clean package -f ../../pom.xml -pl ./analyzers/PluginName -am
+mvn clean package -pl :PluginArtifactId -am
 ```
+
+`-am` (also-make) ensures local dependencies like `test-utilities` are built.
+Use `:ArtifactId` syntax (e.g., `:CobasC111`, `:GeneXpert`).
 
 ---
 
@@ -352,7 +360,7 @@ All plugins **MUST use lazy initialization** for Spring beans. Static initialize
 
 GenericASTM allows analyzers to be configured entirely through the OpenELIS dashboard without writing Java code. See Feature 004 (analyzer-management) for details.
 
-**Note**: GenericASTM requires OpenELIS features currently on `demo/madagascar` branch. The CI workflow builds against `demo/madagascar` until these features merge to `develop`.
+**Note**: GenericASTM requires the 2-table analyzer model, available on `develop` since feat/011 merged.
 
 ### Modifying Existing Plugins
 
