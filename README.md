@@ -155,24 +155,20 @@ See [INVENTORY.md](analyzers/INVENTORY.md) for complete file format details.
 Plugins depend on `org.openelisglobal:openelisglobal:3.2.1.2` (classifier
 `classes`), which is not on Maven Central. Install it locally first.
 
-**Submodule users** (plugins checked out inside OpenELIS-Global-2):
+Run the install script (tries lightweight sources first, falls back to Maven build):
 
 ```bash
+# From OpenELIS-Global-2 root (submodule):
 plugins/scripts/install-oe-jar.sh
+
+# Or from this repo's root:
+./scripts/install-oe-jar.sh
 ```
 
-**Standalone clone:**
-
-```bash
-git clone https://github.com/DIGI-UW/OpenELIS-Global-2.git
-cd OpenELIS-Global-2
-git checkout 3.2.1.2          # must match version in plugins pom.xml
-cd dataexport && mvn clean install -DskipTests -Dmaven.test.skip=true && cd ..
-# Both flags needed: -DskipTests (Surefire) + -Dmaven.test.skip (Failsafe)
-mvn clean install -DskipTests -Dmaven.test.skip=true -Dspotless.check.skip=true
-```
-
-Then return to this repository and build plugins.
+The script tries three sources in order:
+1. **GitHub release download** (~5s) — requires `gh` CLI
+2. **Docker image extraction** (~6s) — requires Docker with `itechuw/openelis-global-2` image
+3. **Local Maven build** (minutes) — only if running inside the OE2 submodule tree
 
 ### Build All Plugins
 
