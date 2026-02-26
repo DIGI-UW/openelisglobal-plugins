@@ -500,7 +500,7 @@ OBX|3|NM|HGB^Hemoglobin||14.5|g/dL|12.0-16.0|N|||F
 
 - [GenericASTM Plugin](../GenericASTM/README.md) - Similar pattern for ASTM
 - [Feature 011 Spec](../../../specs/011-madagascar-analyzer-integration/spec.md)
-- [Default Config Templates](../../../projects/analyzer-defaults/README.md)
+- Default Config Templates (see the shared analyzer-defaults configuration repository or centralized documentation)
 - [HL7 v2.3.1 Specification](http://www.hl7.org/)
 
 ---
