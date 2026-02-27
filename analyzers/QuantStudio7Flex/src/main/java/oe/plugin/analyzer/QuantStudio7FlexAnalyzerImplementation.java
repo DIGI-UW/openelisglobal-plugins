@@ -25,8 +25,6 @@ import java.util.List;
 import org.apache.commons.validator.GenericValidator;
 import org.openelisglobal.analysis.service.AnalysisService;
 import org.openelisglobal.analysis.valueholder.Analysis;
-import org.openelisglobal.analyzer.service.AnalyzerService;
-import org.openelisglobal.analyzer.valueholder.Analyzer;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
 import org.openelisglobal.common.log.LogEvent;
@@ -76,12 +74,10 @@ public class QuantStudio7FlexAnalyzerImplementation extends AnalyzerLineInserter
   // Lazy-initialized service references (allows unit testing without Spring context)
   private TestService testService;
   private SampleService sampleService;
-  private AnalyzerService analyzerService;
   private AnalysisService analysisService;
   private NoteService noteService;
 
   // Lazy-initialized data
-  private String analyzerId;
   private HashMap<String, List<Test>> testLoincMap;
 
   // Lazy getter for TestService
@@ -100,14 +96,6 @@ public class QuantStudio7FlexAnalyzerImplementation extends AnalyzerLineInserter
     return sampleService;
   }
 
-  // Lazy getter for AnalyzerService
-  protected AnalyzerService getAnalyzerService() {
-    if (analyzerService == null) {
-      analyzerService = SpringContext.getBean(AnalyzerService.class);
-    }
-    return analyzerService;
-  }
-
   // Lazy getter for AnalysisService
   protected AnalysisService getAnalysisService() {
     if (analysisService == null) {
@@ -122,25 +110,6 @@ public class QuantStudio7FlexAnalyzerImplementation extends AnalyzerLineInserter
       noteService = SpringContext.getBean(NoteService.class);
     }
     return noteService;
-  }
-
-  // Lazy getter for analyzer ID
-  protected String getAnalyzerId() {
-    if (analyzerId == null) {
-      Analyzer analyzer = getAnalyzerService().getAnalyzerByName(ANALYZER_NAME);
-      if (analyzer != null) {
-        analyzerId = analyzer.getId();
-      } else {
-        LogEvent.logError(
-            this.getClass().getSimpleName(),
-            "getAnalyzerId",
-            "Analyzer '"
-                + ANALYZER_NAME
-                + "' not found in database. "
-                + "Plugin may not have been registered correctly via connect().");
-      }
-    }
-    return analyzerId;
   }
 
   // Lazy getter for test LOINC map
@@ -213,7 +182,6 @@ public class QuantStudio7FlexAnalyzerImplementation extends AnalyzerLineInserter
     analyzerResult.setAccessionNumber(currentAccessionNumber);
     analyzerResult.setIsControl(isControl(currentAccessionNumber));
     analyzerResult.setCompleteDate(Timestamp.from(Instant.now()));
-    analyzerResult.setAnalyzerId(getAnalyzerId());
     analyzerResult.setResultType("D"); // dictionary result
 
     if (test != null) {

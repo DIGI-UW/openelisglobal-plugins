@@ -10,8 +10,6 @@ import java.util.List;
 import java.util.Map;
 import org.openelisglobal.analysis.service.AnalysisService;
 import org.openelisglobal.analysis.valueholder.Analysis;
-import org.openelisglobal.analyzer.service.AnalyzerService;
-import org.openelisglobal.analyzer.valueholder.Analyzer;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerReaderUtil;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
@@ -38,12 +36,10 @@ public class Cobas6800VLAnalyzerImplementation extends AnalyzerLineInserter {
 
   // Lazy-initialized services
   private TestService testService;
-  private AnalyzerService analyzerService;
   private SampleService sampleService;
   private AnalysisService analysisService;
 
   // Lazy-initialized data
-  private String analyzerId;
   private Map<String, Test> testHeaderNameMap;
   private Test viralLoadTest;
   private String validStatusId;
@@ -66,13 +62,6 @@ public class Cobas6800VLAnalyzerImplementation extends AnalyzerLineInserter {
     return testService;
   }
 
-  protected AnalyzerService getAnalyzerService() {
-    if (analyzerService == null) {
-      analyzerService = SpringContext.getBean(AnalyzerService.class);
-    }
-    return analyzerService;
-  }
-
   protected SampleService getSampleService() {
     if (sampleService == null) {
       sampleService = SpringContext.getBean(SampleService.class);
@@ -85,22 +74,6 @@ public class Cobas6800VLAnalyzerImplementation extends AnalyzerLineInserter {
       analysisService = SpringContext.getBean(AnalysisService.class);
     }
     return analysisService;
-  }
-
-  // Lazy getters for data
-  protected String getAnalyzerId() {
-    if (analyzerId == null) {
-      Analyzer analyzer = getAnalyzerService().getAnalyzerByName(ANALYZER_NAME);
-      if (analyzer != null) {
-        analyzerId = analyzer.getId();
-      } else {
-        LogEvent.logWarn(
-            this.getClass().getSimpleName(),
-            "getAnalyzerId",
-            "Analyzer not found: " + ANALYZER_NAME);
-      }
-    }
-    return analyzerId;
   }
 
   protected Test getViralLoadTest() {
@@ -351,8 +324,6 @@ public class Cobas6800VLAnalyzerImplementation extends AnalyzerLineInserter {
     if (accessionNumber.startsWith(getProjectCode()) && accessionNumber.length() >= 9)
       accessionNumber = accessionNumber.substring(0, 9);
     result = getAppropriateResults(result);
-
-    analyzerResults.setAnalyzerId(getAnalyzerId());
     analyzerResults.setResult(result);
     analyzerResults.setUnits("< LL".equals(result) ? "" : "cp/ml");
     analyzerResults.setCompleteDate(
@@ -397,7 +368,6 @@ public class Cobas6800VLAnalyzerImplementation extends AnalyzerLineInserter {
     for (int i = 1; i <= 7; i++) line = line.substring(1 + line.indexOf("|"));
 
     String completedDate = line.substring(0, line.indexOf("|"));
-    analyzerResults.setAnalyzerId(getAnalyzerId());
     analyzerResults.setResult(result);
     analyzerResults.setUnits("< LL".equals(result) ? "" : "cp/ml");
     analyzerResults.setCompleteDate(

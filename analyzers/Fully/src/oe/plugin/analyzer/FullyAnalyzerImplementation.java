@@ -20,8 +20,6 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import org.openelisglobal.analyzer.service.AnalyzerService;
-import org.openelisglobal.analyzer.valueholder.Analyzer;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerReaderUtil;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
@@ -33,7 +31,6 @@ import org.openelisglobal.test.valueholder.Test;
 public class FullyAnalyzerImplementation extends AnalyzerLineInserter {
 
   private static final String DELIMITER = "\\t";
-  static String ANALYZER_ID;
   private static final String CONTROL_ACCESSION_PREFIX = "CONTROL";
   static String DATE_PATTERN = "dd/MM/yyyy HH:mm:ss";
   static HashMap<String, Test> testHeaderNameMap = new HashMap<>();
@@ -67,10 +64,6 @@ public class FullyAnalyzerImplementation extends AnalyzerLineInserter {
     // testHeaderNameMap.put("GOT/AST",
     // SpringContext.getBean(TestService.class).getTestByName("Transaminases GOT
     // (37°C)"));//.getTestByGUID("fe6405c8-f96b-491b-95c9-b1f635339d6a"));
-
-    AnalyzerService analyzerService = SpringContext.getBean(AnalyzerService.class);
-    Analyzer analyzer = analyzerService.getAnalyzerByName("FullyAnalyzer");
-    ANALYZER_ID = analyzer.getId();
     System.out.println(testHeaderNameMap);
   }
 
@@ -171,7 +164,6 @@ public class FullyAnalyzerImplementation extends AnalyzerLineInserter {
         AnalyzerResults aResult = new AnalyzerResults();
         aResult.setTestId(testHeaderNameMap.get(testKey).getId());
         aResult.setTestName(testHeaderNameMap.get(testKey).getName());
-        aResult.setAnalyzerId(ANALYZER_ID);
         aResult.setUnits(setUnitByTestKey(testKey));
         aResult.setResult(resultsLine[0].trim());
         aResult.setIsControl(CheckControl(resultsLine[resultsLine.length - 1].trim()));

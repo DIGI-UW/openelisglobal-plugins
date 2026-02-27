@@ -20,8 +20,6 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import org.openelisglobal.analyzer.service.AnalyzerService;
-import org.openelisglobal.analyzer.valueholder.Analyzer;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
 import org.openelisglobal.common.util.DateUtil;
@@ -30,8 +28,6 @@ import org.openelisglobal.test.service.TestService;
 import org.openelisglobal.test.valueholder.Test;
 
 public class CobasIntegra400Implementation extends AnalyzerLineInserter {
-  static String ANALYZER_ID;
-
   static String DATE_PATTERN = "yyyy-MM-dd";
 
   private static final String CONTROL_ACCESSION_PREFIX = "PCC";
@@ -64,10 +60,6 @@ public class CobasIntegra400Implementation extends AnalyzerLineInserter {
      */
 
     // System.out.println(testNameMap);
-
-    AnalyzerService analyzerService = SpringContext.getBean(AnalyzerService.class);
-    Analyzer analyzer = analyzerService.getAnalyzerByName("CobasIntegra400");
-    ANALYZER_ID = analyzer.getId();
   }
 
   static {
@@ -121,7 +113,6 @@ public class CobasIntegra400Implementation extends AnalyzerLineInserter {
         aResult.setTestId(testNameMap.get(testKey).getId());
         aResult.setTestName(testNameMap.get(testKey).getName());
         Real_Position = testPositionMap.get(testKey);
-        aResult.setAnalyzerId(ANALYZER_ID);
         aResult.setAccessionNumber(data[5].trim());
         aResult.setIsControl(CheckControl(currentAccessionNumber));
         aResult.setCompleteDate(getTimestampFromDate(date));

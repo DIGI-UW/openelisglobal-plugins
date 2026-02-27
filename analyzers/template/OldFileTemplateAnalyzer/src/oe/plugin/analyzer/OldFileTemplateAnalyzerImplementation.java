@@ -21,9 +21,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.openelisglobal.analyzer.service.AnalyzerService;
-import org.openelisglobal.unitofmeasure.service.UnitOfMeasureService;
-import org.openelisglobal.analyzer.valueholder.Analyzer;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
 import org.openelisglobal.common.util.DateUtil;
@@ -33,7 +30,6 @@ import org.openelisglobal.test.valueholder.Test;
 
 public class OldFileTemplateAnalyzerImplementation extends AnalyzerLineInserter {
 
-	static String ANALYZER_ID;
 	static String DATE_PATTERN = "yyyyMMdd";
 
 	private static final String CONTROL_ACCESSION_PREFIX = "";
@@ -45,10 +41,6 @@ public class OldFileTemplateAnalyzerImplementation extends AnalyzerLineInserter 
 		Test test = SpringContext.getBean(TestService.class).getTestsByLoincCode(DB_TEST_LOINC).get(0);
 		testNameMap.put(ANALYZER_TEST_NAME, test);
 		testUnitMap.put(ANALYZER_TEST_NAME, test.getUnitOfMeasure());
-		
-		AnalyzerService analyzerService = SpringContext.getBean(AnalyzerService.class);
-		Analyzer analyzer = analyzerService.getAnalyzerByName("OldFileTemplateAnalyzer");
-		ANALYZER_ID = analyzer.getId();
 	}
 
 	/*
@@ -77,7 +69,6 @@ public class OldFileTemplateAnalyzerImplementation extends AnalyzerLineInserter 
 			aResult.setTestId(testNameMap.get(testKey).getId());
 			aResult.setTestName(testNameMap.get(testKey).getName());
 			aResult.setResult(result.trim());
-			aResult.setAnalyzerId(ANALYZER_ID);
 			aResult.setUnits(testUnitMap.get(testKey));
 			aResult.setAccessionNumber(accessionNumber.trim());
 			// aResult.setReadOnly(CheckReadOnly (testKey));

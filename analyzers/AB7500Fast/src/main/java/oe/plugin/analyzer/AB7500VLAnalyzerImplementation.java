@@ -21,8 +21,6 @@ import java.util.List;
 import org.openelisglobal.analysis.dao.AnalysisDAO;
 import org.openelisglobal.analysis.daoimpl.AnalysisDAOImpl;
 import org.openelisglobal.analysis.valueholder.Analysis;
-import org.openelisglobal.analyzer.service.AnalyzerService;
-import org.openelisglobal.analyzer.valueholder.Analyzer;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerReaderUtil;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
@@ -48,11 +46,9 @@ public class AB7500VLAnalyzerImplementation extends AnalyzerLineInserter {
 
   // Lazy-initialized service references (allows unit testing without Spring context)
   private TestService testService;
-  private AnalyzerService analyzerService;
   private SampleService sampleService;
 
   // Lazy-initialized data
-  private String analyzerId;
   private HashMap<String, Test> testHeaderNameMap;
   private HashMap<String, String> unitsIndexMap;
   private String validStatusId;
@@ -85,33 +81,12 @@ public class AB7500VLAnalyzerImplementation extends AnalyzerLineInserter {
     return testService;
   }
 
-  // Lazy getter for AnalyzerService
-  protected AnalyzerService getAnalyzerService() {
-    if (analyzerService == null) {
-      analyzerService = SpringContext.getBean(AnalyzerService.class);
-    }
-    return analyzerService;
-  }
-
   // Lazy getter for SampleService
   protected SampleService getSampleService() {
     if (sampleService == null) {
       sampleService = SpringContext.getBean(SampleService.class);
     }
     return sampleService;
-  }
-
-  // Lazy getter for analyzer ID
-  protected String getAnalyzerId() {
-    if (analyzerId == null) {
-      Analyzer analyzer = getAnalyzerService().getAnalyzerByName(ANALYZER_NAME);
-      if (analyzer != null) {
-        analyzerId = analyzer.getId();
-      } else {
-        error = "Analyzer not found: " + ANALYZER_NAME;
-      }
-    }
-    return analyzerId;
   }
 
   // Lazy getter for test name map
@@ -262,7 +237,6 @@ public class AB7500VLAnalyzerImplementation extends AnalyzerLineInserter {
         }
 
         aResult.setResult(result);
-        aResult.setAnalyzerId(getAnalyzerId());
         aResult.setAccessionNumber(AccessionNumber);
         aResult.setUnits(getUnitsIndexMap().get(testKey));
         aResult.setIsControl(isControl);

@@ -20,8 +20,6 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import org.openelisglobal.analyzer.service.AnalyzerService;
-import org.openelisglobal.analyzer.valueholder.Analyzer;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
 import org.openelisglobal.common.util.DateUtil;
@@ -38,10 +36,7 @@ public class CobasC111AnalyzerImplementation extends AnalyzerLineInserter {
 
   // Lazy-initialized services
   private TestService testService;
-  private AnalyzerService analyzerService;
-
   // Lazy-initialized data
-  private String analyzerId;
   private HashMap<String, Test> testNameMap;
   private HashMap<String, String> testUnitMap;
 
@@ -55,25 +50,6 @@ public class CobasC111AnalyzerImplementation extends AnalyzerLineInserter {
       testService = SpringContext.getBean(TestService.class);
     }
     return testService;
-  }
-
-  // Lazy getter for AnalyzerService
-  protected AnalyzerService getAnalyzerService() {
-    if (analyzerService == null) {
-      analyzerService = SpringContext.getBean(AnalyzerService.class);
-    }
-    return analyzerService;
-  }
-
-  // Lazy getter for analyzer ID
-  protected String getAnalyzerId() {
-    if (analyzerId == null) {
-      Analyzer analyzer = getAnalyzerService().getAnalyzerByName(ANALYZER_NAME);
-      if (analyzer != null) {
-        analyzerId = analyzer.getId();
-      }
-    }
-    return analyzerId;
   }
 
   // Lazy getter for test name map
@@ -127,7 +103,6 @@ public class CobasC111AnalyzerImplementation extends AnalyzerLineInserter {
           aResult.setTestId(test.getId());
           aResult.setTestName(test.getName());
           aResult.setResult(data[12].replace("\"", "").trim());
-          aResult.setAnalyzerId(getAnalyzerId());
           aResult.setUnits(data[13].replace("\"", ""));
           aResult.setAccessionNumber(data[10].replace("\"", "").trim());
           aResult.setIsControl(CheckControl(currentAccessionNumber));

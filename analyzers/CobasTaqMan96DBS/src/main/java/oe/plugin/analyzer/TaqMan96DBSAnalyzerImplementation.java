@@ -17,8 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.openelisglobal.analysis.service.AnalysisService;
 import org.openelisglobal.analysis.valueholder.Analysis;
-import org.openelisglobal.analyzer.service.AnalyzerService;
-import org.openelisglobal.analyzer.valueholder.Analyzer;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerReaderUtil;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
@@ -46,14 +44,12 @@ public class TaqMan96DBSAnalyzerImplementation extends AnalyzerLineInserter {
 
   // Lazy-initialized services
   private TestService testService;
-  private AnalyzerService analyzerService;
   private SampleService sampleService;
   private AnalysisService analysisService;
   private DictionaryService dictionaryService;
   private TestResultService testResultService;
 
   // Lazy-initialized data
-  private String analyzerId;
   private Test dnaPcrTest;
   private String negativeId;
   private String positiveId;
@@ -74,13 +70,6 @@ public class TaqMan96DBSAnalyzerImplementation extends AnalyzerLineInserter {
       testService = SpringContext.getBean(TestService.class);
     }
     return testService;
-  }
-
-  protected AnalyzerService getAnalyzerService() {
-    if (analyzerService == null) {
-      analyzerService = SpringContext.getBean(AnalyzerService.class);
-    }
-    return analyzerService;
   }
 
   protected SampleService getSampleService() {
@@ -125,21 +114,6 @@ public class TaqMan96DBSAnalyzerImplementation extends AnalyzerLineInserter {
           StatusService.getInstance().getStatusID(StatusService.AnalysisStatus.Finalized);
     }
     return validStatusId;
-  }
-
-  protected String getAnalyzerId() {
-    if (analyzerId == null) {
-      Analyzer analyzer = getAnalyzerService().getAnalyzerByName(ANALYZER_NAME);
-      if (analyzer != null) {
-        analyzerId = analyzer.getId();
-      } else {
-        LogEvent.logWarn(
-            this.getClass().getSimpleName(),
-            "getAnalyzerId",
-            "Analyzer not found: " + ANALYZER_NAME);
-      }
-    }
-    return analyzerId;
   }
 
   protected Test getDnaPcrTest() {
@@ -244,8 +218,6 @@ public class TaqMan96DBSAnalyzerImplementation extends AnalyzerLineInserter {
     if (test == null) {
       return;
     }
-
-    analyzerResults.setAnalyzerId(getAnalyzerId());
     analyzerResults.setResult(result);
     analyzerResults.setCompleteDate(
         DateUtil.convertStringDateToTimestampWithPattern(

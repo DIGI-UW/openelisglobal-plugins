@@ -26,8 +26,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.openelisglobal.analysis.service.AnalysisService;
 import org.openelisglobal.analysis.valueholder.Analysis;
-import org.openelisglobal.analyzer.service.AnalyzerService;
-import org.openelisglobal.analyzer.valueholder.Analyzer;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerReaderUtil;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
@@ -47,7 +45,6 @@ import org.openelisglobal.typeoftestresult.service.TypeOfTestResultServiceImpl.R
 public class GeneXpertAnalyzerImplementation extends AnalyzerLineInserter {
 
   private TestService testService = SpringContext.getBean(TestService.class);
-  private AnalyzerService analyzerService = SpringContext.getBean(AnalyzerService.class);
   private NoteService noteService = SpringContext.getBean(NoteService.class);
   private AnalysisService analysisService = SpringContext.getBean(AnalysisService.class);
   private SampleService sampleService = SpringContext.getBean(SampleService.class);
@@ -75,8 +72,6 @@ public class GeneXpertAnalyzerImplementation extends AnalyzerLineInserter {
   static final String COV_2_DB_INV = "INVALID";
 
   static final String DELIMITER = "[,;]";
-
-  private String ANALYZER_ID;
   private Map<String, List<Test>> testLoincMap = new HashMap<>();
   private Map<String, List<Test>> testNameMap = new HashMap<>();
 
@@ -103,9 +98,6 @@ public class GeneXpertAnalyzerImplementation extends AnalyzerLineInserter {
     resultMap.put(COV_2_ANALYZER_NEG.toLowerCase(), COV_2_DB_NEG.toLowerCase());
     resultMap.put(COV_2_ANALYZER_POS.toLowerCase(), COV_2_DB_POS.toLowerCase());
     resultMap.put(COV_2_ANALYZER_INV.toLowerCase(), COV_2_DB_INV.toLowerCase());
-
-    Analyzer analyzer = analyzerService.getAnalyzerByName(GeneXpertAnalyzer.ANALYZER_NAME);
-    ANALYZER_ID = analyzer.getId();
   }
 
   /*
@@ -266,8 +258,6 @@ public class GeneXpertAnalyzerImplementation extends AnalyzerLineInserter {
       boolean isControl,
       Test test) {
     AnalyzerResults analyzerResults = new AnalyzerResults();
-
-    analyzerResults.setAnalyzerId(ANALYZER_ID);
     analyzerResults.setResultType(resultType);
     analyzerResults.setResult(resultValue);
     analyzerResults.setUnits(resultUnits);

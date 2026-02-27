@@ -26,8 +26,6 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Test;
-import org.openelisglobal.analyzer.service.AnalyzerService;
-import org.openelisglobal.analyzer.valueholder.Analyzer;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
 import org.openelisglobal.plugin.test.PluginTestBase;
 import org.openelisglobal.spring.util.SpringContext;
@@ -38,16 +36,8 @@ public class MindrayAnalyzerImplementationTest extends PluginTestBase {
   @Override
   protected void setupMocks() {
     TestService mockTestService = mock(TestService.class);
-    AnalyzerService mockAnalyzerService = mock(AnalyzerService.class);
-
-    // Setup analyzer mock
-    Analyzer mockAnalyzer = new Analyzer();
-    mockAnalyzer.setId("1");
-    mockAnalyzer.setName("Mindray");
 
     when(SpringContext.getBean(TestService.class)).thenReturn(mockTestService);
-    when(SpringContext.getBean(AnalyzerService.class)).thenReturn(mockAnalyzerService);
-    when(mockAnalyzerService.getAnalyzerByName("Mindray")).thenReturn(mockAnalyzer);
 
     // Mock all LOINC code lookups to return empty lists by default
     when(mockTestService.getTestsByLoincCode(anyString())).thenReturn(new ArrayList<>());

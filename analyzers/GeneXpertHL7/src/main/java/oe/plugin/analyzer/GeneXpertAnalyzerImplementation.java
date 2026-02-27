@@ -21,8 +21,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
-import org.openelisglobal.analyzer.service.AnalyzerService;
-import org.openelisglobal.analyzer.valueholder.Analyzer;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerReaderUtil;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
@@ -33,9 +31,6 @@ import org.openelisglobal.test.valueholder.Test;
 public class GeneXpertAnalyzerImplementation extends AnalyzerLineInserter {
 
 	private TestService testService = SpringContext.getBean(TestService.class);
-	private AnalyzerService analyzerService = SpringContext.getBean(AnalyzerService.class);
-
-
 	static final String HBV = "Xpert HBV Viral Load";
 	static final String HCV = "Xpert HCV Viral Load";
 	static final String HIV_QUAL = "Xpert HIV-1 Qual";
@@ -47,8 +42,6 @@ public class GeneXpertAnalyzerImplementation extends AnalyzerLineInserter {
 	static final String HIV_QUAL_LOINC = "";
 	static final String HIV_VIRAL_LOINC = "10351-5";
 	static final String COV_2_LOINC = "94500-6";
-
-	private String ANALYZER_ID;
 	private HashMap<String, List<Test>> testLoincMap = new HashMap<>();
 
 	private AnalyzerReaderUtil readerUtil = new AnalyzerReaderUtil();
@@ -59,9 +52,6 @@ public class GeneXpertAnalyzerImplementation extends AnalyzerLineInserter {
 		testLoincMap.put(HIV_QUAL_LOINC, testService.getTestsByLoincCode(HIV_QUAL_LOINC));
 		testLoincMap.put(HIV_VIRAL_LOINC, testService.getTestsByLoincCode(HIV_VIRAL_LOINC));
 		testLoincMap.put(COV_2_LOINC, testService.getTestsByLoincCode(COV_2_LOINC));
-
-		Analyzer analyzer = analyzerService.getAnalyzerByName(GeneXpertAnalyzer.ANALYZER_NAME);
-		ANALYZER_ID = analyzer.getId();
 	}
 
 	/*
@@ -106,8 +96,6 @@ public class GeneXpertAnalyzerImplementation extends AnalyzerLineInserter {
 	private AnalyzerResults createAnalyzerResult(String resultType, String resultValue, String resultUnits, Date date,
 			String accessionNumber, boolean isControl, String analyzerTestId) {
 		AnalyzerResults analyzerResults = new AnalyzerResults();
-
-		analyzerResults.setAnalyzerId(ANALYZER_ID);
 		analyzerResults.setResult(resultValue);
 		analyzerResults.setUnits(resultUnits);
 		if (date != null) {

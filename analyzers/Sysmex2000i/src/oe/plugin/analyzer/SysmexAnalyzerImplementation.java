@@ -20,8 +20,6 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import org.openelisglobal.analyzer.service.AnalyzerService;
-import org.openelisglobal.analyzer.valueholder.Analyzer;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
 import org.openelisglobal.common.services.PluginAnalyzerService;
@@ -31,8 +29,6 @@ import org.openelisglobal.test.service.TestService;
 import org.openelisglobal.test.valueholder.Test;
 
 public class SysmexAnalyzerImplementation extends AnalyzerLineInserter {
-
-  static String ANALYZER_ID;
   // static String DATE_PATTERN = "dd/MM/yyyy HH:mm:ss";
   static String DATE_PATTERN = "dd/MM/yyyy";
 
@@ -105,9 +101,6 @@ public class SysmexAnalyzerImplementation extends AnalyzerLineInserter {
         SpringContext.getBean(TestService.class).getTestByName("Polynucléaires basophiles (%)"));
 
     System.out.println(testHeaderNameMap);
-    AnalyzerService analyzerService = SpringContext.getBean(AnalyzerService.class);
-    Analyzer analyzer = analyzerService.getAnalyzerByName("SysmexAnalyzer");
-    ANALYZER_ID = analyzer.getId();
   }
 
   static {
@@ -183,7 +176,6 @@ public class SysmexAnalyzerImplementation extends AnalyzerLineInserter {
           aResult.setTestId(testHeaderNameMap.get(testKey).getId());
           aResult.setTestName(testHeaderNameMap.get(testKey).getName());
           aResult.setResult(setResultByTest(k, testKey));
-          aResult.setAnalyzerId(ANALYZER_ID);
           aResult.setUnits(setUnitByTestKey(testKey));
           aResult.setAccessionNumber(currentAccessionNumber);
           aResult.setReadOnly(CheckReadOnly(testKey));

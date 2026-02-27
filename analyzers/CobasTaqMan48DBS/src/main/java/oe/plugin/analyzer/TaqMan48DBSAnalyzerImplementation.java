@@ -21,8 +21,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.openelisglobal.analyzer.service.AnalyzerService;
-import org.openelisglobal.analyzer.valueholder.Analyzer;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
 import org.openelisglobal.common.log.LogEvent;
@@ -43,12 +41,10 @@ public class TaqMan48DBSAnalyzerImplementation extends AnalyzerLineInserter {
 
   // Lazy-initialized services
   private TestService testService;
-  private AnalyzerService analyzerService;
   private DictionaryService dictionaryService;
   private TestResultService testResultService;
 
   // Lazy-initialized data
-  private String analyzerId;
   private Map<String, Test> testHeaderNameMap;
   private String negativeId;
   private String positiveId;
@@ -66,13 +62,6 @@ public class TaqMan48DBSAnalyzerImplementation extends AnalyzerLineInserter {
     return testService;
   }
 
-  protected AnalyzerService getAnalyzerService() {
-    if (analyzerService == null) {
-      analyzerService = SpringContext.getBean(AnalyzerService.class);
-    }
-    return analyzerService;
-  }
-
   protected DictionaryService getDictionaryService() {
     if (dictionaryService == null) {
       dictionaryService = SpringContext.getBean(DictionaryService.class);
@@ -85,22 +74,6 @@ public class TaqMan48DBSAnalyzerImplementation extends AnalyzerLineInserter {
       testResultService = SpringContext.getBean(TestResultService.class);
     }
     return testResultService;
-  }
-
-  // Lazy getters for data
-  protected String getAnalyzerId() {
-    if (analyzerId == null) {
-      Analyzer analyzer = getAnalyzerService().getAnalyzerByName(ANALYZER_NAME);
-      if (analyzer != null) {
-        analyzerId = analyzer.getId();
-      } else {
-        LogEvent.logWarn(
-            this.getClass().getSimpleName(),
-            "getAnalyzerId",
-            "Analyzer not found: " + ANALYZER_NAME);
-      }
-    }
-    return analyzerId;
   }
 
   protected Map<String, Test> getTestHeaderNameMap() {
@@ -209,7 +182,6 @@ public class TaqMan48DBSAnalyzerImplementation extends AnalyzerLineInserter {
           aResult.setTestId(test.getId());
           aResult.setTestName(test.getName());
           aResult.setResult(getAppropriateResults(data[k]));
-          aResult.setAnalyzerId(getAnalyzerId());
           aResult.setAccessionNumber(data[accessionNumberIndex].replace("\"", "").trim());
           aResult.setCompleteDate(getTimestampFromDate(data[dayIndex].replace("\"", "").trim()));
           aResult.setIsControl(!data[sampleTypeIndex].replace("\"", "").trim().equals("S"));
