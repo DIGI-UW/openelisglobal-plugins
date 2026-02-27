@@ -61,8 +61,6 @@ public class TaqMan48DBSAnalyzerImplementation extends AnalyzerLineInserter {
     }
     return testService;
   }
-    return analyzerService;
-  }
 
   protected DictionaryService getDictionaryService() {
     if (dictionaryService == null) {

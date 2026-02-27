@@ -71,8 +71,6 @@ public class TaqMan96DBSAnalyzerImplementation extends AnalyzerLineInserter {
     }
     return testService;
   }
-    return analyzerService;
-  }
 
   protected SampleService getSampleService() {
     if (sampleService == null) {

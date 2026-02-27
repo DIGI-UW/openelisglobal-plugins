@@ -66,8 +66,6 @@ public class SysmexKX21AnalyzerImplementation extends AnalyzerLineInserter {
     }
     return testService;
   }
-    return analyzerService;
-  }
 
   // Lazy getter for SampleService
   protected SampleService getSampleService() {

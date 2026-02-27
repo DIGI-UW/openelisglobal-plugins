@@ -80,8 +80,6 @@ public class AB7500VLAnalyzerImplementation extends AnalyzerLineInserter {
     }
     return testService;
   }
-    return analyzerService;
-  }
 
   // Lazy getter for SampleService
   protected SampleService getSampleService() {

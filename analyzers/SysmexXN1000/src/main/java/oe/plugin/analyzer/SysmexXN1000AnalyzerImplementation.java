@@ -52,8 +52,6 @@ public class SysmexXN1000AnalyzerImplementation extends AnalyzerLineInserter {
     }
     return testService;
   }
-    return analyzerService;
-  }
 
   // Lazy getter for SampleService
   protected SampleService getSampleService() {

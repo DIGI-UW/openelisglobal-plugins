@@ -51,8 +51,6 @@ public class CobasC111AnalyzerImplementation extends AnalyzerLineInserter {
     }
     return testService;
   }
-    return analyzerService;
-  }
 
   // Lazy getter for test name map
   protected HashMap<String, Test> getTestNameMap() {

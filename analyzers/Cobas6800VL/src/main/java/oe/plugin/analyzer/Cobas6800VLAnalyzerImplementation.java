@@ -61,8 +61,6 @@ public class Cobas6800VLAnalyzerImplementation extends AnalyzerLineInserter {
     }
     return testService;
   }
-    return analyzerService;
-  }
 
   protected SampleService getSampleService() {
     if (sampleService == null) {

@@ -95,8 +95,6 @@ public class QuantStudio7FlexAnalyzerImplementation extends AnalyzerLineInserter
     }
     return sampleService;
   }
-    return analyzerService;
-  }
 
   // Lazy getter for AnalysisService
   protected AnalysisService getAnalysisService() {

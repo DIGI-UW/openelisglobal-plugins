@@ -83,8 +83,6 @@ public class Cobas4800AnalyzerImplementation extends AnalyzerLineInserter {
     }
     return testService;
   }
-    return analyzerService;
-  }
 
   protected SampleService getSampleService() {
     if (sampleService == null) {

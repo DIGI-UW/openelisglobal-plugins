@@ -62,8 +62,6 @@ public class TaqMan96VLAnalyzerImplementation extends AnalyzerLineInserter {
     }
     return testService;
   }
-    return analyzerService;
-  }
 
   // Lazy getter for AnalysisService
   protected AnalysisService getAnalysisService() {
