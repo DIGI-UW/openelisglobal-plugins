@@ -20,8 +20,6 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import org.openelisglobal.analyzer.service.AnalyzerService;
-import org.openelisglobal.analyzer.valueholder.Analyzer;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerReaderUtil;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
@@ -36,7 +34,6 @@ public class SysmexXTAnalyzerImplementation extends AnalyzerLineInserter {
   private int ORDER_HOUR_INDEX = 0;
 
   private static final String DELIMITER = ",";
-  static String ANALYZER_ID;
   private static final String CONTROL_ACCESSION_PREFIX = "QC-";
   static String DATE_PATTERN = "dd/MM/yyyy HH:mm:ss";
   static HashMap<String, Test> testHeaderNameMap = new HashMap<>();
@@ -114,10 +111,6 @@ public class SysmexXTAnalyzerImplementation extends AnalyzerLineInserter {
     scaleIndexMap.put("MONO%(10^(-1)%)", "10,%");
     scaleIndexMap.put("EO%(10^(-1)%)", "10,%");
     scaleIndexMap.put("BASO%(10^(-1)%)", "10,%");
-
-    AnalyzerService analyzerService = SpringContext.getBean(AnalyzerService.class);
-    Analyzer analyzer = analyzerService.getAnalyzerByName("SysmexXTAnalyzer");
-    ANALYZER_ID = analyzer.getId();
   }
 
   /* (non-Javadoc)
@@ -234,7 +227,6 @@ public class SysmexXTAnalyzerImplementation extends AnalyzerLineInserter {
         String[] result = getAppropriateResults(fields[k], testKey);
         aResult.setResult(result[0]);
         aResult.setUnits(result[1]);
-        aResult.setAnalyzerId(ANALYZER_ID);
         aResult.setAccessionNumber(fields[ORDER_NUMBER_INDEX].trim());
         aResult.setResultType("N");
 

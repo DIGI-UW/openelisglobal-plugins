@@ -20,8 +20,6 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import org.openelisglobal.analyzer.service.AnalyzerService;
-import org.openelisglobal.analyzer.valueholder.Analyzer;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerReaderUtil;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
@@ -32,8 +30,6 @@ import org.openelisglobal.test.valueholder.Test;
 public class MindrayAnalyzerImplementation extends AnalyzerLineInserter {
 
   private TestService testService = SpringContext.getBean(TestService.class);
-  private AnalyzerService analyzerService = SpringContext.getBean(AnalyzerService.class);
-
   static final String TBil = "T-Bil";
   static final String DBil = "D-Bil";
   static final String IBIL = "IBIL";
@@ -81,8 +77,6 @@ public class MindrayAnalyzerImplementation extends AnalyzerLineInserter {
   static final String Globulines_LOINC = "2336-6";
   static final String Alb_Glob_LOINC = "10834-0";
   static final String Mg_LOINC = "19123-9";
-
-  private String ANALYZER_ID;
   private HashMap<String, List<Test>> testLoincMap = new HashMap<>();
 
   private AnalyzerReaderUtil readerUtil = new AnalyzerReaderUtil();
@@ -111,9 +105,6 @@ public class MindrayAnalyzerImplementation extends AnalyzerLineInserter {
     testLoincMap.put(Globulines_LOINC, testService.getTestsByLoincCode(Globulines_LOINC));
     testLoincMap.put(Alb_Glob_LOINC, testService.getTestsByLoincCode(Alb_Glob_LOINC));
     testLoincMap.put(Mg_LOINC, testService.getTestsByLoincCode(Mg_LOINC));
-
-    Analyzer analyzer = analyzerService.getAnalyzerByName("Mindray");
-    ANALYZER_ID = analyzer.getId();
   }
 
   /*
@@ -169,8 +160,6 @@ public class MindrayAnalyzerImplementation extends AnalyzerLineInserter {
       boolean isControl,
       String analyzerTestId) {
     AnalyzerResults analyzerResults = new AnalyzerResults();
-
-    analyzerResults.setAnalyzerId(ANALYZER_ID);
     analyzerResults.setResult(resultValue);
     analyzerResults.setUnits(resultUnits);
     analyzerResults.setCompleteDate(new Timestamp(new Date().getTime()));

@@ -29,8 +29,6 @@ import java.util.regex.Pattern;
 import org.apache.commons.validator.GenericValidator;
 import org.openelisglobal.analysis.service.AnalysisService;
 import org.openelisglobal.analysis.valueholder.Analysis;
-import org.openelisglobal.analyzer.service.AnalyzerService;
-import org.openelisglobal.analyzer.valueholder.Analyzer;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerReaderUtil;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerResponder;
@@ -159,11 +157,9 @@ public class GeneXpertAnalyzerImplementation extends AnalyzerLineInserter
   private TestService testService = SpringContext.getBean(TestService.class);
   private SampleService sampleService = SpringContext.getBean(SampleService.class);
   private SampleHumanService sampleHumanService = SpringContext.getBean(SampleHumanService.class);
-  private AnalyzerService analyzerService = SpringContext.getBean(AnalyzerService.class);
   private AnalysisService analysisService = SpringContext.getBean(AnalysisService.class);
   private PluginAnalyzerService pluginAnalyzerService =
       SpringContext.getBean(PluginAnalyzerService.class);
-  private String ANALYZER_ID;
   private Map<String, String> testToLoincMap = new HashMap<>();
   private Map<String, String> loincToTestCodeMap = new HashMap<>();
   private Map<String, List<Test>> testCodeToTestsMap = new HashMap<>();
@@ -217,9 +213,6 @@ public class GeneXpertAnalyzerImplementation extends AnalyzerLineInserter
       loincToTestCodeMap.put(entry.getValue(), entry.getKey());
       testCodeToTestsMap.put(entry.getKey(), testService.getTestsByLoincCode(entry.getValue()));
     }
-
-    Analyzer analyzer = analyzerService.getAnalyzerByName("GeneXpertAnalyzer");
-    ANALYZER_ID = analyzer.getId();
   }
 
   // example message:
@@ -439,8 +432,6 @@ public class GeneXpertAnalyzerImplementation extends AnalyzerLineInserter
         "creating analyzer result for " + accessionNumber);
 
     AnalyzerResults analyzerResults = new AnalyzerResults();
-
-    analyzerResults.setAnalyzerId(ANALYZER_ID);
     analyzerResults.setResult(resultValue);
     analyzerResults.setUnits(resultUnits);
     if (date != null) {

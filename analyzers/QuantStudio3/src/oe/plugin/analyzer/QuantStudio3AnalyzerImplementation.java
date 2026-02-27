@@ -25,8 +25,6 @@ import java.util.List;
 import org.apache.commons.validator.GenericValidator;
 import org.openelisglobal.analysis.service.AnalysisService;
 import org.openelisglobal.analysis.valueholder.Analysis;
-import org.openelisglobal.analyzer.service.AnalyzerService;
-import org.openelisglobal.analyzer.valueholder.Analyzer;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
 import org.openelisglobal.common.log.LogEvent;
@@ -53,22 +51,16 @@ public class QuantStudio3AnalyzerImplementation extends AnalyzerLineInserter {
 
   private TestService testService = SpringContext.getBean(TestService.class);
   private SampleService sampleService = SpringContext.getBean(SampleService.class);
-  private AnalyzerService analyzerService = SpringContext.getBean(AnalyzerService.class);
   private AnalysisService analysisService = SpringContext.getBean(AnalysisService.class);
   private NoteService noteService = SpringContext.getBean(NoteService.class);
 
   private final String ANALYZER_NOTE = "Analyzer Note";
-
-  private String ANALYZER_ID;
-
   public QuantStudio3AnalyzerImplementation() {
     List<Test> tests = testService.getTestsByLoincCode(TEST_LOINC);
 
     if (tests != null) {
       testLoincMap.put(TEST_LOINC, tests);
     }
-    Analyzer analyzer = analyzerService.getAnalyzerByName("QuantStudio3Analyzer");
-    ANALYZER_ID = analyzer.getId();
   }
 
   public void addResultLine(
@@ -100,7 +92,6 @@ public class QuantStudio3AnalyzerImplementation extends AnalyzerLineInserter {
     analyzerResult.setAccessionNumber(currentAccessionNumber);
     analyzerResult.setIsControl(isControl(currentAccessionNumber));
     analyzerResult.setCompleteDate(Timestamp.from(Instant.now()));
-    analyzerResult.setAnalyzerId(ANALYZER_ID);
     analyzerResult.setResultType("D"); // dictionary result
     if (test != null) {
       if (test.getDefaultTestResult() != null) {

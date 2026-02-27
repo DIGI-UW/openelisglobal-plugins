@@ -17,8 +17,6 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import org.openelisglobal.analyzer.service.AnalyzerService;
-import org.openelisglobal.analyzer.valueholder.Analyzer;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerReaderUtil;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
@@ -34,8 +32,6 @@ public class FacsPrestoAnalyzerImplementation extends AnalyzerLineInserter {
   private boolean isControl = false;
   private static final String DELIMITER = ",";
   private static final String DATE_PATTERN = "yyyy-MM-dd HH:mm";
-  static String ANALYZER_ID;
-
   static HashMap<String, Test> testHeaderNameMap = new HashMap<>();
   HashMap<String, String> indexTestMap = new HashMap<>();
   static HashMap<String, String> unitsIndexMap = new HashMap<>();
@@ -65,10 +61,6 @@ public class FacsPrestoAnalyzerImplementation extends AnalyzerLineInserter {
 
     unitsIndexMap.put("CD4", "mm3");
     unitsIndexMap.put("%CD4", "%");
-
-    AnalyzerService analyzerService = SpringContext.getBean(AnalyzerService.class);
-    Analyzer analyzer = analyzerService.getAnalyzerByName("FacsPrestoAnalyzer");
-    ANALYZER_ID = analyzer.getId();
   }
 
   @Override
@@ -141,8 +133,6 @@ public class FacsPrestoAnalyzerImplementation extends AnalyzerLineInserter {
           aResult.setTestName(testHeaderNameMap.get(testKey).getName());
 
           aResult.setResult(fields[k].trim());
-          aResult.setAnalyzerId(ANALYZER_ID);
-
           aResult.setAccessionNumber(fields[ORDER_NUMBER].trim());
 
           aResult.setUnits(unitsIndexMap.get(testKey));

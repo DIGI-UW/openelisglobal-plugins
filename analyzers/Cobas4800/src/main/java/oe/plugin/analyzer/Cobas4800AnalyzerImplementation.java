@@ -23,8 +23,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import org.openelisglobal.analysis.service.AnalysisService;
 import org.openelisglobal.analysis.valueholder.Analysis;
-import org.openelisglobal.analyzer.service.AnalyzerService;
-import org.openelisglobal.analyzer.valueholder.Analyzer;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerReaderUtil;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
@@ -58,17 +56,13 @@ public class Cobas4800AnalyzerImplementation extends AnalyzerLineInserter {
 
   // Lazy-initialized services
   private TestService testService;
-  private AnalyzerService analyzerService;
   private SampleService sampleService;
   private AnalysisService analysisService;
   private DictionaryService dictionaryService;
   private TestResultService testResultService;
 
   // Lazy-initialized data
-  private String vlAnalyzerId;
-  private String eidAnalyzerId;
   private Map<String, Test> testHeaderNameMap;
-  private Map<String, String> indexAnalyzerMap;
   private Map<String, String> resultsTypeMap;
   private String negativeId;
   private String positiveId;
@@ -89,11 +83,6 @@ public class Cobas4800AnalyzerImplementation extends AnalyzerLineInserter {
     }
     return testService;
   }
-
-  protected AnalyzerService getAnalyzerService() {
-    if (analyzerService == null) {
-      analyzerService = SpringContext.getBean(AnalyzerService.class);
-    }
     return analyzerService;
   }
 
@@ -144,35 +133,6 @@ public class Cobas4800AnalyzerImplementation extends AnalyzerLineInserter {
     return validStatusId;
   }
 
-  protected String getVlAnalyzerId() {
-    if (vlAnalyzerId == null) {
-      Analyzer analyzer = getAnalyzerService().getAnalyzerByName("Cobas4800VLAnalyzer");
-      if (analyzer != null) {
-        vlAnalyzerId = analyzer.getId();
-      } else {
-        LogEvent.logWarn(
-            this.getClass().getSimpleName(),
-            "getVlAnalyzerId",
-            "Analyzer not found: Cobas4800VLAnalyzer");
-      }
-    }
-    return vlAnalyzerId;
-  }
-
-  protected String getEidAnalyzerId() {
-    if (eidAnalyzerId == null) {
-      Analyzer analyzer = getAnalyzerService().getAnalyzerByName("Cobas4800EIDAnalyzer");
-      if (analyzer != null) {
-        eidAnalyzerId = analyzer.getId();
-      } else {
-        LogEvent.logWarn(
-            this.getClass().getSimpleName(),
-            "getEidAnalyzerId",
-            "Analyzer not found: Cobas4800EIDAnalyzer");
-      }
-    }
-    return eidAnalyzerId;
-  }
 
   protected Map<String, Test> getTestHeaderNameMap() {
     if (testHeaderNameMap == null) {
@@ -198,16 +158,7 @@ public class Cobas4800AnalyzerImplementation extends AnalyzerLineInserter {
     return testHeaderNameMap;
   }
 
-  protected Map<String, String> getIndexAnalyzerMap() {
-    if (indexAnalyzerMap == null) {
-      indexAnalyzerMap = new HashMap<>();
-      indexAnalyzerMap.put(VL_FLAG, getVlAnalyzerId());
-      indexAnalyzerMap.put(EID_FLAG, getEidAnalyzerId());
-    }
-    return indexAnalyzerMap;
-  }
-
-  protected Map<String, String> getResultsTypeMap() {
+protected Map<String, String> getResultsTypeMap() {
     if (resultsTypeMap == null) {
       resultsTypeMap = new HashMap<>();
       resultsTypeMap.put(VL_FLAG, "A");
@@ -392,8 +343,6 @@ public class Cobas4800AnalyzerImplementation extends AnalyzerLineInserter {
     analyzerResults.setTestId(test.getId());
     analyzerResults.setTestName(test.getName());
 
-    // ANALYZER_ID processing
-    analyzerResults.setAnalyzerId(getIndexAnalyzerMap().get(testKey));
 
     // RESULT_TYPE processing
     analyzerResults.setResultType(getResultsTypeMap().get(testKey));

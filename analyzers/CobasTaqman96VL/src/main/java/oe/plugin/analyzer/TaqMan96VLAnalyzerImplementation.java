@@ -17,8 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.openelisglobal.analysis.service.AnalysisService;
 import org.openelisglobal.analysis.valueholder.Analysis;
-import org.openelisglobal.analyzer.service.AnalyzerService;
-import org.openelisglobal.analyzer.valueholder.Analyzer;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerReaderUtil;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
@@ -46,12 +44,10 @@ public class TaqMan96VLAnalyzerImplementation extends AnalyzerLineInserter {
 
   // Lazy-initialized services
   private TestService testService;
-  private AnalyzerService analyzerService;
   private AnalysisService analysisService;
   private SampleService sampleService;
 
   // Lazy-initialized data
-  private String analyzerId;
   private String projectCode;
   private Test test;
   private String validStatusId;
@@ -66,12 +62,6 @@ public class TaqMan96VLAnalyzerImplementation extends AnalyzerLineInserter {
     }
     return testService;
   }
-
-  // Lazy getter for AnalyzerService
-  protected AnalyzerService getAnalyzerService() {
-    if (analyzerService == null) {
-      analyzerService = SpringContext.getBean(AnalyzerService.class);
-    }
     return analyzerService;
   }
 
@@ -89,17 +79,6 @@ public class TaqMan96VLAnalyzerImplementation extends AnalyzerLineInserter {
       sampleService = SpringContext.getBean(SampleService.class);
     }
     return sampleService;
-  }
-
-  // Lazy getter for analyzer ID
-  protected String getAnalyzerId() {
-    if (analyzerId == null) {
-      Analyzer analyzer = getAnalyzerService().getAnalyzerByName(ANALYZER_NAME);
-      if (analyzer != null) {
-        analyzerId = analyzer.getId();
-      }
-    }
-    return analyzerId;
   }
 
   // Lazy getter for project code
@@ -216,8 +195,6 @@ public class TaqMan96VLAnalyzerImplementation extends AnalyzerLineInserter {
     if (viralLoadTest == null) {
       return;
     }
-
-    analyzerResults.setAnalyzerId(getAnalyzerId());
     analyzerResults.setResult(result);
     analyzerResults.setUnits(
         UNDER_THREASHOLD.equals(result) ? "" : fields[UNIT].replace("\"", "").trim());

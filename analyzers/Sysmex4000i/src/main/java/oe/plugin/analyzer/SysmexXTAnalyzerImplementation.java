@@ -22,8 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import org.openelisglobal.analysis.service.AnalysisService;
 import org.openelisglobal.analysis.valueholder.Analysis;
-import org.openelisglobal.analyzer.service.AnalyzerService;
-import org.openelisglobal.analyzer.valueholder.Analyzer;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerReaderUtil;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
@@ -47,12 +45,10 @@ public class SysmexXTAnalyzerImplementation extends AnalyzerLineInserter {
 
   // Lazy-initialized services
   private TestService testService;
-  private AnalyzerService analyzerService;
   private AnalysisService analysisService;
   private SampleService sampleService;
 
   // Lazy-initialized data
-  private String analyzerId;
   private String projectCode;
   private String validStatusId;
   private HashMap<String, Test> testHeaderNameMap;
@@ -68,12 +64,6 @@ public class SysmexXTAnalyzerImplementation extends AnalyzerLineInserter {
     }
     return testService;
   }
-
-  // Lazy getter for AnalyzerService
-  protected AnalyzerService getAnalyzerService() {
-    if (analyzerService == null) {
-      analyzerService = SpringContext.getBean(AnalyzerService.class);
-    }
     return analyzerService;
   }
 
@@ -91,17 +81,6 @@ public class SysmexXTAnalyzerImplementation extends AnalyzerLineInserter {
       sampleService = SpringContext.getBean(SampleService.class);
     }
     return sampleService;
-  }
-
-  // Lazy getter for analyzer ID
-  protected String getAnalyzerId() {
-    if (analyzerId == null) {
-      Analyzer analyzer = getAnalyzerService().getAnalyzerByName(ANALYZER_NAME);
-      if (analyzer != null) {
-        analyzerId = analyzer.getId();
-      }
-    }
-    return analyzerId;
   }
 
   // Lazy getter for project code
@@ -265,7 +244,6 @@ public class SysmexXTAnalyzerImplementation extends AnalyzerLineInserter {
         String[] result = getAppropriateResults(fields[k], testKey);
         aResult.setResult(result[0]);
         aResult.setUnits(result[1]);
-        aResult.setAnalyzerId(getAnalyzerId());
         aResult.setAccessionNumber(fields[ORDER_NUMBER_INDEX].trim());
         aResult.setResultType("N");
 

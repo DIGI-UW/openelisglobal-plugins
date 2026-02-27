@@ -20,8 +20,6 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import org.openelisglobal.analyzer.service.AnalyzerService;
-import org.openelisglobal.analyzer.valueholder.Analyzer;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
 import org.openelisglobal.common.services.PluginAnalyzerService;
@@ -31,8 +29,6 @@ import org.openelisglobal.test.service.TestService;
 import org.openelisglobal.test.valueholder.Test;
 
 public class FacsCantoIIImplementation extends AnalyzerLineInserter {
-
-  static String ANALYZER_ID;
   // static String DATE_PATTERN = "dd/MM/yyyy HH:mm:ss";
   static String DATE_PATTERN = "MMM dd yyyy hh:mm:ss a";
   private static final String CONTROL_ACCESSION_PREFIX = "QA";
@@ -61,9 +57,6 @@ public class FacsCantoIIImplementation extends AnalyzerLineInserter {
     // (%)"));
 
     System.out.println(testHeaderNameMap);
-    AnalyzerService analyzerService = SpringContext.getBean(AnalyzerService.class);
-    Analyzer analyzer = analyzerService.getAnalyzerByName("FacsCantoII");
-    ANALYZER_ID = analyzer.getId();
   }
 
   static {
@@ -119,7 +112,6 @@ public class FacsCantoIIImplementation extends AnalyzerLineInserter {
           aResult.setTestId(testHeaderNameMap.get(testKey).getId());
           aResult.setTestName(testHeaderNameMap.get(testKey).getName());
           aResult.setResult(setResultByTest(k + 1, testKey));
-          aResult.setAnalyzerId(ANALYZER_ID);
           aResult.setUnits(setUnitByTestKey(testKey));
           aResult.setAccessionNumber(currentAccessionNumber);
           aResult.setReadOnly(CheckReadOnly(testKey));
