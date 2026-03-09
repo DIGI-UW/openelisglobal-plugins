@@ -28,15 +28,20 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openelisglobal.BaseWebContextSensitiveTest;
+import org.openelisglobal.analyzer.service.AnalyzerService;
+import org.openelisglobal.analyzer.service.AnalyzerTypeService;
+import org.openelisglobal.analyzer.valueholder.Analyzer;
+import org.openelisglobal.analyzer.valueholder.AnalyzerType;
 import org.openelisglobal.analyzerimport.analyzerreaders.HL7AnalyzerReader;
+import org.openelisglobal.analyzerimport.service.AnalyzerTestMappingService;
 import org.openelisglobal.analyzerimport.util.AnalyzerTestNameCache;
-import org.openelisglobal.analyzerresults.service.AnalyzerResultsService;
+import org.openelisglobal.analyzerimport.valueholder.AnalyzerTestMapping;
+import org.openelisglobal.analyzerimport.valueholder.AnalyzerTestMappingPK;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
 import org.openelisglobal.common.services.PluginAnalyzerService;
 import org.openelisglobal.spring.util.SpringContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.transaction.PlatformTransactionManager;
 
 /**
  * Integration test for GenericHL7 plugin end-to-end flow.
@@ -50,13 +55,17 @@ public class GenericHL7IntegrationTest extends BaseWebContextSensitiveTest {
 
   @Autowired private DataSource dataSource;
 
-  @Autowired private AnalyzerResultsService analyzerResultsService;
-
   @Autowired private PluginAnalyzerService pluginAnalyzerService;
 
-  @Autowired private PlatformTransactionManager transactionManager;
+  @Autowired private AnalyzerService analyzerService;
+
+  @Autowired private AnalyzerTypeService analyzerTypeService;
+
+  @Autowired private AnalyzerTestMappingService analyzerTestMappingService;
 
   private JdbcTemplate jdbcTemplate;
+  private String analyzerTypeId;
+  private String analyzerId;
 
   @Before
   public void setUp() throws Exception {
@@ -68,11 +77,15 @@ public class GenericHL7IntegrationTest extends BaseWebContextSensitiveTest {
     executeDataSetWithStateManagement("testdata/test-result.xml");
     cleanTestData();
     loadFixtures();
-    AnalyzerTestNameCache.getInstance().reloadCache();
 
     GenericHL7Analyzer plugin = new GenericHL7Analyzer();
     when(pluginAnalyzerService.getAnalyzerPlugins()).thenReturn(Collections.singletonList(plugin));
     plugin.connect();
+
+    // Reload cache so it picks up the Hibernate-inserted fixtures
+    AnalyzerTestNameCache cache = AnalyzerTestNameCache.getInstance();
+    cache.reloadCache();
+    cache.registerPluginAnalyzer("GenericHL7", analyzerTypeId);
 
     PluginAnalyzerService fromContext = SpringContext.getBean(PluginAnalyzerService.class);
     assertTrue(
@@ -90,7 +103,7 @@ public class GenericHL7IntegrationTest extends BaseWebContextSensitiveTest {
   /**
    * Test that GenericHL7 plugin processes HL7 ORU^R01 from Mindray BC2000.
    *
-   * <p>Tests the complete flow: - HL7 message with MSH-3 = "MINDRAY" matches CONFIG-2012 pattern -
+   * <p>Tests the complete flow: - HL7 message with MSH-3 = "MINDRAY" matches identifier_pattern -
    * GenericHL7 plugin selected via pattern matching - OBX segments parsed - Results inserted into
    * analyzer_results table
    */
@@ -111,13 +124,7 @@ public class GenericHL7IntegrationTest extends BaseWebContextSensitiveTest {
     // Act: Process message via HL7AnalyzerReader
     HL7AnalyzerReader reader = new HL7AnalyzerReader();
     boolean streamRead = reader.readStream(stream);
-    if (!streamRead) {
-      System.err.println("HL7 readStream failed: " + reader.getError());
-    }
     boolean inserted = reader.insertAnalyzerData("systemUser");
-    if (!inserted) {
-      System.err.println("HL7 insertAnalyzerData failed: " + reader.getError());
-    }
 
     // Assert: Verify message processed
     assertTrue("HL7 stream should be read successfully: " + reader.getError(), streamRead);
@@ -126,10 +133,11 @@ public class GenericHL7IntegrationTest extends BaseWebContextSensitiveTest {
     // Verify results were persisted
     List<AnalyzerResults> results =
         jdbcTemplate.query(
-            "SELECT * FROM analyzer_results WHERE accession_number = '2026-00001'",
+            "SELECT * FROM clinlims.analyzer_results WHERE accession_number = '2026-00001'",
             (rs, rowNum) -> {
               AnalyzerResults result = new AnalyzerResults();
               result.setId(rs.getString("id"));
+              result.setAnalyzerId(rs.getString("analyzer_id"));
               result.setAccessionNumber(rs.getString("accession_number"));
               result.setTestName(rs.getString("test_name"));
               result.setResult(rs.getString("result"));
@@ -202,7 +210,7 @@ public class GenericHL7IntegrationTest extends BaseWebContextSensitiveTest {
     // Verify multiple results were persisted
     int resultCount =
         jdbcTemplate.queryForObject(
-            "SELECT COUNT(*) FROM analyzer_results WHERE accession_number = '2026-00003'",
+            "SELECT COUNT(*) FROM clinlims.analyzer_results WHERE accession_number = '2026-00003'",
             Integer.class);
 
     assertTrue("Should have multiple results (at least 2)", resultCount >= 2);
@@ -210,11 +218,13 @@ public class GenericHL7IntegrationTest extends BaseWebContextSensitiveTest {
 
   /** Clean test data to prevent pollution. */
   private void cleanTestData() {
+    jdbcTemplate.execute("SET search_path TO clinlims");
     jdbcTemplate.execute(
-        "DELETE FROM analyzer_results WHERE accession_number LIKE '2026-%' OR analyzer_id = '2012'");
-    jdbcTemplate.execute("DELETE FROM analyzer_test_map WHERE analyzer_id = '2012'");
-    jdbcTemplate.execute("DELETE FROM analyzer_configuration WHERE id = 'CONFIG-2012-TEST'");
-    jdbcTemplate.execute("DELETE FROM analyzer WHERE id = '2012'");
+        "DELETE FROM analyzer_results WHERE accession_number LIKE '2026-%'");
+    jdbcTemplate.execute(
+        "DELETE FROM analyzer_test_map WHERE analyzer_test_name IN ('WBC', 'RBC', 'HGB', 'HCT', 'PLT')");
+    // Analyzer inserted via Hibernate - delete via JDBC after mappings are gone
+    jdbcTemplate.execute("DELETE FROM analyzer WHERE name = 'Mindray BC2000'");
   }
 
   /**
@@ -224,21 +234,36 @@ public class GenericHL7IntegrationTest extends BaseWebContextSensitiveTest {
   private void loadFixtures() {
     jdbcTemplate.execute("SET search_path TO clinlims");
 
-    // Create test analyzer
-    jdbcTemplate.execute(
-        "INSERT INTO analyzer (id, name, analyzer_type, description, is_active, last_updated) "
-            + "VALUES ('2012', 'Mindray BC2000', 'HEMATOLOGY', 'HL7 v2.3.1 over TCP/IP (MLLP)', true, NOW())");
+    // Insert AnalyzerType via Hibernate so AnalyzerTestNameCache can see it
+    AnalyzerType existingType = analyzerTypeService.getAnalyzerTypeByName("GenericHL7");
+    if (existingType == null) {
+      AnalyzerType type = new AnalyzerType();
+      type.setName("GenericHL7");
+      type.setDescription("Generic HL7 analyzer plugin");
+      type.setProtocol("HL7");
+      type.setPluginClassName(
+          "org.openelisglobal.plugins.analyzer.generichl7.GenericHL7Analyzer");
+      type.setGenericPlugin(true);
+      type.setActive(true);
+      analyzerTypeId = analyzerTypeService.insert(type);
+    } else {
+      analyzerTypeId = existingType.getId();
+    }
 
-    // Create analyzer configuration (pattern matches MSH-3 = "MINDRAY")
-    jdbcTemplate.execute(
-        "INSERT INTO analyzer_configuration "
-            + "(id, analyzer_id, protocol_version, identifier_pattern, is_generic_plugin, status, sys_user_id, last_updated) "
-            + "VALUES ('CONFIG-2012-TEST', '2012', 'HL7 v2.3.1', 'MINDRAY', true, 'ACTIVE', '1', NOW())");
+    // Insert analyzer instance via Hibernate so findGenericAnalyzersWithPatterns() can see it
+    AnalyzerType type = analyzerTypeService.get(analyzerTypeId);
+    Analyzer analyzer = new Analyzer();
+    analyzer.setName("Mindray BC2000");
+    analyzer.setType("HEMATOLOGY");
+    analyzer.setDescription("HL7 v2.3.1 over TCP/IP (MLLP)");
+    analyzer.setIdentifierPattern("MINDRAY");
+    analyzer.setActive(true);
+    analyzer.setAnalyzerType(type);
+    analyzerId = analyzerService.insert(analyzer);
 
+    // Insert test mappings via Hibernate so the cache can see them
     // Map analyzer test codes to test ids 1 and 2 (from test-result.xml, both have
     // localization).
-    // Use distinct test_ids so duplicate logic (accession+test_id) allows multiple
-    // results per message.
     String[][] testMappings = {
       {"WBC", "1"}, // test 1 = Complete Blood Count
       {"RBC", "2"}, // test 2 = Urinalysis
@@ -248,14 +273,13 @@ public class GenericHL7IntegrationTest extends BaseWebContextSensitiveTest {
     };
 
     for (String[] mapping : testMappings) {
-      jdbcTemplate.execute(
-          "INSERT INTO analyzer_test_map "
-              + "(analyzer_id, analyzer_test_name, test_id, last_updated) "
-              + "VALUES (2012, '"
-              + mapping[0]
-              + "', "
-              + mapping[1]
-              + ", NOW())");
+      AnalyzerTestMappingPK pk = new AnalyzerTestMappingPK();
+      pk.setAnalyzerTypeId(analyzerTypeId);
+      pk.setAnalyzerTestName(mapping[0]);
+      AnalyzerTestMapping testMapping = new AnalyzerTestMapping();
+      testMapping.setCompoundId(pk);
+      testMapping.setTestId(mapping[1]);
+      analyzerTestMappingService.insert(testMapping);
     }
   }
 }

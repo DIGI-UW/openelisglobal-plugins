@@ -4,8 +4,8 @@ on:
     types: [published] 
     
 env:
-  OE_VERSION: 3.2.1.2
-  OE_REF: feat/011-madagascar-analyzer-integration
+  OE_VERSION: 3.2.1.3
+  OE_REF: develop
 
 jobs:
   build-and-upload-plugins:

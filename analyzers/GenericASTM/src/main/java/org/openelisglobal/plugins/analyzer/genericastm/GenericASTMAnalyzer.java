@@ -18,6 +18,7 @@ import java.util.Optional;
 import org.openelisglobal.analyzer.service.AnalyzerService;
 import org.openelisglobal.analyzer.valueholder.Analyzer;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
+import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerResponder;
 import org.openelisglobal.common.log.LogEvent;
 import org.openelisglobal.common.services.PluginAnalyzerService;
 import org.openelisglobal.plugin.AnalyzerImporterPlugin;
@@ -196,8 +197,8 @@ public class GenericASTMAnalyzer implements AnalyzerImporterPlugin {
       throw new IllegalStateException("No matched analyzer");
     }
 
-    String analyzerId = analyzer.getId();
-    String analyzerName = analyzer.getName();
+    String analyzerId = analyzer.getAnalyzerType().getId();
+    String analyzerName = analyzer.getAnalyzerType().getName();
 
     LogEvent.logDebug(
         this.getClass().getSimpleName(),
@@ -229,5 +230,14 @@ public class GenericASTMAnalyzer implements AnalyzerImporterPlugin {
       }
     }
     return null;
+  }
+
+
+  @Override
+  public AnalyzerResponder getAnalyzerResponder() {
+    Analyzer analyzer = matchedAnalyzer.get();
+    String analyzerId = analyzer.getId();
+    String analyzerName = analyzer.getName();
+     return new GenericASTMLineInserter(analyzerId, analyzerName);
   }
 }

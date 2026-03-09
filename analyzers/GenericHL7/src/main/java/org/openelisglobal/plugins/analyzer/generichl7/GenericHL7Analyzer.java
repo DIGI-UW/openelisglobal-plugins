@@ -195,15 +195,17 @@ public class GenericHL7Analyzer implements AnalyzerImporterPlugin {
       throw new IllegalStateException("No matched analyzer");
     }
 
-    String analyzerId = analyzer.getId();
-    String analyzerName = analyzer.getName();
+    String analyzerName = analyzer.getAnalyzerType().getName();
+    String physicalAnalyzerId = analyzer.getId();
 
     LogEvent.logDebug(
         this.getClass().getSimpleName(),
         "getAnalyzerLineInserter",
-        "Creating inserter for analyzer: " + analyzerName + " (ID: " + analyzerId + ")");
+        "Creating inserter for analyzer: " + analyzerName + " (device ID: " + physicalAnalyzerId + ")");
 
-    return new GenericHL7LineInserter(analyzerId, analyzerName);
+    GenericHL7LineInserter inserter = new GenericHL7LineInserter(physicalAnalyzerId, analyzerName);
+    inserter.setContextAnalyzerId(physicalAnalyzerId);
+    return inserter;
   }
 
   /**
