@@ -27,8 +27,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openelisglobal.BaseWebContextSensitiveTest;
+import org.openelisglobal.analyzer.service.AnalyzerTypeService;
+import org.openelisglobal.analyzer.valueholder.AnalyzerType;
 import org.openelisglobal.analyzerimport.analyzerreaders.ASTMAnalyzerReader;
+import org.openelisglobal.analyzerimport.service.AnalyzerTestMappingService;
 import org.openelisglobal.analyzerimport.util.AnalyzerTestNameCache;
+import org.openelisglobal.analyzerimport.valueholder.AnalyzerTestMapping;
+import org.openelisglobal.analyzerimport.valueholder.AnalyzerTestMappingPK;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
 import org.openelisglobal.common.services.PluginAnalyzerService;
 import org.openelisglobal.spring.util.SpringContext;
@@ -51,7 +56,12 @@ public class GenericASTMIntegrationTest extends BaseWebContextSensitiveTest {
 
   @Autowired private PluginAnalyzerService pluginAnalyzerService;
 
+  @Autowired private AnalyzerTypeService analyzerTypeService;
+
+  @Autowired private AnalyzerTestMappingService analyzerTestMappingService;
+
   private JdbcTemplate jdbcTemplate;
+  private String analyzerTypeId;
 
   @Before
   public void setUp() throws Exception {
@@ -61,11 +71,15 @@ public class GenericASTMIntegrationTest extends BaseWebContextSensitiveTest {
     executeDataSetWithStateManagement("testdata/test-result.xml");
     cleanTestData();
     loadFixtures();
-    AnalyzerTestNameCache.getInstance().reloadCache();
 
     GenericASTMAnalyzer plugin = new GenericASTMAnalyzer();
     when(pluginAnalyzerService.getAnalyzerPlugins()).thenReturn(Collections.singletonList(plugin));
     plugin.connect();
+
+    // Reload cache so it picks up the Hibernate-inserted fixtures
+    AnalyzerTestNameCache cache = AnalyzerTestNameCache.getInstance();
+    cache.reloadCache();
+    cache.registerPluginAnalyzer("GenericASTM", analyzerTypeId);
 
     PluginAnalyzerService fromContext = SpringContext.getBean(PluginAnalyzerService.class);
     assertTrue(
@@ -131,7 +145,7 @@ public class GenericASTMIntegrationTest extends BaseWebContextSensitiveTest {
         results.stream().filter(r -> "1".equals(r.getTestId())).findFirst().orElse(null);
     assertNotNull("GLUCOSE result (test_id=1) should be persisted", glucoseResult);
     assertTrue(
-        "analyzer_id should be 2006 (Mindray BA-88A config)",
+        "analyzer_id should be 2006 (Mindray BA-88A analyzer instance)",
         "2006".equals(glucoseResult.getAnalyzerId()));
     assertTrue("GLUCOSE value should match", "105.5".equals(glucoseResult.getResult()));
   }
@@ -195,7 +209,7 @@ public class GenericASTMIntegrationTest extends BaseWebContextSensitiveTest {
             "SELECT COUNT(*) FROM clinlims.analyzer_results WHERE accession_number = '2026-A03' AND analyzer_id = '2006'",
             Integer.class);
     assertTrue(
-        "All results should be for analyzer 2006 (GenericASTM config)",
+        "All results should be for analyzer 2006 (Mindray BA-88A)",
         countForAnalyzer != null && countForAnalyzer >= 2);
   }
 
@@ -354,11 +368,12 @@ public class GenericASTMIntegrationTest extends BaseWebContextSensitiveTest {
   }
 
   private void cleanTestData() {
+    jdbcTemplate.execute("SET search_path TO clinlims");
     jdbcTemplate.execute(
         "DELETE FROM analyzer_results WHERE accession_number LIKE '2026-A%'"
-            + " OR accession_number LIKE 'QC-CTRL%'"
-            + " OR analyzer_id = '2006'");
-    jdbcTemplate.execute("DELETE FROM analyzer_test_map WHERE analyzer_id = '2006'");
+            + " OR accession_number LIKE 'QC-CTRL%'");
+    jdbcTemplate.execute(
+        "DELETE FROM analyzer_test_map WHERE analyzer_test_name IN ('GLUCOSE', 'HGB')");
     jdbcTemplate.execute("DELETE FROM analyzer WHERE id = '2006'");
     // Do NOT delete analyzer_type — it may be shared or pre-seeded by Liquibase.
     // The ON CONFLICT DO NOTHING in loadFixtures() is safe for re-runs.
@@ -374,39 +389,42 @@ public class GenericASTMIntegrationTest extends BaseWebContextSensitiveTest {
   private void loadFixtures() {
     jdbcTemplate.execute("SET search_path TO clinlims");
 
-    // Ensure an analyzer_type row exists for GenericASTM with is_generic_plugin=true.
-    // Use ON CONFLICT DO NOTHING to avoid rewriting the PK of an existing row (which would
-    // break FK relationships for other analyzers sharing this type).
-    jdbcTemplate.execute(
-        "INSERT INTO analyzer_type (id, name, description, protocol, plugin_class_name, is_generic_plugin, is_active, last_updated) "
-            + "VALUES (nextval('analyzer_type_seq'), 'GenericASTM', 'Generic ASTM analyzer plugin', 'ASTM', "
-            + "'org.openelisglobal.plugins.analyzer.genericastm.GenericASTMAnalyzer', true, true, NOW()) "
-            + "ON CONFLICT (name) DO NOTHING");
+    // Insert AnalyzerType via Hibernate so AnalyzerTestNameCache (which uses
+    // Hibernate services) can see it. Check if already exists first.
+    AnalyzerType existingType = analyzerTypeService.getAnalyzerTypeByName("GenericASTM");
+    if (existingType == null) {
+      AnalyzerType type = new AnalyzerType();
+      type.setName("GenericASTM");
+      type.setDescription("Generic ASTM analyzer plugin");
+      type.setProtocol("ASTM");
+      type.setPluginClassName(
+          "org.openelisglobal.plugins.analyzer.genericastm.GenericASTMAnalyzer");
+      type.setGenericPlugin(true);
+      type.setActive(true);
+      analyzerTypeId = analyzerTypeService.insert(type);
+    } else {
+      analyzerTypeId = existingType.getId();
+    }
 
-    // Resolve the actual ID (may differ from what we tried to insert if the row already existed)
-    Long analyzerTypeId =
-        jdbcTemplate.queryForObject(
-            "SELECT id FROM analyzer_type WHERE name = 'GenericASTM'", Long.class);
-
-    // Insert analyzer WITH analyzer_type_id — required for findGenericAnalyzersWithPatterns() INNER
-    // JOIN
+    // Insert analyzer via JDBC (only needs to be in DB for pattern matching)
     jdbcTemplate.execute(
         "INSERT INTO analyzer (id, name, analyzer_type, description, identifier_pattern, is_active, analyzer_type_id, last_updated) "
             + "VALUES ('2006', 'Mindray BA-88A', 'CHEMISTRY', 'ASTM over RS232 Serial', "
-            + "'MINDRAY.*BA-88A|BA88A', true, "
+            + "'MINDRAY.*BA-88A|BA88A', true, '"
             + analyzerTypeId
-            + ", NOW())");
+            + "', NOW())");
 
+    // Insert test mappings via Hibernate so the cache can see them
     String[][] testMappings = {{"GLUCOSE", "1"}, {"HGB", "2"}};
 
     for (String[] mapping : testMappings) {
-      jdbcTemplate.execute(
-          "INSERT INTO analyzer_test_map (analyzer_id, analyzer_test_name, test_id, last_updated) "
-              + "VALUES ('2006', '"
-              + mapping[0]
-              + "', "
-              + mapping[1]
-              + ", NOW())");
+      AnalyzerTestMappingPK pk = new AnalyzerTestMappingPK();
+      pk.setAnalyzerTypeId(analyzerTypeId);
+      pk.setAnalyzerTestName(mapping[0]);
+      AnalyzerTestMapping testMapping = new AnalyzerTestMapping();
+      testMapping.setCompoundId(pk);
+      testMapping.setTestId(mapping[1]);
+      analyzerTestMappingService.insert(testMapping);
     }
   }
 }
