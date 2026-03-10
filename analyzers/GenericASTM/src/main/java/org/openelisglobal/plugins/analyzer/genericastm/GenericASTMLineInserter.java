@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.regex.Pattern;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerReaderUtil;
-import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerResponder;
 import org.openelisglobal.analyzerimport.util.AnalyzerTestNameCache;
 import org.openelisglobal.analyzerimport.util.MappedTestName;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
@@ -50,7 +49,7 @@ import org.openelisglobal.common.util.DateUtil;
  *   <li>L-segment: terminates the message
  * </ul>
  */
-public class GenericASTMLineInserter extends AnalyzerLineInserter   implements AnalyzerResponder {
+public class GenericASTMLineInserter extends AnalyzerLineInserter {
 
   /** The analyzer name for looking up test mappings */
   private final String analyzerName;
@@ -376,10 +375,5 @@ public class GenericASTMLineInserter extends AnalyzerLineInserter   implements A
 
     // Try short format
     return DateUtil.convertStringDateToTimestampWithPattern(timestampStr, ASTM_TIMESTAMP_SHORT);
-  }
-
-  @Override
-  public String buildResponse(List<String> lines) {
-    return this.analyzerName;
   }
 }
