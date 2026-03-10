@@ -1,13 +1,16 @@
 package org.openelisglobal.plugins.analyzer.generichl7;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -32,7 +35,7 @@ public class GenericHL7AnalyzerTest {
 
   @Before
   public void setUp() {
-    analyzer = new GenericHL7Analyzer();
+    analyzer = new GenericHL7Analyzer(mockAnalyzerService);
   }
 
   /** Test that GenericHL7Analyzer returns false for empty message lines. */
@@ -66,35 +69,37 @@ public class GenericHL7AnalyzerTest {
     assertFalse("MSH segment with blank MSH-3 should return false", result);
   }
 
-  /**
-   * Test that GenericHL7Analyzer returns true when MSH-3 matches configured pattern.
-   *
-   * <p>Tests the core matching logic: 1. Extract MSH-3 from HL7 message 2. Query AnalyzerService
-   * for identifier pattern match 3. Return true if match found
-   *
-   * <p>Note: This test requires Spring context (SpringContext.getBean) which cannot be easily
-   * mocked in unit tests. Use GenericHL7IntegrationTest for full end-to-end testing.
-   */
   @Test
-  @Ignore("Requires Spring context - covered by GenericHL7IntegrationTest")
-  public void testIsTargetAnalyzer_MatchingMsh3Pattern_ReturnsTrue() {
-    // Arrange: HL7 message with MSH-3 = "MINDRAY"
-    List<String> lines = Arrays.asList("MSH|^~\\&||MINDRAY||||ORU^R01|MSG001|P|2.3.1");
+  public void testBuildSenderIdentityCandidates_UsesCombinedModelAndUppercaseForms() {
+    List<String> lines =
+        Arrays.asList(
+            "MSH|^~\\&|Mindray|BS-200|OpenELIS|LAB|20260310120000||ORU^R01|MSG001|P|2.3.1");
 
-    // Mock analyzer with identifier pattern (2-table model — pattern on analyzer directly)
+    List<String> identifiers = analyzer.buildSenderIdentityCandidates(lines);
+
+    assertEquals(
+        Arrays.asList("Mindray BS-200", "BS-200", "Mindray", "MINDRAY BS-200", "MINDRAY"),
+        identifiers);
+  }
+
+  @Test
+  public void testIsTargetAnalyzer_UsesCombinedSenderIdentityWhenMsh4Present() {
+    List<String> lines =
+        Arrays.asList(
+            "MSH|^~\\&|Mindray|BS-200|OpenELIS|LAB|20260310120000||ORU^R01|MSG001|P|2.3.1");
     Analyzer mockAnalyzer = new Analyzer();
     mockAnalyzer.setId("ANALYZER-001");
-    mockAnalyzer.setName("Mindray BC2000");
-    mockAnalyzer.setIdentifierPattern("MINDRAY.*BC.?2000");
+    mockAnalyzer.setName("Mindray BS-200");
+    mockAnalyzer.setIdentifierPattern("MINDRAY.*BS.?200");
+    when(mockAnalyzerService.findByIdentifierPatternMatch(anyList()))
+        .thenReturn(java.util.Optional.of(mockAnalyzer));
 
-    // Expected: analyzer should extract "MINDRAY" from MSH-3 and call
-    // analyzerService.findByIdentifierPatternMatch("MINDRAY")
-
-    // Act
     boolean result = analyzer.isTargetAnalyzer(lines);
 
-    // Assert
-    assertTrue("MSH-3 matching configured pattern should return true", result);
+    assertTrue("Combined sender identity should return true", result);
+    verify(mockAnalyzerService)
+        .findByIdentifierPatternMatch(
+            Arrays.asList("Mindray BS-200", "BS-200", "Mindray", "MINDRAY BS-200", "MINDRAY"));
   }
 
   /** Test that GenericHL7Analyzer returns false when MSH-3 does not match any pattern. */
@@ -148,7 +153,7 @@ public class GenericHL7AnalyzerTest {
   @Test(expected = IllegalStateException.class)
   public void testGetAnalyzerLineInserter_WithoutPriorMatch_ThrowsException() {
     // Arrange: Create analyzer without calling isTargetAnalyzer()
-    GenericHL7Analyzer analyzer = new GenericHL7Analyzer();
+    GenericHL7Analyzer analyzer = new GenericHL7Analyzer(mockAnalyzerService);
 
     // Act & Assert: Should throw IllegalStateException
     analyzer.getAnalyzerLineInserter();

@@ -17,7 +17,7 @@ public class MindrayBC5380HL7Test extends AbstractMindrayHL7Test {
 
   @Override
   protected String getIdentifierPattern() {
-    return "MINDRAY.*BC.?5380|BC5380";
+    return "MINDRAY.*BC.?5380|BC.?5380|BC5380";
   }
 
   @Override

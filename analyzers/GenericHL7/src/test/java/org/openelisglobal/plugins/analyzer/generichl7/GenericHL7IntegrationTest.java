@@ -109,10 +109,9 @@ public class GenericHL7IntegrationTest extends BaseWebContextSensitiveTest {
    */
   @Test
   public void testGenericHL7_MindrayBC2000Message_InsertsResults() throws Exception {
-    // Arrange: HL7 ORU^R01 message from Mindray BC2000 (format matches test
-    // fixtures)
+    // Arrange: HL7 ORU^R01 message using sender application + model identity.
     String hl7Message =
-        "MSH|^~\\&|MINDRAY|LAB|OpenELIS|LAB|20260202120000||ORU^R01|MSG001|P|2.5.1||||||||\r"
+        "MSH|^~\\&|MINDRAY|BC-2000|OpenELIS|LAB|20260202120000||ORU^R01|MSG001|P|2.3.1||||||||\r"
             + "PID|1||PAT123^^^HOSPITAL||Doe^John||19700101|M\r"
             + "OBR|1||2026-00001|CBC^Complete Blood Count|||20260202115900\r"
             + "OBX|1|NM|WBC||7.5|10^3/uL|4.0-11.0|N|||F\r"
@@ -164,7 +163,7 @@ public class GenericHL7IntegrationTest extends BaseWebContextSensitiveTest {
   public void testGenericHL7_UnknownMsh3_NoResultsInserted() throws Exception {
     // Arrange: HL7 message with MSH-3 that doesn't match any configured pattern
     String hl7Message =
-        "MSH|^~\\&|UNKNOWN_ANALYZER|LAB|OpenELIS|LAB|20260202120000||ORU^R01|MSG001|P|2.5.1||||||||\r"
+        "MSH|^~\\&|UNKNOWN_ANALYZER|MODEL-1|OpenELIS|LAB|20260202120000||ORU^R01|MSG001|P|2.3.1||||||||\r"
             + "PID|1||PAT123^^^HOSPITAL||Doe^John||19700101|M\r"
             + "OBR|1||2026-00002|CBC^Complete Blood Count|||20260202115900\r"
             + "OBX|1|NM|WBC||7.5|10^3/uL|4.0-11.0|N|||F\r";
@@ -187,7 +186,7 @@ public class GenericHL7IntegrationTest extends BaseWebContextSensitiveTest {
   public void testGenericHL7_MultipleObxSegments_ParsesAll() throws Exception {
     // Arrange: Complete CBC panel with 5 OBX segments
     String hl7Message =
-        "MSH|^~\\&|MINDRAY|LAB|OpenELIS|LAB|20260202120000||ORU^R01|MSG002|P|2.5.1||||||||\r"
+        "MSH|^~\\&|MINDRAY|BC-2000|OpenELIS|LAB|20260202120000||ORU^R01|MSG002|P|2.3.1||||||||\r"
             + "PID|1||PAT456^^^HOSPITAL||Smith^Jane||19800515|F\r"
             + "OBR|1||2026-00003|CBC^Complete Blood Count|||20260202120000\r"
             + "OBX|1|NM|WBC||8.2|10^3/uL|4.0-11.0|N|||F\r"
@@ -219,8 +218,7 @@ public class GenericHL7IntegrationTest extends BaseWebContextSensitiveTest {
   /** Clean test data to prevent pollution. */
   private void cleanTestData() {
     jdbcTemplate.execute("SET search_path TO clinlims");
-    jdbcTemplate.execute(
-        "DELETE FROM analyzer_results WHERE accession_number LIKE '2026-%'");
+    jdbcTemplate.execute("DELETE FROM analyzer_results WHERE accession_number LIKE '2026-%'");
     jdbcTemplate.execute(
         "DELETE FROM analyzer_test_map WHERE analyzer_test_name IN ('WBC', 'RBC', 'HGB', 'HCT', 'PLT')");
     // Analyzer inserted via Hibernate - delete via JDBC after mappings are gone
@@ -241,8 +239,7 @@ public class GenericHL7IntegrationTest extends BaseWebContextSensitiveTest {
       type.setName("GenericHL7");
       type.setDescription("Generic HL7 analyzer plugin");
       type.setProtocol("HL7");
-      type.setPluginClassName(
-          "org.openelisglobal.plugins.analyzer.generichl7.GenericHL7Analyzer");
+      type.setPluginClassName("org.openelisglobal.plugins.analyzer.generichl7.GenericHL7Analyzer");
       type.setGenericPlugin(true);
       type.setActive(true);
       analyzerTypeId = analyzerTypeService.insert(type);
@@ -256,7 +253,7 @@ public class GenericHL7IntegrationTest extends BaseWebContextSensitiveTest {
     analyzer.setName("Mindray BC2000");
     analyzer.setType("HEMATOLOGY");
     analyzer.setDescription("HL7 v2.3.1 over TCP/IP (MLLP)");
-    analyzer.setIdentifierPattern("MINDRAY");
+    analyzer.setIdentifierPattern("MINDRAY.*BC.?2000|BC.?2000");
     analyzer.setActive(true);
     analyzer.setAnalyzerType(type);
     analyzerId = analyzerService.insert(analyzer);

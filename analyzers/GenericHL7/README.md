@@ -13,7 +13,7 @@ Database-driven HL7 v2.x plugin that enables new analyzers to be added entirely 
 
 Unlike legacy HL7 plugins that hardcode analyzer identification and test mappings, GenericHL7:
 
-- Extracts MSH-3 (sending application) from HL7 messages
+- Builds sender identity candidates from `MSH-3` and `MSH-4`
 - Matches against `analyzer_configuration.identifier_pattern` (regex)
 - Loads test mappings from `analyzer_test_mapping` table
 
@@ -29,8 +29,8 @@ This follows the **Generic-First Architecture** established by GenericASTM (Feat
 1. HL7 ORU^R01 message arrives at /analyzer/hl7 endpoint
 2. HL7AnalyzerReader iterates all plugins (legacy first, then GenericHL7)
 3. GenericHL7Analyzer.isTargetAnalyzer():
-   - Extracts MSH-3 from HL7 message
-   - Queries analyzer_configuration for pattern match
+   - Extracts sender identity candidates from HL7 MSH fields
+   - Queries analyzer_configuration for the best pattern match
    - Returns true if match found with is_generic_plugin=true
 4. GenericHL7LineInserter processes results:
    - Parses OBX segments for test code/value/units
@@ -41,20 +41,21 @@ This follows the **Generic-First Architecture** established by GenericASTM (Feat
 
 ### Analyzer Identification
 
-**MSH-3 Pattern Matching:**
+**Dynamic Sender Matching:**
 
 ```
-MSH|^~\&||MINDRAY||||ORU^R01|MSG001|P|2.3.1
-           ^^^^^^^
-         MSH-3 (sending application)
+MSH|^~\&|MINDRAY|BC-5380|OpenELIS|LAB|...|ORU^R01|MSG001|P|2.3.1
+         ^^^^^^^ ^^^^^^^
+           MSH-3   MSH-4
 ```
 
-The plugin extracts `MINDRAY` from MSH-3 and matches it against:
+The plugin builds sender identity candidates such as `MINDRAY BC-5380`, `BC-5380`,
+and `MINDRAY`, then matches them against:
 
 ```sql
 SELECT * FROM analyzer_configuration
 WHERE is_generic_plugin = true
-  AND identifier_pattern ~ 'MINDRAY.*BC.?2000';
+  AND identifier_pattern ~ 'MINDRAY.*BC.?5380|BC.?5380';
 ```
 
 ### OBX Segment Parsing
@@ -108,13 +109,13 @@ Load via Dashboard: **Admin > Analyzer Management > Add Analyzer > Load Default 
 
 ## Supported Analyzers (Examples)
 
-| Analyzer           | MSH-3 Pattern        | Category   | Default Config           |
-|--------------------|----------------------|------------|--------------------------|
-| Mindray BC2000     | `MINDRAY.*BC.?2000`  | Hematology | `mindray-bc2000.json`    |
-| Mindray BC-5380    | `MINDRAY.*BC.?5380`  | Hematology | `mindray-bc5380.json`    |
-| Mindray BS-360E    | `MINDRAY.*BS.?360`   | Chemistry  | `mindray-bs360e.json`    |
-| Abbott Architect   | `ABBOTT.*ARCHITECT`  | Chemistry  | `abbott-architect.json`  |
-| Cepheid GeneXpert  | `CEPHEID.*GENEXPERT` | Molecular  | `genexpert-hl7.json`     |
+| Analyzer           | Identifier Pattern                 | Category   | Default Config           |
+|--------------------|------------------------------------|------------|--------------------------|
+| Mindray BC2000     | `MINDRAY.*BC.?2000\|BC.?2000`      | Hematology | `mindray-bc2000.json`    |
+| Mindray BC-5380    | `MINDRAY.*BC.?5380\|BC.?5380`      | Hematology | `mindray-bc5380.json`    |
+| Mindray BS-360E    | `MINDRAY.*BS.?360E\|BS.?360E`      | Chemistry  | `mindray-bs360e.json`    |
+| Abbott Architect   | `ABBOTT.*ARCHITECT`                | Chemistry  | `abbott-architect.json`  |
+| Cepheid GeneXpert  | `CEPHEID.*GENEXPERT`               | Molecular  | `genexpert-hl7.json`     |
 
 **Note:** Any HL7 analyzer can be configured via Dashboard without code changes.
 
@@ -130,7 +131,7 @@ mvn test
 ```
 
 **Test Coverage:**
-- `GenericHL7AnalyzerTest` - MSH-3 pattern matching logic
+- `GenericHL7AnalyzerTest` - sender identity matching logic
 - `GenericHL7LineInserterTest` - OBX segment parsing
 
 ### Integration Testing

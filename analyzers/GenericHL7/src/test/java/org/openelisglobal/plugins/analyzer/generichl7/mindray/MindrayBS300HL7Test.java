@@ -1,9 +1,8 @@
 /**
  * Integration test for Mindray BS-300 HL7 (chemistry) via GenericHL7 plugin.
  *
- * <p>OGC-326: BS-series HL7 validation. BS-300 equivalence evidence: uses the same HL7 v2.3.1
- * interface, same test panel, same GenericHL7 plugin path as BS-200 and BS-360E. Only MSH-3 model
- * identifier differs.
+ * <p>OGC-326: BS-series HL7 validation using a synthetic chemistry fixture aligned to the current
+ * GenericHL7 sender matcher. BS-300 equivalence remains a validation task, not a settled fact.
  *
  * <p>Feature: 013-hjra-hl7-stream-alignment (M3)
  */
@@ -20,7 +19,7 @@ public class MindrayBS300HL7Test extends AbstractMindrayHL7Test {
 
   @Override
   protected String getIdentifierPattern() {
-    return "MINDRAY.*BS.?300|BS300";
+    return "MINDRAY.*BS.?300|BS.?300|BS300";
   }
 
   @Override

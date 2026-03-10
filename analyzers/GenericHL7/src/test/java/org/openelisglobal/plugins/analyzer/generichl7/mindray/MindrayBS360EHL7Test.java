@@ -17,7 +17,7 @@ public class MindrayBS360EHL7Test extends AbstractMindrayHL7Test {
 
   @Override
   protected String getIdentifierPattern() {
-    return "MINDRAY.*BS.?360E|BS360E";
+    return "MINDRAY.*BS.?360E|BS.?360E|BS360E";
   }
 
   @Override

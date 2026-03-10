@@ -45,8 +45,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * Base class for Mindray HL7 integration tests via GenericHL7 plugin.
  *
- * <p>Tests the end-to-end flow: HL7 message → GenericHL7 plugin (MSH-3 pattern matching) →
- * GenericHL7LineInserter → analyzer_results table.
+ * <p>Tests the end-to-end flow: HL7 message → GenericHL7 plugin (dynamic sender identity matching)
+ * → GenericHL7LineInserter → analyzer_results table.
  *
  * <p>Feature: 011-madagascar-analyzer-integration
  */
@@ -127,7 +127,9 @@ public abstract class AbstractMindrayHL7Test extends BaseWebContextSensitiveTest
   private void cleanTestData() {
     jdbcTemplate.execute("SET search_path TO clinlims");
     jdbcTemplate.execute(
-        "DELETE FROM analyzer_results WHERE analyzer_id = '" + (analyzerId != null ? analyzerId : "0") + "'");
+        "DELETE FROM analyzer_results WHERE analyzer_id = '"
+            + (analyzerId != null ? analyzerId : "0")
+            + "'");
     // Clean test mappings by test name
     String[][] mappings = getTestMappings();
     StringBuilder names = new StringBuilder();
@@ -135,7 +137,8 @@ public abstract class AbstractMindrayHL7Test extends BaseWebContextSensitiveTest
       if (i > 0) names.append(", ");
       names.append("'").append(mappings[i][0]).append("'");
     }
-    jdbcTemplate.execute("DELETE FROM analyzer_test_map WHERE analyzer_test_name IN (" + names + ")");
+    jdbcTemplate.execute(
+        "DELETE FROM analyzer_test_map WHERE analyzer_test_name IN (" + names + ")");
     jdbcTemplate.execute("DELETE FROM analyzer WHERE name = '" + getAnalyzerName() + "'");
   }
 
@@ -149,8 +152,7 @@ public abstract class AbstractMindrayHL7Test extends BaseWebContextSensitiveTest
       type.setName("GenericHL7");
       type.setDescription("Generic HL7 analyzer plugin");
       type.setProtocol("HL7");
-      type.setPluginClassName(
-          "org.openelisglobal.plugins.analyzer.generichl7.GenericHL7Analyzer");
+      type.setPluginClassName("org.openelisglobal.plugins.analyzer.generichl7.GenericHL7Analyzer");
       type.setGenericPlugin(true);
       type.setActive(true);
       analyzerTypeId = analyzerTypeService.insert(type);

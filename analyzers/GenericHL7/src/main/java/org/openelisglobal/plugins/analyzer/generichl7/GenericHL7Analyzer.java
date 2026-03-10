@@ -13,8 +13,11 @@
  */
 package org.openelisglobal.plugins.analyzer.generichl7;
 
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.openelisglobal.analyzer.service.AnalyzerService;
 import org.openelisglobal.analyzer.valueholder.Analyzer;
@@ -29,13 +32,13 @@ import org.openelisglobal.spring.util.SpringContext;
  *
  * <p>Feature: 011-madagascar-analyzer-integration (M19)
  *
- * <p>Database-driven HL7 v2.x plugin that uses MSH-3 (sending application) pattern matching to
- * identify analyzers configured via analyzer.identifier_pattern.
+ * <p>Database-driven HL7 v2.x plugin that derives dynamic sender identity from HL7 MSH fields and
+ * matches analyzers configured via analyzer.identifier_pattern.
  *
  * <p>Unlike legacy HL7 plugins that hardcode analyzer identification, this generic plugin:
  *
  * <ul>
- *   <li>Extracts MSH-3 from HL7 messages
+ *   <li>Builds sender identity candidates from MSH-3 and MSH-4
  *   <li>Matches against analyzer.identifier_pattern (regex)
  *   <li>Loads test mappings from analyzer_test_mapping table
  * </ul>
@@ -52,12 +55,14 @@ import org.openelisglobal.spring.util.SpringContext;
  *   <li>GenericHL7LineInserter loads mappings from DB and processes OBX results
  * </ol>
  *
- * <p>Task Reference: T203 (M19) - Implement GenericHL7Analyzer with MSH-3 pattern matching
+ * <p>Task Reference: T203 (M19) - Implement GenericHL7Analyzer with dynamic sender matching
  */
 public class GenericHL7Analyzer implements AnalyzerImporterPlugin {
 
   /** Plugin name for logging and identification */
   private static final String PLUGIN_NAME = "GenericHL7";
+
+  private final AnalyzerService analyzerService;
 
   /**
    * Thread-local storage for matched analyzer.
@@ -67,6 +72,14 @@ public class GenericHL7Analyzer implements AnalyzerImporterPlugin {
    * thread safety for concurrent requests.
    */
   private final ThreadLocal<Analyzer> matchedAnalyzer = new ThreadLocal<>();
+
+  public GenericHL7Analyzer() {
+    this(null);
+  }
+
+  GenericHL7Analyzer(AnalyzerService analyzerService) {
+    this.analyzerService = analyzerService;
+  }
 
   /**
    * Register the generic HL7 plugin with PluginAnalyzerService.
@@ -102,7 +115,7 @@ public class GenericHL7Analyzer implements AnalyzerImporterPlugin {
    * <p>Identification strategy:
    *
    * <ol>
-   *   <li>Parse HL7 MSH segment for MSH-3 (sending application)
+   *   <li>Parse HL7 MSH segment for sender identity candidates
    *   <li>Query analyzer table for generic plugin configs with matching identifier_pattern
    *   <li>If match found, store configuration and return true
    * </ol>
@@ -122,19 +135,17 @@ public class GenericHL7Analyzer implements AnalyzerImporterPlugin {
       return false;
     }
 
-    // Extract MSH-3 (sending application) from HL7 message
-    String msh3 = parseMsh3SendingApplication(lines);
-    if (StringUtils.isBlank(msh3)) {
+    List<String> senderIdentityCandidates = buildSenderIdentityCandidates(lines);
+    if (senderIdentityCandidates.isEmpty()) {
       LogEvent.logDebug(
           this.getClass().getSimpleName(),
           "isTargetAnalyzer",
-          "Could not extract MSH-3 from HL7 message");
+          "Could not extract sender identity from HL7 message");
       return false;
     }
 
-    // Query database for matching analyzer with identifier pattern
     try {
-      AnalyzerService analyzerService = SpringContext.getBean(AnalyzerService.class);
+      AnalyzerService analyzerService = getAnalyzerService();
 
       if (analyzerService == null) {
         LogEvent.logWarn(
@@ -142,7 +153,7 @@ public class GenericHL7Analyzer implements AnalyzerImporterPlugin {
         return false;
       }
 
-      Optional<Analyzer> analyzer = analyzerService.findByIdentifierPatternMatch(msh3);
+      Optional<Analyzer> analyzer = findMatchingAnalyzer(analyzerService, senderIdentityCandidates);
       if (analyzer.isPresent()) {
         // Store matched analyzer for getAnalyzerLineInserter()
         matchedAnalyzer.set(analyzer.get());
@@ -150,12 +161,18 @@ public class GenericHL7Analyzer implements AnalyzerImporterPlugin {
         LogEvent.logDebug(
             this.getClass().getSimpleName(),
             "isTargetAnalyzer",
-            "Matched MSH-3 '" + msh3 + "' to analyzer: " + analyzer.get().getName());
+            "Matched sender identity "
+                + senderIdentityCandidates
+                + " to analyzer: "
+                + analyzer.get().getName());
         return true;
       }
 
     } catch (Exception e) {
-      LogEvent.logError("Error checking generic HL7 configuration for MSH-3: " + msh3, e);
+      LogEvent.logError(
+          "Error checking generic HL7 configuration for sender identities: "
+              + senderIdentityCandidates,
+          e);
     }
 
     return false;
@@ -201,33 +218,80 @@ public class GenericHL7Analyzer implements AnalyzerImporterPlugin {
     LogEvent.logDebug(
         this.getClass().getSimpleName(),
         "getAnalyzerLineInserter",
-        "Creating inserter for analyzer: " + analyzerName + " (device ID: " + physicalAnalyzerId + ")");
+        "Creating inserter for analyzer: "
+            + analyzerName
+            + " (device ID: "
+            + physicalAnalyzerId
+            + ")");
 
     GenericHL7LineInserter inserter = new GenericHL7LineInserter(physicalAnalyzerId, analyzerName);
     inserter.setContextAnalyzerId(physicalAnalyzerId);
     return inserter;
   }
 
-  /**
-   * Parse MSH-3 (sending application) from HL7 MSH segment.
-   *
-   * <p>HL7 MSH segment format: MSH|^~\&|SendingApp|SendingFacility|ReceivingApp|... - Field 0:
-   * Segment ID ("MSH") - Field 1: Field separator ("|") - Field 2: Encoding characters ("^~\&") -
-   * Field 3: Sending Application (MSH-3) ← We extract this - Field 4: Sending Facility (MSH-4)
-   *
-   * <p>Returns MSH-3 value to match against analyzer.identifier_pattern.
-   *
-   * @param lines HL7 message segment lines
-   * @return MSH-3 sending application string, or null if not found
-   */
-  private String parseMsh3SendingApplication(List<String> lines) {
+  List<String> buildSenderIdentityCandidates(List<String> lines) {
+    String msh3 = parseMshField(lines, 2);
+    String msh4 = parseMshField(lines, 3);
+
+    Set<String> identifiers = new LinkedHashSet<>();
+    if (StringUtils.isNotBlank(msh3) && StringUtils.isNotBlank(msh4)) {
+      identifiers.add(msh3 + " " + msh4);
+    }
+    if (StringUtils.isNotBlank(msh4)) {
+      identifiers.add(msh4);
+    }
+    if (StringUtils.isNotBlank(msh3)) {
+      identifiers.add(msh3);
+    }
+
+    List<String> normalizedIdentifiers = new ArrayList<>(identifiers);
+    for (String identifier : identifiers) {
+      String upperCased = identifier.toUpperCase();
+      if (!upperCased.equals(identifier)) {
+        normalizedIdentifiers.add(upperCased);
+      }
+    }
+
+    return normalizedIdentifiers;
+  }
+
+  private AnalyzerService getAnalyzerService() {
+    return analyzerService != null ? analyzerService : SpringContext.getBean(AnalyzerService.class);
+  }
+
+  @SuppressWarnings("unchecked")
+  private Optional<Analyzer> findMatchingAnalyzer(
+      AnalyzerService analyzerService, List<String> senderIdentityCandidates) {
+    try {
+      Object match =
+          analyzerService
+              .getClass()
+              .getMethod("findByIdentifierPatternMatch", List.class)
+              .invoke(analyzerService, senderIdentityCandidates);
+      if (match instanceof Optional) {
+        return (Optional<Analyzer>) match;
+      }
+    } catch (ReflectiveOperationException e) {
+      // Fall back to the legacy single-identifier API when the host interface has
+      // not yet been updated in the plugin compile classpath.
+    }
+
+    for (String identifier : senderIdentityCandidates) {
+      Optional<Analyzer> analyzer = analyzerService.findByIdentifierPatternMatch(identifier);
+      if (analyzer.isPresent()) {
+        return analyzer;
+      }
+    }
+
+    return Optional.empty();
+  }
+
+  private String parseMshField(List<String> lines, int fieldIndex) {
     for (String line : lines) {
       if (line != null && line.startsWith("MSH|")) {
         String[] fields = line.split("\\|");
-        // MSH segment: MSH|encoding|MSH-3 Sending Application|MSH-4 Sending Facility|...
-        // fields[0]=MSH, [1]=encoding, [2]=MSH-3, [3]=MSH-4
-        if (fields.length > 2 && !StringUtils.isBlank(fields[2])) {
-          return fields[2].trim();
+        if (fields.length > fieldIndex && !StringUtils.isBlank(fields[fieldIndex])) {
+          return fields[fieldIndex].trim();
         }
       }
     }
