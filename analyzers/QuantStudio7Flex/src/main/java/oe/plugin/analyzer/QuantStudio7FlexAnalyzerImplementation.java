@@ -57,9 +57,9 @@ public class QuantStudio7FlexAnalyzerImplementation extends AnalyzerLineInserter
   private static final String ANALYZER_NAME = "QuantStudio7FlexAnalyzer";
   private static final String[] CONTROL_ACCESSION_PREFIX = {"CNEG", "CPOS", "NTC", "PTC"};
 
-  // QS7 Flex headers (superset of QS3 headers)
+  // QS7 Flex headers (superset of QS3 headers). "Target Name" is the XLS export column; "Target" for CSV.
   public static final String[] HEADERS_USED = {
-    "Sample Name", "Target", "CT", "Ct Mean", "Ct SD", "Well Position", "Amp Status"
+    "Sample Name", "Target", "Target Name", "CT", "Ct Mean", "Ct SD", "Well Position", "Amp Status"
   };
 
   private static final String CSV_DELIMITER = "\t";
@@ -135,7 +135,7 @@ public class QuantStudio7FlexAnalyzerImplementation extends AnalyzerLineInserter
 
     String currentAccessionNumber =
         getColumnValue(resultData, "Sample Name").replace("\"", "").trim();
-    String target = getColumnValue(resultData, "Target").replace("\"", "").trim();
+    String target = getColumnValueOrAlias(resultData, "Target", "Target Name").replace("\"", "").trim();
     String ctValue = getColumnValue(resultData, "CT").replace("\"", "").trim();
     String ampStatus = getColumnValue(resultData, "Amp Status").replace("\"", "").trim();
 
@@ -246,7 +246,7 @@ public class QuantStudio7FlexAnalyzerImplementation extends AnalyzerLineInserter
     }
 
     // Add Target as note (QS7 Flex specific)
-    String target = getColumnValue(resultData, "Target");
+    String target = getColumnValueOrAlias(resultData, "Target", "Target Name");
     if (!GenericValidator.isBlankOrNull(target)) {
       notes.add(createNoteForValue(analysis, "Target", target, currentUserId));
     }
@@ -274,9 +274,10 @@ public class QuantStudio7FlexAnalyzerImplementation extends AnalyzerLineInserter
   }
 
   public boolean isColumnHeaderRow(String line) {
-    // QS7 Flex specific: check for "Well Position" or both "Well" and "Target"
+    // QS7 Flex: "Well Position" and ("Target" or "Target Name" for XLS export)
     return (line.contains("Well Position" + CSV_DELIMITER))
-        || (line.contains("Well" + CSV_DELIMITER) && line.contains("Target"));
+        || (line.contains("Well" + CSV_DELIMITER)
+            && (line.contains("Target" + CSV_DELIMITER) || line.contains("Target Name")));
   }
 
   public void setColumnHeaders(String columnHeaderLine) {
@@ -301,6 +302,15 @@ public class QuantStudio7FlexAnalyzerImplementation extends AnalyzerLineInserter
       return resultData[index];
     }
     return "";
+  }
+
+  /** Try primary header first, then alias (e.g. "Target" then "Target Name"). */
+  private String getColumnValueOrAlias(String[] resultData, String primary, String alias) {
+    String v = getColumnValue(resultData, primary);
+    if (v != null && !v.isEmpty()) {
+      return v;
+    }
+    return getColumnValue(resultData, alias);
   }
 
   @Override
