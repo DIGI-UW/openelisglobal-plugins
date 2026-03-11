@@ -2,6 +2,8 @@ package org.openelisglobal.plugins.analyzer.genericastm;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.sql.Timestamp;
@@ -117,5 +119,87 @@ public class GenericASTMResponderTest {
         Arrays.asList("H|\\^&|||GENEXPERT^GeneXpert^4.6.0|||||||LIS2-A2", "L|1|N");
 
     assertEquals("", responder.buildResponse(lines));
+  }
+
+  @Test
+  public void buildResponse_WithCaretDelimitedAccession_UsesMatchingComponentWithoutDuplicateLookup() {
+    String accessionNumber = "GX-2026-0002";
+    Sample sample = org.mockito.Mockito.mock(Sample.class);
+    when(sample.getId()).thenReturn("sample-2");
+    when(sample.getEnteredDate()).thenReturn(new java.sql.Date(1741262400000L));
+
+    org.openelisglobal.test.valueholder.Test test =
+        org.mockito.Mockito.mock(org.openelisglobal.test.valueholder.Test.class);
+    when(test.getId()).thenReturn("101");
+    Analysis analysis = org.mockito.Mockito.mock(Analysis.class);
+    when(analysis.getTest()).thenReturn(test);
+
+    AnalyzerTestMapping mapping = new AnalyzerTestMapping();
+    mapping.setAnalyzerTypeId(ANALYZER_TYPE_ID);
+    mapping.setAnalyzerTestName("MTB-RIF");
+    mapping.setTestId("101");
+
+    when(sampleService.getSampleByAccessionNumber("ALT-ID")).thenReturn(null);
+    when(sampleService.getSampleByAccessionNumber(accessionNumber)).thenReturn(sample);
+    when(analysisService.getAnalysesBySampleId("sample-2"))
+        .thenReturn(Collections.singletonList(analysis));
+    when(analyzerTestMappingService.getAll()).thenReturn(Collections.singletonList(mapping));
+
+    List<String> lines =
+        Arrays.asList(
+            "H|\\^&|||GENEXPERT^GeneXpert^4.6.0|||||||LIS2-A2",
+            "Q|1|ALT-ID^" + accessionNumber + "^IGNORED||ALL",
+            "L|1|N");
+
+    String response = responder.buildResponse(lines);
+
+    assertTrue(response.contains("O|1|" + accessionNumber + "||^^^MTB-RIF|R|"));
+    verify(sampleService).getSampleByAccessionNumber("ALT-ID");
+    verify(sampleService, times(1)).getSampleByAccessionNumber(accessionNumber);
+  }
+
+  @Test
+  public void buildResponse_WithMultipleMappedAnalyzerCodes_JoinsCodesInOrderRecord() {
+    String accessionNumber = "GX-2026-0003";
+    Sample sample = org.mockito.Mockito.mock(Sample.class);
+    when(sample.getId()).thenReturn("sample-3");
+    when(sample.getEnteredDate()).thenReturn(new java.sql.Date(1741262400000L));
+
+    org.openelisglobal.test.valueholder.Test firstTest =
+        org.mockito.Mockito.mock(org.openelisglobal.test.valueholder.Test.class);
+    when(firstTest.getId()).thenReturn("101");
+    Analysis firstAnalysis = org.mockito.Mockito.mock(Analysis.class);
+    when(firstAnalysis.getTest()).thenReturn(firstTest);
+
+    org.openelisglobal.test.valueholder.Test secondTest =
+        org.mockito.Mockito.mock(org.openelisglobal.test.valueholder.Test.class);
+    when(secondTest.getId()).thenReturn("102");
+    Analysis secondAnalysis = org.mockito.Mockito.mock(Analysis.class);
+    when(secondAnalysis.getTest()).thenReturn(secondTest);
+
+    AnalyzerTestMapping firstMapping = new AnalyzerTestMapping();
+    firstMapping.setAnalyzerTypeId(ANALYZER_TYPE_ID);
+    firstMapping.setAnalyzerTestName("MTB-RIF");
+    firstMapping.setTestId("101");
+
+    AnalyzerTestMapping secondMapping = new AnalyzerTestMapping();
+    secondMapping.setAnalyzerTypeId(ANALYZER_TYPE_ID);
+    secondMapping.setAnalyzerTestName("XDR");
+    secondMapping.setTestId("102");
+
+    when(sampleService.getSampleByAccessionNumber(accessionNumber)).thenReturn(sample);
+    when(analysisService.getAnalysesBySampleId("sample-3"))
+        .thenReturn(Arrays.asList(firstAnalysis, secondAnalysis));
+    when(analyzerTestMappingService.getAll()).thenReturn(Arrays.asList(firstMapping, secondMapping));
+
+    List<String> lines =
+        Arrays.asList(
+            "H|\\^&|||GENEXPERT^GeneXpert^4.6.0|||||||LIS2-A2",
+            "Q|1|" + accessionNumber + "||ALL",
+            "L|1|N");
+
+    String response = responder.buildResponse(lines);
+
+    assertTrue(response.contains("O|1|" + accessionNumber + "||^^^MTB-RIF\\^^^XDR|R|"));
   }
 }

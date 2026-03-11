@@ -39,13 +39,22 @@ import org.openelisglobal.test.valueholder.Test;
 /** Builds ASTM query responses for GenericASTM analyzers. */
 public class GenericASTMResponder implements AnalyzerResponder {
 
-  private static final String FIELD_DELIMITER = "|";
   private static final String COMPONENT_DELIMITER = "^";
   private static final String QUERY_SEGMENT_PREFIX = "Q|";
 
   private static final String HEADER_TEMPLATE = "H|\\^&|||OpenELIS^OrderResponse^1.0|||||||LIS2-A2\r\n";
   private static final String TERMINATOR_SEGMENT = "L|1|N\r\n";
   private static final String NO_ORDER_SEGMENT_SUFFIX = "||||||||||||||||||||||||Y\r\n";
+
+  private static final class ResolvedAccession {
+    private final String accessionNumber;
+    private final Sample sample;
+
+    private ResolvedAccession(String accessionNumber, Sample sample) {
+      this.accessionNumber = accessionNumber;
+      this.sample = sample;
+    }
+  }
 
   private final String analyzerTypeId;
   private final String analyzerName;
@@ -97,8 +106,8 @@ public class GenericASTMResponder implements AnalyzerResponder {
       return "";
     }
 
-    String requestedAccession = resolveRequestedAccession(queryRecord);
-    if (isBlank(requestedAccession)) {
+    ResolvedAccession resolvedAccession = resolveRequestedAccession(queryRecord);
+    if (resolvedAccession == null || isBlank(resolvedAccession.accessionNumber)) {
       LogEvent.logWarn(
           this.getClass().getSimpleName(),
           "buildResponse",
@@ -106,7 +115,11 @@ public class GenericASTMResponder implements AnalyzerResponder {
       return "";
     }
 
-    Sample sample = sampleService.getSampleByAccessionNumber(requestedAccession);
+    String requestedAccession = resolvedAccession.accessionNumber;
+    Sample sample =
+        resolvedAccession.sample != null
+            ? resolvedAccession.sample
+            : sampleService.getSampleByAccessionNumber(requestedAccession);
     if (sample == null) {
       LogEvent.logInfo(
           this.getClass().getSimpleName(),
@@ -141,7 +154,7 @@ public class GenericASTMResponder implements AnalyzerResponder {
     return null;
   }
 
-  private String resolveRequestedAccession(String queryRecord) {
+  private ResolvedAccession resolveRequestedAccession(String queryRecord) {
     String[] queryFields = queryRecord.split("\\|", -1);
     if (queryFields.length <= 2 || isBlank(queryFields[2])) {
       return null;
@@ -149,7 +162,7 @@ public class GenericASTMResponder implements AnalyzerResponder {
 
     String queryRangeField = queryFields[2].trim();
     if (!queryRangeField.contains(COMPONENT_DELIMITER)) {
-      return queryRangeField;
+      return new ResolvedAccession(queryRangeField, null);
     }
 
     String[] components = queryRangeField.split("\\^", -1);
@@ -170,12 +183,13 @@ public class GenericASTMResponder implements AnalyzerResponder {
     // Devices differ in which Q.3 component carries accession. Prefer the first candidate that
     // exists as a real sample; otherwise fall back to the first non-empty component.
     for (String candidate : candidates) {
-      if (sampleService.getSampleByAccessionNumber(candidate) != null) {
-        return candidate;
+      Sample sample = sampleService.getSampleByAccessionNumber(candidate);
+      if (sample != null) {
+        return new ResolvedAccession(candidate, sample);
       }
     }
 
-    return candidates.get(0);
+    return new ResolvedAccession(candidates.get(0), null);
   }
 
   private List<String> getMappedAnalyzerTestCodes(Sample sample) {
