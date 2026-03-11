@@ -58,6 +58,63 @@ public class GenericFileLineInserterTest {
     assertEquals("302", result.getAnalyzerId());
   }
 
+  @Test
+  public void testInsert_MissingTestCode_SkipsLine() {
+    Map<String, Object> profile = new HashMap<>();
+    profile.put("line_field_order", List.of("sampleId", "testCode", "result"));
+
+    CapturingGenericFileLineInserter inserter =
+        new CapturingGenericFileLineInserter("303", profile);
+    inserter.setContextAnalyzerId("303");
+
+    // testCode is blank
+    boolean success = inserter.insert(List.of("SAMPLE-1\t\t35.7"), "1");
+
+    assertTrue(success);
+    // No results captured because testCode was blank
+    assertTrue(inserter.captured == null || inserter.captured.isEmpty());
+  }
+
+  @Test
+  public void testInsert_WithDateTimeFields_ParsesTimestamp() {
+    Map<String, Object> profile = new HashMap<>();
+    profile.put("line_field_order",
+        List.of("sampleId", "testCode", "result", "units", "testDate", "testTime"));
+    profile.put("default_test_mappings", Map.of());
+
+    CapturingGenericFileLineInserter inserter =
+        new CapturingGenericFileLineInserter("304", profile);
+    inserter.setContextAnalyzerId("304");
+
+    // ISO date format
+    boolean success = inserter.insert(
+        List.of("S1\tVL\t100\tcopies/mL\t2026-03-11\t14:30:00"), "1");
+    assertTrue(success);
+    assertNotNull(inserter.captured);
+    assertEquals(1, inserter.captured.size());
+    assertNotNull("ISO date should parse", inserter.captured.get(0).getCompleteDate());
+  }
+
+  @Test
+  public void testInsert_WithUSDateFormat_ParsesTimestamp() {
+    Map<String, Object> profile = new HashMap<>();
+    profile.put("line_field_order",
+        List.of("sampleId", "testCode", "result", "units", "testDate", "testTime"));
+    profile.put("default_test_mappings", Map.of());
+
+    CapturingGenericFileLineInserter inserter =
+        new CapturingGenericFileLineInserter("305", profile);
+    inserter.setContextAnalyzerId("305");
+
+    // US date format MM/dd/yyyy with HH:mm (no seconds)
+    boolean success = inserter.insert(
+        List.of("S2\tVL\t200\tcopies/mL\t03/11/2026\t14:30"), "1");
+    assertTrue(success);
+    assertNotNull(inserter.captured);
+    assertEquals(1, inserter.captured.size());
+    assertNotNull("US date format should parse", inserter.captured.get(0).getCompleteDate());
+  }
+
   private static class CapturingGenericFileLineInserter extends GenericFileLineInserter {
     private List<AnalyzerResults> captured;
 

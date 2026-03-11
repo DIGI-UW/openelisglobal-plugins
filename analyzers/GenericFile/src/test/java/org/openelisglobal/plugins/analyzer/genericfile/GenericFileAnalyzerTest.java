@@ -29,6 +29,12 @@ public class GenericFileAnalyzerTest {
   }
 
   @Test
+  public void testIsTargetAnalyzer_WithCommaOnlyLine_ReturnsFalse() {
+    GenericFileAnalyzer analyzer = new GenericFileAnalyzer();
+    assertFalse(analyzer.isTargetAnalyzer(List.of("SAMPLE-1,VL,35.0")));
+  }
+
+  @Test
   public void testGetAnalyzerLineInserter_ReturnsGenericFileLineInserter() {
     GenericFileAnalyzer analyzer = new GenericFileAnalyzer();
     assertNotNull(analyzer.getAnalyzerLineInserter());

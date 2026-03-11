@@ -78,6 +78,11 @@ public class GenericFileLineInserter extends AnalyzerLineInserter {
       return null;
     }
 
+    if (rawTestCode == null || rawTestCode.isBlank()) {
+      errorMessage = "GenericFile analyzer missing required 'testCode' for sampleId '" + sampleId + "'";
+      return null;
+    }
+
     String mappedTestName = defaultTestMappings.getOrDefault(rawTestCode, rawTestCode);
 
     AnalyzerResults analyzerResult = new AnalyzerResults();
@@ -155,7 +160,9 @@ public class GenericFileLineInserter extends AnalyzerLineInserter {
         DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
         DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"),
         DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss"),
-        DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"));
+        DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm"),
+        DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"),
+        DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
     for (DateTimeFormatter formatter : dateTimeFormats) {
       try {
         return Timestamp.valueOf(LocalDateTime.parse(testDate + " " + normalizedTime, formatter));

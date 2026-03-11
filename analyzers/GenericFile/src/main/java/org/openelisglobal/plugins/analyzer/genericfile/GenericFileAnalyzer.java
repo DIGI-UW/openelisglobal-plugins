@@ -32,7 +32,10 @@ public class GenericFileAnalyzer implements AnalyzerImporterPlugin {
     if (lines == null || lines.isEmpty()) {
       return false;
     }
-    return lines.stream().anyMatch(line -> line != null && (line.contains("\t") || line.contains(",")));
+    // Only match tab-delimited lines (the reader always produces tabs).
+    // This plugin is generic and should not claim comma-delimited input
+    // that might belong to a more specific plugin.
+    return lines.stream().anyMatch(line -> line != null && line.contains("\t"));
   }
 
   @Override
