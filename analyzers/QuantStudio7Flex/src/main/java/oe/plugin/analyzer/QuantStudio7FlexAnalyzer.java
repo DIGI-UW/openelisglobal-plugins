@@ -68,10 +68,10 @@ public class QuantStudio7FlexAnalyzer implements AnalyzerImporterPlugin {
               || line.matches("^.*QuantStudio.?\\s+7.*"))) {
         return true;
       }
-      // Also check for QS7 Flex specific column headers (has "Well Position" and "Target")
+      // Also check for QS7 Flex specific column headers (Well Position + Target/Target Name)
       if (line.contains("Well Position")
-          && line.contains("Target")
-          && line.contains("Amp Status")) {
+          && (line.contains("Target") || line.contains("Target Name"))
+          && (line.contains("Amp Status") || line.contains("Sample Name"))) {
         return true;
       }
     }

@@ -42,6 +42,7 @@
     <module>./analyzers/FluoroCyclerXT</module>
     <module>./analyzers/GenericASTM</module>
     <module>./analyzers/GenericHL7</module>
+    <module>./analyzers/GenericFile</module>
     <module>./analyzers/StagoSTart4</module>
   </modules>
 
