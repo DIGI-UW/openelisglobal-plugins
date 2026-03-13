@@ -115,6 +115,78 @@ public class GenericFileLineInserterTest {
     assertNotNull("US date format should parse", inserter.captured.get(0).getCompleteDate());
   }
 
+  @Test
+  public void testInsert_WithHeaderLine_SkipsHeader() {
+    Map<String, Object> profile = new HashMap<>();
+    profile.put("line_field_order", List.of("sampleId", "testCode", "result"));
+    profile.put("default_test_mappings", Map.of());
+    profile.put("configDefaults", Map.of("hasHeader", true));
+
+    CapturingGenericFileLineInserter inserter =
+        new CapturingGenericFileLineInserter("306", profile);
+    inserter.setContextAnalyzerId("306");
+
+    // First line is a header (Excel column names), second is data
+    boolean success = inserter.insert(
+        List.of("Sample Name\tTarget Name\tQuantity Mean", "S1\tVL\t35.7"), "1");
+
+    assertTrue(success);
+    assertNotNull(inserter.captured);
+    assertEquals("Header should be skipped, only data row processed", 1, inserter.captured.size());
+    AnalyzerResults result = inserter.captured.get(0);
+    assertEquals("S1", result.getAccessionNumber());
+    assertEquals("VL", result.getTestName());
+    assertEquals("35.7", result.getResult());
+  }
+
+  @Test
+  public void testInsert_WithoutHeaderConfig_ProcessesAllLines() {
+    Map<String, Object> profile = new HashMap<>();
+    profile.put("line_field_order", List.of("sampleId", "testCode", "result"));
+    profile.put("default_test_mappings", Map.of());
+    // No configDefaults.hasHeader — backwards compatibility
+
+    CapturingGenericFileLineInserter inserter =
+        new CapturingGenericFileLineInserter("307", profile);
+    inserter.setContextAnalyzerId("307");
+
+    boolean success = inserter.insert(
+        List.of("S1\tVL\t35.7", "S2\tCT\t27.1"), "1");
+
+    assertTrue(success);
+    assertNotNull(inserter.captured);
+    assertEquals("Without hasHeader, all lines should be processed", 2, inserter.captured.size());
+  }
+
+  @Test
+  public void testInsert_WithHeaderAndDefaultFieldOrder_MapsCorrectly() {
+    // Simulates the real pipeline: ExcelAnalyzerReader produces header + data
+    // with PREFERRED_FIELD_ORDER positions, and inserter uses DEFAULT_LINE_FIELD_ORDER
+    Map<String, Object> profile = new HashMap<>();
+    // No explicit line_field_order — uses DEFAULT
+    profile.put("default_test_mappings", Map.of("VIH-1", "HIV-1 VL (LOINC 20447-9)"));
+    profile.put("configDefaults", Map.of("hasHeader", true));
+
+    CapturingGenericFileLineInserter inserter =
+        new CapturingGenericFileLineInserter("308", profile);
+    inserter.setContextAnalyzerId("308");
+
+    // Simulates ExcelAnalyzerReader output with empty tabs for absent fields:
+    // sampleId\ttestCode\tresult\tinterpretation\tposition\ttestDate\ttestTime
+    String headerLine = "Sample Name\tTarget Name\tQuantity Mean\t\tWell Position\t\t";
+    String dataLine = "E2E001\tVIH-1\t35.7\t\tA1\t\t";
+
+    boolean success = inserter.insert(List.of(headerLine, dataLine), "1");
+
+    assertTrue(success);
+    assertNotNull(inserter.captured);
+    assertEquals(1, inserter.captured.size());
+    AnalyzerResults result = inserter.captured.get(0);
+    assertEquals("E2E001", result.getAccessionNumber());
+    assertEquals("HIV-1 VL (LOINC 20447-9)", result.getTestName());
+    assertEquals("35.7", result.getResult());
+  }
+
   private static class CapturingGenericFileLineInserter extends GenericFileLineInserter {
     private List<AnalyzerResults> captured;
 

@@ -40,11 +40,14 @@ public class GenericFileLineInserter extends AnalyzerLineInserter {
     }
 
     Map<String, Object> profileConfig = resolveProfileConfig();
+    boolean hasHeader = resolveHasHeader(profileConfig);
     List<String> lineFieldOrder = resolveLineFieldOrder(profileConfig);
     Map<String, String> defaultTestMappings = resolveDefaultTestMappings(profileConfig);
 
+    List<String> dataLines = hasHeader && lines.size() > 1 ? lines.subList(1, lines.size()) : lines;
+
     List<AnalyzerResults> results = new ArrayList<>();
-    for (String line : lines) {
+    for (String line : dataLines) {
       if (line == null || line.isBlank()) {
         continue;
       }
@@ -122,6 +125,18 @@ public class GenericFileLineInserter extends AnalyzerLineInserter {
     }
     Map<String, Object> config = configService.getConfigAsMap(analyzerId);
     return config == null ? Map.of() : config;
+  }
+
+  @SuppressWarnings("unchecked")
+  private boolean resolveHasHeader(Map<String, Object> profileConfig) {
+    Object defaults = profileConfig.get("configDefaults");
+    if (defaults instanceof Map<?, ?> defaultsMap) {
+      Object hasHeader = defaultsMap.get("hasHeader");
+      if (hasHeader instanceof Boolean b) {
+        return b;
+      }
+    }
+    return false;
   }
 
   @SuppressWarnings("unchecked")
