@@ -197,8 +197,8 @@ public class GenericASTMAnalyzer implements AnalyzerImporterPlugin {
       throw new IllegalStateException("No matched analyzer");
     }
 
-    String analyzerId = analyzer.getAnalyzerType().getId();
-    String analyzerName = analyzer.getAnalyzerType().getName();
+    String analyzerId = analyzer.getId();
+    String analyzerName = analyzer.getName();
 
     LogEvent.logDebug(
         this.getClass().getSimpleName(),
