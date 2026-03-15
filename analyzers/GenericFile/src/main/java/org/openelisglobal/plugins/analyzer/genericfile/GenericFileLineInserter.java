@@ -76,8 +76,17 @@ public class GenericFileLineInserter extends AnalyzerLineInserter {
     String rawTestCode = getValue(tokens, lineFieldOrder, "testCode");
     String resultValue = getValue(tokens, lineFieldOrder, "result");
     String units = getValue(tokens, lineFieldOrder, "units");
+    String interpretation = getValue(tokens, lineFieldOrder, "interpretation");
 
-    if (sampleId == null || sampleId.isBlank() || resultValue == null || resultValue.isBlank()) {
+    if (sampleId == null || sampleId.isBlank()) {
+      return null;
+    }
+
+    // Allow empty result if interpretation is present (e.g. FluoroCycler
+    // negative results have empty CP but Interpretation="Negative")
+    boolean hasResult = resultValue != null && !resultValue.isBlank();
+    boolean hasInterpretation = interpretation != null && !interpretation.isBlank();
+    if (!hasResult && !hasInterpretation) {
       return null;
     }
 
@@ -88,10 +97,13 @@ public class GenericFileLineInserter extends AnalyzerLineInserter {
 
     String mappedTestName = defaultTestMappings.getOrDefault(rawTestCode, rawTestCode);
 
+    // Use interpretation as result for qualitative assays with no numeric value
+    String effectiveResult = hasResult ? resultValue : interpretation;
+
     AnalyzerResults analyzerResult = new AnalyzerResults();
     analyzerResult.setAccessionNumber(sampleId);
     analyzerResult.setTestName(mappedTestName);
-    analyzerResult.setResult(resultValue);
+    analyzerResult.setResult(effectiveResult);
     analyzerResult.setUnits(units);
     analyzerResult.setTestId("-1");
     analyzerResult.setAnalyzerId(resolveAnalyzerId());

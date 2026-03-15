@@ -187,6 +187,71 @@ public class GenericFileLineInserterTest {
     assertEquals("35.7", result.getResult());
   }
 
+  @Test
+  public void testInsert_EmptyResultWithInterpretation_UsesInterpretationAsResult() {
+    Map<String, Object> profile = new HashMap<>();
+    profile.put("line_field_order",
+        List.of("sampleId", "testCode", "result", "interpretation", "position", "testDate", "testTime"));
+    profile.put("default_test_mappings", Map.of());
+
+    CapturingGenericFileLineInserter inserter =
+        new CapturingGenericFileLineInserter("309", profile);
+    inserter.setContextAnalyzerId("309");
+
+    // Empty result but valid interpretation (FluoroCycler negative case)
+    boolean success = inserter.insert(
+        List.of("E2E-FC003\tVIH-1\t\tNegative\tC3\t2026-03-11\t"), "1");
+
+    assertTrue(success);
+    assertNotNull(inserter.captured);
+    assertEquals("Row with interpretation should not be dropped", 1, inserter.captured.size());
+    AnalyzerResults result = inserter.captured.get(0);
+    assertEquals("E2E-FC003", result.getAccessionNumber());
+    assertEquals("VIH-1", result.getTestName());
+    assertEquals("Negative", result.getResult()); // interpretation used as result
+  }
+
+  @Test
+  public void testInsert_EmptyResultAndNoInterpretation_SkipsRow() {
+    Map<String, Object> profile = new HashMap<>();
+    profile.put("line_field_order",
+        List.of("sampleId", "testCode", "result", "interpretation"));
+    profile.put("default_test_mappings", Map.of());
+
+    CapturingGenericFileLineInserter inserter =
+        new CapturingGenericFileLineInserter("310", profile);
+    inserter.setContextAnalyzerId("310");
+
+    // Both result and interpretation empty — should be skipped
+    boolean success = inserter.insert(
+        List.of("SAMPLE-1\tVL\t\t"), "1");
+
+    assertTrue(success);
+    assertTrue("Row with no result and no interpretation should be skipped",
+        inserter.captured == null || inserter.captured.isEmpty());
+  }
+
+  @Test
+  public void testInsert_ResultPresentWithInterpretation_UsesResult() {
+    Map<String, Object> profile = new HashMap<>();
+    profile.put("line_field_order",
+        List.of("sampleId", "testCode", "result", "interpretation"));
+    profile.put("default_test_mappings", Map.of());
+
+    CapturingGenericFileLineInserter inserter =
+        new CapturingGenericFileLineInserter("311", profile);
+    inserter.setContextAnalyzerId("311");
+
+    // Both result and interpretation present — result takes precedence
+    boolean success = inserter.insert(
+        List.of("E2E-FC001\tVIH-1\t28.5\tPositive"), "1");
+
+    assertTrue(success);
+    assertNotNull(inserter.captured);
+    assertEquals(1, inserter.captured.size());
+    assertEquals("28.5", inserter.captured.get(0).getResult()); // result, not interpretation
+  }
+
   private static class CapturingGenericFileLineInserter extends GenericFileLineInserter {
     private List<AnalyzerResults> captured;
 
