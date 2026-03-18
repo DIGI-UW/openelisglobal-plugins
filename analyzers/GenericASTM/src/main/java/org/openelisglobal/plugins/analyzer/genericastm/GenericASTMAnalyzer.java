@@ -198,7 +198,7 @@ public class GenericASTMAnalyzer implements AnalyzerImporterPlugin {
     }
 
     String analyzerId = analyzer.getId();
-    String analyzerName = analyzer.getName();
+    String analyzerName = analyzer.getAnalyzerType().getName();
 
     LogEvent.logDebug(
         this.getClass().getSimpleName(),
