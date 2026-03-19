@@ -1,5 +1,16 @@
 # OpenELIS Global Analyzer Plugins
 
+## FILE Transport Ownership (014 Remediation)
+
+For FILE plugins in OpenELIS Global 2 integration flows:
+
+- Bridge owns file detection/watcher runtime and delivery.
+- OpenELIS owns plugin execution and result persistence after delivery.
+
+Plugin behavior should assume files are delivered through OpenELIS ingestion
+paths rather than requiring OpenELIS to be the primary filesystem watcher.
+
+
 Repository for external analyzer plugins for OpenELIS Global. Currently **35 analyzers** are supported across 30+ countries.
 
 [![Build Status](https://github.com/openelisglobal/openelisglobal-plugins/actions/workflows/ci.yml/badge.svg)](https://github.com/openelisglobal/openelisglobal-plugins/actions/workflows/ci.yml)
