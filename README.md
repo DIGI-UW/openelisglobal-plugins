@@ -1,14 +1,15 @@
 # OpenELIS Global Analyzer Plugins
 
-## FILE Transport Ownership (014 Remediation)
+## FILE transport ownership (014 file-workflow remediation)
 
-For FILE plugins in OpenELIS Global 2 integration flows:
+“014” refers to the OpenELIS–Global-2 integration track that separates **who watches the filesystem** from **who parses and persists results**. Specs and the archived plan live in the parent product repo, e.g. [`specs/014-hjra-file-stream-alignment/`](https://github.com/DIGI-UW/OpenELIS-Global-2/tree/develop/specs/014-hjra-file-stream-alignment) (paths on `develop`).
 
-- Bridge owns file detection/watcher runtime and delivery.
-- OpenELIS owns plugin execution and result persistence after delivery.
+For FILE-based plugins:
 
-Plugin behavior should assume files are delivered through OpenELIS ingestion
-paths rather than requiring OpenELIS to be the primary filesystem watcher.
+- **Analyzer Bridge** owns the filesystem watcher and forwards file bytes to OpenELIS (direct-import / configured delivery path).
+- **OpenELIS** owns **plugin execution** (mapping, validation, persistence) once a payload is ingested.
+
+Plugin code should **not** assume OpenELIS is the primary directory watcher in bridge-backed deployments; it should assume ingest arrives via OpenELIS APIs after bridge delivery.
 
 
 Repository for external analyzer plugins for OpenELIS Global. Currently **35 analyzers** are supported across 30+ countries.
@@ -143,7 +144,7 @@ Bidirectional laboratory instrument communication (ENQ/ACK/NAK framing).
 
 #### FILE (23 analyzers)
 
-CSV/TXT file exports monitored via filesystem watcher.
+CSV/TXT file exports: in typical deployments the **bridge** watches export directories and delivers files to OpenELIS; plugins consume the ingested file content inside OpenELIS. (Legacy or explicitly enabled setups may still use an in-app poller—see OpenELIS admin configuration.)
 
 **Molecular (7):** AB7500Fast, Cobas4800, CobasTaqMan series (4), FluoroCyclerXT, GeneXpertFile
 
@@ -230,9 +231,9 @@ Use `:ArtifactId` syntax (e.g., `:CobasC111`, `:GeneXpert`).
 
 ### File-Based Analyzers
 
-1. Configure file import directory (if applicable)
-2. Analyzer exports results to configured directory
-3. OpenELIS monitors directory and imports automatically
+1. Configure analyzer/bridge watch directories (bridge owns runtime watching in the recommended topology).
+2. Analyzer exports results to the watched directory (or path reachable to the bridge).
+3. Bridge delivers the file to OpenELIS for ingest; plugins run as part of OpenELIS processing.
 
 ### ASTM Analyzers
 
