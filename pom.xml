@@ -44,6 +44,7 @@
     <module>./analyzers/GenericHL7</module>
     <module>./analyzers/GenericFile</module>
     <module>./analyzers/StagoSTart4</module>
+    <module>./analyzers/ErbaHematology</module>
   </modules>
 
   <properties>

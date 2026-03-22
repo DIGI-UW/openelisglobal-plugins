@@ -1,0 +1,159 @@
+# Sample HL7 Messages
+
+These are representative HL7 v2.3.1 ORU^R01 messages for each analyzer model.
+Patient details are fictitious. Accession numbers are illustrative only.
+
+---
+
+## H360 - CBC+3DIFF
+
+```
+MSH|^~\&|H360|Erba|||20260101080000||ORU^R01|H360_20260101_080000_001|P|2.3.1||||||UNICODE
+PID|1||100001^^^^MR||^TEST PATIENT||19900101000000|Male
+PV1|1
+OBR|1||100001|01001^Automated Count^99MRC||20260101075800|20260101080000|||||||20260101080000||||||||||HM||||||||admin
+OBX|1|IS|02001^Take Mode^99MRC||O||||||F
+OBX|2|IS|02002^Blood Mode^99MRC||W||||||F
+OBX|3|IS|02003^Test Mode^99MRC||CBC+3DIFF||||||F
+OBX|4|NM|30525-0^Age^LN||35|yr|||||F
+OBX|5|IS|09001^Remark^99MRC||||||||F
+OBX|6|IS|03001^Ref Group^99MRC||General||||||F
+OBX|7|NM|6690-2^WBC^LN||7.50|10*3/uL|3.50-9.50|~N|||F
+OBX|8|NM|736-9^LYM%^LN||30.0|%|20.0-50.0|~N|||F
+OBX|9|NM|20482-6^GRAN%^LN||62.0|%|50.0-70.0|~N|||F
+OBX|10|NM|32155-4^MID%^LN||8.0|%|3.0-9.0|~N|||F
+OBX|11|NM|731-0^LYM#^LN||2.25|10*3/uL|1.10-3.20|~N|||F
+OBX|12|NM|19023-1^GRAN#^LN||4.65|10*3/uL|2.00-7.00|~N|||F
+OBX|13|NM|32154-7^MID#^LN||0.60|10*3/uL|0.10-0.90|~N|||F
+OBX|14|NM|789-8^RBC^LN||4.80|10*6/uL|3.80-5.80|~N|||F
+OBX|15|NM|718-7^HGB^LN||14.5|g/dL|11.5-17.5|~N|||F
+OBX|16|NM|4544-3^HCT^LN||43.0|%|35.0-50.0|~N|||F
+OBX|17|NM|787-2^MCV^LN||89.6|fL|82.0-100.0|~N|||F
+OBX|18|NM|785-6^MCH^LN||30.2|pg|27.0-34.0|~N|||F
+OBX|19|NM|786-4^MCHC^LN||33.7|g/dL|31.6-35.4|~N|||F
+OBX|20|NM|788-0^RDW-CV^LN||13.0|%|11.5-14.5|~N|||F
+OBX|21|NM|21000-5^RDW-SD^LN||42.0|fL|35.0-56.0|~N|||F
+OBX|22|NM|11092^*Mentzr^LN||18.67|||~N|||F
+OBX|23|NM|11093^*RDWI^LN||201.60|||~N|||F
+OBX|24|NM|777-3^PLT^LN||220|10*3/uL|125-350|~N|||F
+OBX|25|NM|32623-1^MPV^LN||9.5|fL|7.0-11.0|~N|||F
+OBX|26|NM|32207-3^PDW-SD^LN||12.5|fL|9.0-17.0|~N|||F
+OBX|27|NM|11090^PDW-CV^LN||14.0|%|10.0-17.9|~N|||F
+OBX|28|NM|11003^PCT^99MRC||0.209|%|0.108-0.282|~N|||F
+OBX|29|NM|48386-7^P-LCR^LN||25.0|%|11.0-45.0|~N|||F
+OBX|30|NM|34167-7^P-LCC^LN||55|10*3/uL|30-90|~N|||F
+```
+
+**Notes:**
+- MSH-3: `H360`
+- Test mode: `CBC+3DIFF` - 3-part differential (GRAN, MID, LYM)
+- No NEU/MON/EOS/BAS - those are 5-part only
+- Mentzer and RDWI present (observed in real H360 messages)
+- PDW sent as two segments: PDW-SD and PDW-CV
+
+---
+
+## H560 - CBC+DIFF (5-part)
+
+```
+MSH|^~\&|H560|Erba|||20260101080000||ORU^R01|H560_20260101_080000_001|P|2.3.1||||||UNICODE
+PID|1||100002^^^^MR||^TEST PATIENT||19850615000000|Female
+PV1|1
+OBR|1||100002|01001^Automated Count^99MRC||20260101075800|20260101080000|||||||20260101080000||||||||||HM||||||||admin
+OBX|1|IS|02001^Take Mode^99MRC||O||||||F
+OBX|2|IS|02002^Blood Mode^99MRC||W||||||F
+OBX|3|IS|02003^Test Mode^99MRC||CBC+DIFF||||||F
+OBX|4|NM|30525-0^Age^LN||40|yr|||||F
+OBX|5|IS|09001^Remark^99MRC||||||||F
+OBX|6|IS|03001^Ref Group^99MRC||General||||||F
+OBX|7|NM|6690-2^WBC^LN||6.80|10*3/uL|3.50-9.50|~N|||F
+OBX|8|NM|770-8^NEU%^LN||58.0|%|50.0-70.0|~N|||F
+OBX|9|NM|736-9^LYM%^LN||32.0|%|20.0-40.0|~N|||F
+OBX|10|NM|5905-5^MON%^LN||7.0|%|3.0-12.0|~N|||F
+OBX|11|NM|713-8^EOS%^LN||2.5|%|0.5-5.0|~N|||F
+OBX|12|NM|706-2^BAS%^LN||0.5|%|0.0-1.0|~N|||F
+OBX|13|NM|751-8^NEU#^LN||3.94|10*3/uL|2.00-7.00|~N|||F
+OBX|14|NM|731-0^LYM#^LN||2.18|10*3/uL|0.80-4.00|~N|||F
+OBX|15|NM|742-7^MON#^LN||0.48|10*3/uL|0.12-1.20|~N|||F
+OBX|16|NM|711-2^EOS#^LN||0.17|10*3/uL|0.02-0.50|~N|||F
+OBX|17|NM|704-7^BAS#^LN||0.03|10*3/uL|0.00-0.10|~N|||F
+OBX|18|NM|789-8^RBC^LN||4.50|10*6/uL|3.80-5.80|~N|||F
+OBX|19|NM|718-7^HGB^LN||13.5|g/dL|11.5-17.5|~N|||F
+OBX|20|NM|4544-3^HCT^LN||40.5|%|35.0-50.0|~N|||F
+OBX|21|NM|787-2^MCV^LN||90.0|fL|82.0-100.0|~N|||F
+OBX|22|NM|785-6^MCH^LN||30.0|pg|27.0-34.0|~N|||F
+OBX|23|NM|786-4^MCHC^LN||33.3|g/dL|31.6-35.4|~N|||F
+OBX|24|NM|788-0^RDW-CV^LN||13.2|%|11.0-16.0|~N|||F
+OBX|25|NM|21000-5^RDW-SD^LN||43.0|fL|35.0-56.0|~N|||F
+OBX|26|NM|777-3^PLT^LN||240|10*3/uL|125-350|~N|||F
+OBX|27|NM|32623-1^MPV^LN||9.8|fL|6.5-12.0|~N|||F
+OBX|28|NM|32207-3^PDW-SD^LN||13.0|fL|9.0-17.0|~N|||F
+OBX|29|NM|11090^PDW-CV^LN||15.0|%|10.0-17.9|~N|||F
+OBX|30|NM|11003^PCT^99MRC||0.235|%|0.108-0.282|~N|||F
+OBX|31|NM|48386-7^P-LCR^LN||28.0|%|11.0-45.0|~N|||F
+OBX|32|NM|34167-7^P-LCC^LN||67|10*3/uL|30-90|~N|||F
+```
+
+**Notes:**
+- MSH-3: `H560`
+- Test mode: `CBC+DIFF` - full 5-part differential
+- No GRAN/MID - those are 3-part (H360) only
+- No ALY/LIC - those are ELite 580 only
+- Mentzer and RDWI not included - unconfirmed on H560
+
+---
+
+## ELite 580 - CBC+DIFF (5-part + extended)
+
+```
+MSH|^~\&|ELite 580|Erba|||20260101080000||ORU^R01|ELITE_20260101_080000_001|P|2.3.1||||||UNICODE
+PID|1||100003^^^^MR||^TEST PATIENT||19951120000000|Female
+PV1|1
+OBR|1||100003|01001^Automated Count^99MRC||20260101075800|20260101080000|||||||20260101080000||||||||||HM||||||||admin
+OBX|1|IS|02001^Take Mode^99MRC||O||||||F
+OBX|2|IS|02002^Blood Mode^99MRC||W||||||F
+OBX|3|IS|02003^Test Mode^99MRC||CBC+DIFF||||||F
+OBX|4|NM|30525-0^Age^LN||30|yr|||||F
+OBX|5|IS|09001^Remark^99MRC||||||||F
+OBX|6|IS|03001^Ref Group^99MRC||General||||||F
+OBX|7|NM|6690-2^WBC^LN||7.20|10*3/uL|4.00-10.00|~N|||F
+OBX|8|NM|770-8^NEU%^LN||55.0|%|50.0-70.0|~N|||F
+OBX|9|NM|736-9^LYM%^LN||36.0|%|20.0-40.0|~N|||F
+OBX|10|NM|5905-5^MON%^LN||6.0|%|3.0-12.0|~N|||F
+OBX|11|NM|713-8^EOS%^LN||2.5|%|0.5-5.0|~N|||F
+OBX|12|NM|706-2^BAS%^LN||0.5|%|0.0-1.0|~N|||F
+OBX|13|NM|751-8^NEU#^LN||3.96|10*3/uL|2.00-7.00|~N|||F
+OBX|14|NM|731-0^LYM#^LN||2.59|10*3/uL|0.80-4.00|~N|||F
+OBX|15|NM|742-7^MON#^LN||0.43|10*3/uL|0.12-1.20|~N|||F
+OBX|16|NM|711-2^EOS#^LN||0.18|10*3/uL|0.02-0.50|~N|||F
+OBX|17|NM|704-7^BAS#^LN||0.04|10*3/uL|0.00-0.10|~N|||F
+OBX|18|NM|26477-0^*ALY#^LN||0.05|10*3/uL|0.00-0.20|~N|||F
+OBX|19|NM|13046-8^*ALY%^LN||0.7|%|0.0-2.0|~N|||F
+OBX|20|NM|11001^*LIC#^99MRC||0.00|10*3/uL|0.00-0.20|~N|||F
+OBX|21|NM|11002^*LIC%^99MRC||0.0|%|0.0-2.5|~N|||F
+OBX|22|NM|789-8^RBC^LN||4.20|10*6/uL|3.50-5.50|~N|||F
+OBX|23|NM|718-7^HGB^LN||12.8|g/dL|11.0-16.0|~N|||F
+OBX|24|NM|4544-3^HCT^LN||38.5|%|37.0-54.0|~N|||F
+OBX|25|NM|787-2^MCV^LN||91.7|fL|80.0-100.0|~N|||F
+OBX|26|NM|785-6^MCH^LN||30.5|pg|27.0-34.0|~N|||F
+OBX|27|NM|786-4^MCHC^LN||33.2|g/dL|32.0-36.0|~N|||F
+OBX|28|NM|788-0^RDW-CV^LN||13.5|%|11.0-16.0|~N|||F
+OBX|29|NM|21000-5^RDW-SD^LN||44.0|fL|35.0-56.0|~N|||F
+OBX|30|NM|11092^*Mentzr^LN||21.83|||~N|||F
+OBX|31|NM|11093^*RDWI^LN||295.00|||~N|||F
+OBX|32|NM|777-3^PLT^LN||250|10*3/uL|100-300|~N|||F
+OBX|33|NM|32623-1^MPV^LN||9.2|fL|6.5-12.0|~N|||F
+OBX|34|NM|32207-3^PDW-SD^LN||11.0|fL|9.0-17.0|~N|||F
+OBX|35|NM|11090^PDW-CV^LN||14.5|%|10.0-17.9|~N|||F
+OBX|36|NM|11003^PCT^99MRC||0.230|%|0.108-0.282|~N|||F
+OBX|37|NM|48386-7^P-LCR^LN||22.0|%|11.0-45.0|~N|||F
+OBX|38|NM|34167-7^P-LCC^LN||55|10*9/L|30-90|~N|||F
+```
+
+**Notes:**
+- MSH-3: `ELite 580`
+- Test mode: `CBC+DIFF` - full 5-part differential
+- Includes ALY#/ALY% and LIC#/LIC% - ELite 580 extended parameters
+- Mentzer and RDWI present (observed in real ELite 580 messages)
+- PDW sent as PDW-SD + PDW-CV (observed in real messages despite brochure
+  listing PDW as a single parameter)

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openElisGlobalPlugin>
+  <version>1.0</version>
+
+  <analyzerImporter>
+    <extension_point path="org.openelisglobal.plugin.AnalyzerImporterPlugin">
+      <extension path="org.openelisglobal.plugins.analyzer.ErbaHematology.ErbaHematologyAnalyzer"/>
+      <description value="ErbaHematology"/>
+    </extension_point>
+  </analyzerImporter>
+
+  <menu>
+    <extension_point path="org.openelisglobal.plugin.MenuPlugin">
+      <extension path="org.openelisglobal.plugins.analyzer.ErbaHematology.ErbaHematologyMenu"/>
+      <description value="Menu for ErbaHematology"/>
+    </extension_point>
+  </menu>
+
+  <permission>
+    <extension_point path="org.openelisglobal.plugin.PermissionPlugin">
+      <extension path="org.openelisglobal.plugins.analyzer.ErbaHematology.ErbaHematologyPermission"/>
+      <description value="ErbaHematology Analyzer permission"/>
+    </extension_point>
+  </permission>
+
+  <servlet>
+    <extension_point path="org.openelisglobal.plugin.ServletPlugin">
+      <extension path="org.openelisglobal.plugins.analyzer.ErbaHematology.ErbaHematologyServlet"/>
+      <servlet-path value="/ErbaHematologyServlet"/>
+      <servlet-name value="ErbaHematologyServlet"/>
+      <description value="ErbaHematology Analyzer servlet"/>
+    </extension_point>
+  </servlet>
+
+</openElisGlobalPlugin>
