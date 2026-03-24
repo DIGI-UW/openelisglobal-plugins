@@ -13,9 +13,11 @@
  */
 package org.openelisglobal.plugins.analyzer.genericastm;
 
-import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -56,15 +58,17 @@ public class GenericASTMResponder implements AnalyzerResponder {
     }
   }
 
+  private static final String RESPONSE_TIMEZONE_PROPERTY = "org.openelisglobal.plugins.genericastm.response-timezone";
+  private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd");
+  private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+
   private final String analyzerTypeId;
   private final String analyzerName;
   private final SampleService sampleService;
   private final SampleHumanService sampleHumanService;
   private final AnalysisService analysisService;
   private final AnalyzerTestMappingService analyzerTestMappingService;
-
-  private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
-  private final SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+  private final ZoneId responseZoneId;
 
   public GenericASTMResponder(String analyzerTypeId, String analyzerName) {
     this(
@@ -89,6 +93,22 @@ public class GenericASTMResponder implements AnalyzerResponder {
     this.sampleHumanService = sampleHumanService;
     this.analysisService = analysisService;
     this.analyzerTestMappingService = analyzerTestMappingService;
+    this.responseZoneId = resolveResponseZoneId();
+  }
+
+  private static ZoneId resolveResponseZoneId() {
+    String tz = System.getProperty(RESPONSE_TIMEZONE_PROPERTY);
+    if (tz != null && !tz.trim().isEmpty()) {
+      try {
+        return ZoneId.of(tz.trim());
+      } catch (Exception e) {
+        LogEvent.logWarn(
+            GenericASTMResponder.class.getSimpleName(),
+            "resolveResponseZoneId",
+            "Invalid " + RESPONSE_TIMEZONE_PROPERTY + "='" + tz + "', using UTC");
+      }
+    }
+    return ZoneId.of("UTC");
   }
 
   @Override
@@ -166,15 +186,13 @@ public class GenericASTMResponder implements AnalyzerResponder {
     }
 
     String[] components = queryRangeField.split("\\^", -1);
-    List<String> candidates = new ArrayList<>();
+    Set<String> candidateSet = new LinkedHashSet<>();
     for (String component : components) {
       if (!isBlank(component)) {
-        String candidate = component.trim();
-        if (!candidates.contains(candidate)) {
-          candidates.add(candidate);
-        }
+        candidateSet.add(component.trim());
       }
     }
+    List<String> candidates = new ArrayList<>(candidateSet);
 
     if (candidates.isEmpty()) {
       return null;
@@ -245,25 +263,32 @@ public class GenericASTMResponder implements AnalyzerResponder {
     String gender = "";
 
     if (patient != null) {
-      patientId = safe(patient.getNationalId());
-      gender = safe(patient.getGender());
+      patientId = sanitizeAstmField(safe(patient.getNationalId()));
+      gender = sanitizeAstmField(safe(patient.getGender()));
       if (patient.getBirthDate() != null) {
-        birthDate = dateFormat.format(patient.getBirthDate());
+        birthDate =
+            DATE_FORMAT.format(
+                Instant.ofEpochMilli(patient.getBirthDate().getTime())
+                    .atZone(responseZoneId)
+                    .toLocalDate());
       }
 
       Person person = patient.getPerson();
       if (person != null) {
-        patientName = safe(person.getLastName()) + "^" + safe(person.getFirstName());
+        patientName =
+            sanitizeAstmField(safe(person.getLastName())) + "^"
+                + sanitizeAstmField(safe(person.getFirstName()));
       }
     }
 
-    String orderTimestamp =
+    ZonedDateTime orderTime =
         sample.getEnteredDate() != null
-            ? dateTimeFormat.format(sample.getEnteredDate())
-            : dateTimeFormat.format(new Date());
+            ? Instant.ofEpochMilli(sample.getEnteredDate().getTime()).atZone(responseZoneId)
+            : ZonedDateTime.now(responseZoneId);
+    String orderTimestamp = DATE_TIME_FORMAT.format(orderTime);
     String orderTestField =
         analyzerTestCodes.stream()
-            .map(code -> "^^^" + code)
+            .map(code -> "^^^" + sanitizeAstmField(code))
             .collect(Collectors.joining("\\"));
 
     StringBuilder response = new StringBuilder();
@@ -281,7 +306,7 @@ public class GenericASTMResponder implements AnalyzerResponder {
 
     response
         .append("O|1|")
-        .append(accessionNumber)
+        .append(sanitizeAstmField(accessionNumber))
         .append("||")
         .append(orderTestField)
         .append("|R|")
@@ -295,7 +320,7 @@ public class GenericASTMResponder implements AnalyzerResponder {
     StringBuilder response = new StringBuilder();
     response.append(HEADER_TEMPLATE);
     response.append("P|1|\r\n");
-    response.append("O|1|").append(accessionNumber).append(NO_ORDER_SEGMENT_SUFFIX);
+    response.append("O|1|").append(sanitizeAstmField(accessionNumber)).append(NO_ORDER_SEGMENT_SUFFIX);
     response.append(TERMINATOR_SEGMENT);
     return response.toString();
   }
@@ -306,5 +331,21 @@ public class GenericASTMResponder implements AnalyzerResponder {
 
   private boolean isBlank(String value) {
     return value == null || value.trim().isEmpty();
+  }
+
+  /**
+   * Sanitizes a value for use in ASTM outbound fields. ASTM uses {@code |}, {@code ^}, {@code \},
+   * {@code &} as delimiters; values containing these can break message structure. Replaces
+   * delimiter chars with space to produce valid output.
+   */
+  private String sanitizeAstmField(String value) {
+    if (value == null || value.isEmpty()) {
+      return value == null ? "" : value;
+    }
+    return value.replace('|', ' ')
+        .replace('^', ' ')
+        .replace('\\', ' ')
+        .replace('&', ' ')
+        .trim();
   }
 }

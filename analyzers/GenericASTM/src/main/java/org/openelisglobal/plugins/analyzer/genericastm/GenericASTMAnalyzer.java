@@ -194,7 +194,8 @@ public class GenericASTMAnalyzer implements AnalyzerImporterPlugin {
           this.getClass().getSimpleName(),
           "getAnalyzerLineInserter",
           "No matched analyzer - isTargetAnalyzer() must be called first");
-      throw new IllegalStateException("No matched analyzer");
+      throw new IllegalStateException(
+          "No matched analyzer - isTargetAnalyzer() must be called first");
     }
 
     String analyzerId = analyzer.getAnalyzerType().getId();
@@ -241,7 +242,8 @@ public class GenericASTMAnalyzer implements AnalyzerImporterPlugin {
           this.getClass().getSimpleName(),
           "getAnalyzerResponder",
           "No matched analyzer - isTargetAnalyzer() must be called first");
-      throw new IllegalStateException("No matched analyzer");
+      throw new IllegalStateException(
+          "No matched analyzer - isTargetAnalyzer() must be called first");
     }
 
     String analyzerTypeId = analyzer.getAnalyzerType().getId();

@@ -202,4 +202,51 @@ public class GenericASTMResponderTest {
 
     assertTrue(response.contains("O|1|" + accessionNumber + "||^^^MTB-RIF\\^^^XDR|R|"));
   }
+
+  @Test
+  public void buildResponse_WithDelimiterCharsInPatientData_SanitizesOutboundFields() {
+    String accessionNumber = "GX-2026-0004";
+    Sample sample = org.mockito.Mockito.mock(Sample.class);
+    when(sample.getId()).thenReturn("sample-4");
+    when(sample.getEnteredDate()).thenReturn(new java.sql.Date(1741262400000L));
+
+    Person person = org.mockito.Mockito.mock(Person.class);
+    when(person.getFirstName()).thenReturn("Jean|Pierre");
+    when(person.getLastName()).thenReturn("O'Brien^Smith");
+
+    Patient patient = org.mockito.Mockito.mock(Patient.class);
+    when(patient.getNationalId()).thenReturn("PAT|001");
+    when(patient.getGender()).thenReturn("M");
+    when(patient.getBirthDate()).thenReturn(new Timestamp(479001600000L));
+    when(patient.getPerson()).thenReturn(person);
+
+    org.openelisglobal.test.valueholder.Test test =
+        org.mockito.Mockito.mock(org.openelisglobal.test.valueholder.Test.class);
+    when(test.getId()).thenReturn("101");
+    Analysis analysis = org.mockito.Mockito.mock(Analysis.class);
+    when(analysis.getTest()).thenReturn(test);
+
+    AnalyzerTestMapping mapping = new AnalyzerTestMapping();
+    mapping.setAnalyzerTypeId(ANALYZER_TYPE_ID);
+    mapping.setAnalyzerTestName("MTB-RIF");
+    mapping.setTestId("101");
+
+    when(sampleService.getSampleByAccessionNumber(accessionNumber)).thenReturn(sample);
+    when(sampleHumanService.getPatientForSample(sample)).thenReturn(patient);
+    when(analysisService.getAnalysesBySampleId("sample-4")).thenReturn(Collections.singletonList(analysis));
+    when(analyzerTestMappingService.getAll()).thenReturn(Collections.singletonList(mapping));
+
+    List<String> lines =
+        Arrays.asList(
+            "H|\\^&|||GENEXPERT^GeneXpert^4.6.0|||||||LIS2-A2",
+            "Q|1|" + accessionNumber + "||ALL",
+            "L|1|N");
+
+    String response = responder.buildResponse(lines);
+
+    assertTrue("Response should not contain raw pipe in patient segment", !response.contains("PAT|001"));
+    assertTrue("Response should sanitize patient ID", response.contains("PAT 001"));
+    assertTrue("Response should sanitize patient name delimiters", response.contains("O'Brien Smith"));
+    assertTrue("Response should contain P segment", response.contains("P|1|"));
+  }
 }
