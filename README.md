@@ -1,15 +1,13 @@
 # OpenELIS Global Analyzer Plugins
 
-## FILE transport ownership (014 file-workflow remediation)
+## FILE Transport Ownership
 
-“014” refers to the OpenELIS–Global-2 integration track that separates **who watches the filesystem** from **who parses and persists results**. Specs and the archived plan live in the parent product repo, e.g. [`specs/014-hjra-file-stream-alignment/`](https://github.com/DIGI-UW/OpenELIS-Global-2/tree/develop/specs/014-hjra-file-stream-alignment) (paths on `develop`).
+This section documents the ownership model for FILE-based analyzer transports between the Analyzer Bridge and OpenELIS Global. For full context, see the [file-stream alignment spec](https://github.com/DIGI-UW/OpenELIS-Global-2/tree/develop/specs/014-hjra-file-stream-alignment).
 
-For FILE-based plugins:
+- The **Analyzer Bridge** owns file detection and filesystem watching. It monitors export directories and delivers files to OpenELIS via the direct-import REST endpoint.
+- **OpenELIS** owns **plugin execution** (mapping, validation, persistence) once a file is ingested.
 
-- **Analyzer Bridge** owns the filesystem watcher and forwards file bytes to OpenELIS (direct-import / configured delivery path).
-- **OpenELIS** owns **plugin execution** (mapping, validation, persistence) once a payload is ingested.
-
-Plugin code should **not** assume OpenELIS is the primary directory watcher in bridge-backed deployments; it should assume ingest arrives via OpenELIS APIs after bridge delivery.
+Plugin code should treat files as arriving via OpenELIS ingestion APIs and remain agnostic about which component performs filesystem watching.
 
 
 Repository for external analyzer plugins for OpenELIS Global. Currently **35 analyzers** are supported across 30+ countries.
