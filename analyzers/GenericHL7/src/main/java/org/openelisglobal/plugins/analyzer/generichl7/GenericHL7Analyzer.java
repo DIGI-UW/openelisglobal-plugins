@@ -132,7 +132,10 @@ public class GenericHL7Analyzer implements AnalyzerImporterPlugin {
       return false;
     }
 
-    // Query database for matching analyzer with identifier pattern
+    // Query database for matching analyzer with identifier pattern.
+    // Pass both MSH-3 alone and MSH-3+MSH-4 combined so patterns like
+    // "MINDRAY.*BC.?5380" can match "MINDRAY-BC-5380" while simpler
+    // patterns like "SYSMEX" can match MSH-3 alone.
     try {
       AnalyzerService analyzerService = SpringContext.getBean(AnalyzerService.class);
 
@@ -142,7 +145,15 @@ public class GenericHL7Analyzer implements AnalyzerImporterPlugin {
         return false;
       }
 
-      Optional<Analyzer> analyzer = analyzerService.findByIdentifierPatternMatch(msh3);
+      // Build candidate identifiers: MSH-3 alone + MSH-3+MSH-4 combined
+      java.util.List<String> identifiers = new java.util.ArrayList<>();
+      identifiers.add(msh3);
+      String msh4 = parseMsh4SendingFacility(lines);
+      if (!StringUtils.isBlank(msh4)) {
+        identifiers.add(msh3.trim() + "-" + msh4.trim());
+      }
+
+      Optional<Analyzer> analyzer = analyzerService.findByIdentifierPatternMatch(identifiers);
       if (analyzer.isPresent()) {
         // Store matched analyzer for getAnalyzerLineInserter()
         matchedAnalyzer.set(analyzer.get());
@@ -150,7 +161,7 @@ public class GenericHL7Analyzer implements AnalyzerImporterPlugin {
         LogEvent.logDebug(
             this.getClass().getSimpleName(),
             "isTargetAnalyzer",
-            "Matched MSH-3 '" + msh3 + "' to analyzer: " + analyzer.get().getName());
+            "Matched identifiers " + identifiers + " to analyzer: " + analyzer.get().getName());
         return true;
       }
 
@@ -228,6 +239,28 @@ public class GenericHL7Analyzer implements AnalyzerImporterPlugin {
         // fields[0]=MSH, [1]=encoding, [2]=MSH-3, [3]=MSH-4
         if (fields.length > 2 && !StringUtils.isBlank(fields[2])) {
           return fields[2].trim();
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Parse MSH-4 (sending facility) from HL7 MSH segment.
+   *
+   * <p>Used together with MSH-3 to build a combined identifier (e.g. "MINDRAY-BC-5380") for
+   * pattern matching against analyzer.identifier_pattern.
+   *
+   * @param lines HL7 message segment lines
+   * @return MSH-4 sending facility string, or null if not found
+   */
+  private String parseMsh4SendingFacility(List<String> lines) {
+    for (String line : lines) {
+      if (line != null && line.startsWith("MSH|")) {
+        String[] fields = line.split("\\|");
+        // fields[0]=MSH, [1]=encoding, [2]=MSH-3, [3]=MSH-4
+        if (fields.length > 3 && !StringUtils.isBlank(fields[3])) {
+          return fields[3].trim();
         }
       }
     }
