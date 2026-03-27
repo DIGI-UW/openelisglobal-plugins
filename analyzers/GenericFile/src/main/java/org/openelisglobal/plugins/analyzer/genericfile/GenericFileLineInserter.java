@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import org.openelisglobal.analyzer.service.AnalyzerPluginConfigService;
 import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
+import org.openelisglobal.analyzerimport.util.AnalyzerTestNameCache;
+import org.openelisglobal.analyzerimport.util.MappedTestName;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
 import org.openelisglobal.spring.util.SpringContext;
 
@@ -102,16 +104,46 @@ public class GenericFileLineInserter extends AnalyzerLineInserter {
 
     AnalyzerResults analyzerResult = new AnalyzerResults();
     analyzerResult.setAccessionNumber(sampleId);
-    analyzerResult.setTestName(mappedTestName);
     analyzerResult.setResult(effectiveResult);
     analyzerResult.setUnits(units);
-    analyzerResult.setTestId("-1");
     analyzerResult.setAnalyzerId(resolveAnalyzerId());
+
+    // Map test code via AnalyzerTestNameCache (same as HL7/ASTM inserters)
+    // Resolve analyzer type name from the context analyzer
+    String typeName = resolveAnalyzerTypeName();
+    MappedTestName mapped = typeName != null
+        ? AnalyzerTestNameCache.getInstance().getMappedTest(typeName, rawTestCode)
+        : null;
+    if (mapped != null && mapped.getTestId() != null && !"-1".equals(mapped.getTestId())) {
+      analyzerResult.setTestId(mapped.getTestId());
+      analyzerResult.setTestName(mapped.getOpenElisTestName());
+    } else {
+      analyzerResult.setTestName(mappedTestName);
+      analyzerResult.setTestId(null);
+      analyzerResult.setReadOnly(true);
+    }
 
     Timestamp completeDate = parseTimestamp(getValue(tokens, lineFieldOrder, "testDate"),
         getValue(tokens, lineFieldOrder, "testTime"));
     analyzerResult.setCompleteDate(completeDate);
     return analyzerResult;
+  }
+
+  private String resolveAnalyzerTypeName() {
+    try {
+      String id = resolveAnalyzerId();
+      if (id != null) {
+        org.openelisglobal.analyzer.service.AnalyzerService svc = SpringContext
+            .getBean(org.openelisglobal.analyzer.service.AnalyzerService.class);
+        org.openelisglobal.analyzer.valueholder.Analyzer analyzer = svc.get(id);
+        if (analyzer != null && analyzer.getAnalyzerType() != null) {
+          return analyzer.getAnalyzerType().getName();
+        }
+      }
+    } catch (Exception e) {
+      // Fall through — return null, result will be unmapped
+    }
+    return null;
   }
 
   private String resolveAnalyzerId() {
