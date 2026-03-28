@@ -89,7 +89,7 @@ public abstract class AbstractMindrayHL7Test extends BaseWebContextSensitiveTest
     // Reload cache so it picks up the Hibernate-inserted fixtures
     AnalyzerTestNameCache cache = AnalyzerTestNameCache.getInstance();
     cache.reloadCache();
-    cache.registerPluginAnalyzer("GenericHL7", analyzerTypeId);
+    cache.registerAnalyzerName("GenericHL7");
 
     PluginAnalyzerService fromContext = SpringContext.getBean(PluginAnalyzerService.class);
     assertTrue(
@@ -173,7 +173,7 @@ public abstract class AbstractMindrayHL7Test extends BaseWebContextSensitiveTest
     String[][] testMappings = getTestMappings();
     for (String[] mapping : testMappings) {
       AnalyzerTestMappingPK pk = new AnalyzerTestMappingPK();
-      pk.setAnalyzerTypeId(analyzerTypeId);
+      pk.setAnalyzerId(analyzerId);
       pk.setAnalyzerTestName(mapping[0]);
       AnalyzerTestMapping testMapping = new AnalyzerTestMapping();
       testMapping.setCompoundId(pk);
