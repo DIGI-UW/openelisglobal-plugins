@@ -30,10 +30,7 @@ import org.openelisglobal.BaseWebContextSensitiveTest;
 import org.openelisglobal.analyzer.service.AnalyzerTypeService;
 import org.openelisglobal.analyzer.valueholder.AnalyzerType;
 import org.openelisglobal.analyzerimport.analyzerreaders.ASTMAnalyzerReader;
-import org.openelisglobal.analyzerimport.service.AnalyzerTestMappingService;
 import org.openelisglobal.analyzerimport.util.AnalyzerTestNameCache;
-import org.openelisglobal.analyzerimport.valueholder.AnalyzerTestMapping;
-import org.openelisglobal.analyzerimport.valueholder.AnalyzerTestMappingPK;
 import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
 import org.openelisglobal.common.services.PluginAnalyzerService;
 import org.openelisglobal.spring.util.SpringContext;
@@ -60,8 +57,6 @@ public class GenericASTMIntegrationTest extends BaseWebContextSensitiveTest {
 
   @Autowired private AnalyzerTypeService analyzerTypeService;
 
-  @Autowired private AnalyzerTestMappingService analyzerTestMappingService;
-
   private JdbcTemplate jdbcTemplate;
   private String analyzerTypeId;
 
@@ -81,7 +76,6 @@ public class GenericASTMIntegrationTest extends BaseWebContextSensitiveTest {
     // Reload cache so it picks up the Hibernate-inserted fixtures
     AnalyzerTestNameCache cache = AnalyzerTestNameCache.getInstance();
     cache.reloadCache();
-    cache.registerAnalyzerName("GenericASTM");
 
     PluginAnalyzerService fromContext = SpringContext.getBean(PluginAnalyzerService.class);
     assertTrue(
@@ -411,22 +405,22 @@ public class GenericASTMIntegrationTest extends BaseWebContextSensitiveTest {
     // Insert analyzer via JDBC (only needs to be in DB for pattern matching)
     jdbcTemplate.execute(
         "INSERT INTO analyzer (id, name, analyzer_type, description, identifier_pattern, is_active, analyzer_type_id, last_updated) "
-            + "VALUES ('" + ANALYZER_ID + "', 'Mindray BA-88A', 'CHEMISTRY', 'ASTM over RS232 Serial', "
+            + "VALUES ('"
+            + ANALYZER_ID
+            + "', 'Mindray BA-88A', 'CHEMISTRY', 'ASTM over RS232 Serial', "
             + "'MINDRAY.*BA-88A|BA88A', true, '"
             + analyzerTypeId
             + "', NOW())");
 
-    // Insert test mappings via Hibernate so the cache can see them
+    // Insert test mappings directly using the analyzer_id contract.
     String[][] testMappings = {{"GLUCOSE", "1"}, {"HGB", "2"}};
 
     for (String[] mapping : testMappings) {
-      AnalyzerTestMappingPK pk = new AnalyzerTestMappingPK();
-      pk.setAnalyzerId(ANALYZER_ID);
-      pk.setAnalyzerTestName(mapping[0]);
-      AnalyzerTestMapping testMapping = new AnalyzerTestMapping();
-      testMapping.setCompoundId(pk);
-      testMapping.setTestId(mapping[1]);
-      analyzerTestMappingService.insert(testMapping);
+      jdbcTemplate.update(
+          "INSERT INTO analyzer_test_map (analyzer_id, analyzer_test_name, test_id) VALUES (?, ?, ?)",
+          ANALYZER_ID,
+          mapping[0],
+          mapping[1]);
     }
   }
 }

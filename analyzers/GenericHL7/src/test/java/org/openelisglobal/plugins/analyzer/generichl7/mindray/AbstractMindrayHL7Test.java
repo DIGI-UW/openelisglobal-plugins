@@ -31,10 +31,7 @@ import org.openelisglobal.analyzer.service.AnalyzerTypeService;
 import org.openelisglobal.analyzer.valueholder.Analyzer;
 import org.openelisglobal.analyzer.valueholder.AnalyzerType;
 import org.openelisglobal.analyzerimport.analyzerreaders.HL7AnalyzerReader;
-import org.openelisglobal.analyzerimport.service.AnalyzerTestMappingService;
 import org.openelisglobal.analyzerimport.util.AnalyzerTestNameCache;
-import org.openelisglobal.analyzerimport.valueholder.AnalyzerTestMapping;
-import org.openelisglobal.analyzerimport.valueholder.AnalyzerTestMappingPK;
 import org.openelisglobal.common.services.PluginAnalyzerService;
 import org.openelisglobal.plugins.analyzer.generichl7.GenericHL7Analyzer;
 import org.openelisglobal.spring.util.SpringContext;
@@ -56,7 +53,6 @@ public abstract class AbstractMindrayHL7Test extends BaseWebContextSensitiveTest
   @Autowired private PluginAnalyzerService pluginAnalyzerService;
   @Autowired private AnalyzerService analyzerService;
   @Autowired private AnalyzerTypeService analyzerTypeService;
-  @Autowired private AnalyzerTestMappingService analyzerTestMappingService;
 
   protected JdbcTemplate jdbcTemplate;
   private String analyzerTypeId;
@@ -89,7 +85,6 @@ public abstract class AbstractMindrayHL7Test extends BaseWebContextSensitiveTest
     // Reload cache so it picks up the Hibernate-inserted fixtures
     AnalyzerTestNameCache cache = AnalyzerTestNameCache.getInstance();
     cache.reloadCache();
-    cache.registerAnalyzerName("GenericHL7");
 
     PluginAnalyzerService fromContext = SpringContext.getBean(PluginAnalyzerService.class);
     assertTrue(
@@ -127,7 +122,9 @@ public abstract class AbstractMindrayHL7Test extends BaseWebContextSensitiveTest
   private void cleanTestData() {
     jdbcTemplate.execute("SET search_path TO clinlims");
     jdbcTemplate.execute(
-        "DELETE FROM analyzer_results WHERE analyzer_id = '" + (analyzerId != null ? analyzerId : "0") + "'");
+        "DELETE FROM analyzer_results WHERE analyzer_id = '"
+            + (analyzerId != null ? analyzerId : "0")
+            + "'");
     // Clean test mappings by test name
     String[][] mappings = getTestMappings();
     StringBuilder names = new StringBuilder();
@@ -135,7 +132,8 @@ public abstract class AbstractMindrayHL7Test extends BaseWebContextSensitiveTest
       if (i > 0) names.append(", ");
       names.append("'").append(mappings[i][0]).append("'");
     }
-    jdbcTemplate.execute("DELETE FROM analyzer_test_map WHERE analyzer_test_name IN (" + names + ")");
+    jdbcTemplate.execute(
+        "DELETE FROM analyzer_test_map WHERE analyzer_test_name IN (" + names + ")");
     jdbcTemplate.execute("DELETE FROM analyzer WHERE name = '" + getAnalyzerName() + "'");
   }
 
@@ -149,8 +147,7 @@ public abstract class AbstractMindrayHL7Test extends BaseWebContextSensitiveTest
       type.setName("GenericHL7");
       type.setDescription("Generic HL7 analyzer plugin");
       type.setProtocol("HL7");
-      type.setPluginClassName(
-          "org.openelisglobal.plugins.analyzer.generichl7.GenericHL7Analyzer");
+      type.setPluginClassName("org.openelisglobal.plugins.analyzer.generichl7.GenericHL7Analyzer");
       type.setGenericPlugin(true);
       type.setActive(true);
       analyzerTypeId = analyzerTypeService.insert(type);
@@ -169,16 +166,15 @@ public abstract class AbstractMindrayHL7Test extends BaseWebContextSensitiveTest
     analyzer.setAnalyzerType(type);
     analyzerId = analyzerService.insert(analyzer);
 
-    // Insert test mappings via Hibernate so the cache can see them
+    // Insert test mappings directly so these integration tests keep exercising
+    // the built OpenELIS artifact without relying on branch-specific helper APIs.
     String[][] testMappings = getTestMappings();
     for (String[] mapping : testMappings) {
-      AnalyzerTestMappingPK pk = new AnalyzerTestMappingPK();
-      pk.setAnalyzerId(analyzerId);
-      pk.setAnalyzerTestName(mapping[0]);
-      AnalyzerTestMapping testMapping = new AnalyzerTestMapping();
-      testMapping.setCompoundId(pk);
-      testMapping.setTestId(mapping[1]);
-      analyzerTestMappingService.insert(testMapping);
+      jdbcTemplate.update(
+          "INSERT INTO analyzer_test_map (analyzer_id, analyzer_test_name, test_id) VALUES (?, ?, ?)",
+          analyzerId,
+          mapping[0],
+          mapping[1]);
     }
   }
 
