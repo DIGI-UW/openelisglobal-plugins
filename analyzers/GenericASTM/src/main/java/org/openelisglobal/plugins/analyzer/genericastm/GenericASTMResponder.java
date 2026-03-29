@@ -62,7 +62,7 @@ public class GenericASTMResponder implements AnalyzerResponder {
   private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd");
   private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
-  private final String analyzerTypeId;
+  private final String analyzerId;
   private final String analyzerName;
   private final SampleService sampleService;
   private final SampleHumanService sampleHumanService;
@@ -70,9 +70,9 @@ public class GenericASTMResponder implements AnalyzerResponder {
   private final AnalyzerTestMappingService analyzerTestMappingService;
   private final ZoneId responseZoneId;
 
-  public GenericASTMResponder(String analyzerTypeId, String analyzerName) {
+  public GenericASTMResponder(String analyzerId, String analyzerName) {
     this(
-        analyzerTypeId,
+        analyzerId,
         analyzerName,
         SpringContext.getBean(SampleService.class),
         SpringContext.getBean(SampleHumanService.class),
@@ -81,13 +81,13 @@ public class GenericASTMResponder implements AnalyzerResponder {
   }
 
   GenericASTMResponder(
-      String analyzerTypeId,
+      String analyzerId,
       String analyzerName,
       SampleService sampleService,
       SampleHumanService sampleHumanService,
       AnalysisService analysisService,
       AnalyzerTestMappingService analyzerTestMappingService) {
-    this.analyzerTypeId = analyzerTypeId;
+    this.analyzerId = analyzerId;
     this.analyzerName = analyzerName;
     this.sampleService = sampleService;
     this.sampleHumanService = sampleHumanService;
@@ -155,8 +155,8 @@ public class GenericASTMResponder implements AnalyzerResponder {
           "buildResponse",
           "Sample "
               + requestedAccession
-              + " has no mapped tests for analyzer type "
-              + analyzerTypeId
+              + " has no mapped tests for analyzer "
+              + analyzerId
               + "; returning no-order marker");
       return buildNoOrderResponse(requestedAccession);
     }
@@ -239,7 +239,7 @@ public class GenericASTMResponder implements AnalyzerResponder {
     Map<String, List<String>> testIdToCodes = new LinkedHashMap<>();
 
     for (AnalyzerTestMapping mapping : mappings) {
-      if (!analyzerTypeId.equals(mapping.getAnalyzerTypeId())
+      if (!analyzerId.equals(mapping.getAnalyzerId())
           || isBlank(mapping.getTestId())
           || isBlank(mapping.getAnalyzerTestName())) {
         continue;

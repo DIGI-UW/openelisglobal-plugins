@@ -246,9 +246,9 @@ public class GenericASTMAnalyzer implements AnalyzerImporterPlugin {
           "No matched analyzer - isTargetAnalyzer() must be called first");
     }
 
-    String analyzerTypeId = analyzer.getAnalyzerType().getId();
-    String analyzerTypeName = analyzer.getAnalyzerType().getName();
+    String analyzerId = analyzer.getId();
+    String analyzerName = analyzer.getName();
 
-    return new GenericASTMResponder(analyzerTypeId, analyzerTypeName);
+    return new GenericASTMResponder(analyzerId, analyzerName);
   }
 }

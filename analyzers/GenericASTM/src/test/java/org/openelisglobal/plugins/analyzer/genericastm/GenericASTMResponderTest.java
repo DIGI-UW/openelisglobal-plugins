@@ -28,7 +28,7 @@ import org.openelisglobal.samplehuman.service.SampleHumanService;
 @RunWith(MockitoJUnitRunner.class)
 public class GenericASTMResponderTest {
 
-  private static final String ANALYZER_TYPE_ID = "2006";
+  private static final String ANALYZER_ID = "2006";
   private static final String ANALYZER_NAME = "GenericASTM";
 
   @Mock private SampleService sampleService;
@@ -42,7 +42,7 @@ public class GenericASTMResponderTest {
   public void setUp() {
     responder =
         new GenericASTMResponder(
-            ANALYZER_TYPE_ID,
+            ANALYZER_ID,
             ANALYZER_NAME,
             sampleService,
             sampleHumanService,
@@ -74,7 +74,7 @@ public class GenericASTMResponderTest {
     when(analysis.getTest()).thenReturn(test);
 
     AnalyzerTestMapping mapping = new AnalyzerTestMapping();
-    mapping.setAnalyzerTypeId(ANALYZER_TYPE_ID);
+    mapping.setAnalyzerId(ANALYZER_ID);
     mapping.setAnalyzerTestName("MTB-RIF");
     mapping.setTestId("101");
 
@@ -135,7 +135,7 @@ public class GenericASTMResponderTest {
     when(analysis.getTest()).thenReturn(test);
 
     AnalyzerTestMapping mapping = new AnalyzerTestMapping();
-    mapping.setAnalyzerTypeId(ANALYZER_TYPE_ID);
+    mapping.setAnalyzerId(ANALYZER_ID);
     mapping.setAnalyzerTestName("MTB-RIF");
     mapping.setTestId("101");
 
@@ -178,12 +178,12 @@ public class GenericASTMResponderTest {
     when(secondAnalysis.getTest()).thenReturn(secondTest);
 
     AnalyzerTestMapping firstMapping = new AnalyzerTestMapping();
-    firstMapping.setAnalyzerTypeId(ANALYZER_TYPE_ID);
+    firstMapping.setAnalyzerId(ANALYZER_ID);
     firstMapping.setAnalyzerTestName("MTB-RIF");
     firstMapping.setTestId("101");
 
     AnalyzerTestMapping secondMapping = new AnalyzerTestMapping();
-    secondMapping.setAnalyzerTypeId(ANALYZER_TYPE_ID);
+    secondMapping.setAnalyzerId(ANALYZER_ID);
     secondMapping.setAnalyzerTestName("XDR");
     secondMapping.setTestId("102");
 
@@ -227,7 +227,7 @@ public class GenericASTMResponderTest {
     when(analysis.getTest()).thenReturn(test);
 
     AnalyzerTestMapping mapping = new AnalyzerTestMapping();
-    mapping.setAnalyzerTypeId(ANALYZER_TYPE_ID);
+    mapping.setAnalyzerId(ANALYZER_ID);
     mapping.setAnalyzerTestName("MTB-RIF");
     mapping.setTestId("101");
 
