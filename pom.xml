@@ -47,7 +47,7 @@
   </modules>
 
   <properties>
-    <springframework.version>6.2.11</springframework.version>
+    <springframework.version>6.2.19</springframework.version>
     <maven.compiler.target>21</maven.compiler.target>
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.release>21</maven.compiler.release>
