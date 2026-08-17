@@ -4,7 +4,7 @@ plugins/*
 *.settings
 *.classpath
 analyzers/**/.gitignore
-*/*/target
+**/target/
 *.vscode/*
 target/*
 .DS_Store
