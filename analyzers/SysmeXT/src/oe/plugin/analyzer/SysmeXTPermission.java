@@ -16,19 +16,19 @@
 
 package oe.plugin.analyzer;
 
-import us.mn.state.health.lims.common.services.PluginPermissionService;
-import us.mn.state.health.lims.plugin.PermissionPlugin;
-import us.mn.state.health.lims.role.valueholder.Role;
-import us.mn.state.health.lims.systemmodule.valueholder.SystemModule;
+import org.openelisglobal.common.services.PluginPermissionService;
+import org.openelisglobal.plugin.PermissionPlugin;
+import org.openelisglobal.role.valueholder.Role;
+import org.openelisglobal.systemmodule.valueholder.SystemModule;
 
-/**
- */
-public class SysmeXTPermission extends PermissionPlugin{
-    @Override
-    protected boolean insertPermission(){
-        PluginPermissionService service = new PluginPermissionService();
-        SystemModule module = service.getOrCreateSystemModule( "AnalyzerResults", "SysmeXT", "Results->Analyzer->SysmeXT" );
-        Role role = service.getSystemRole( "Results entry" );
-        return service.bindRoleToModule( role, module );
-    }
+/** */
+public class SysmeXTPermission extends PermissionPlugin {
+  @Override
+  protected boolean insertPermission() {
+    PluginPermissionService service = new PluginPermissionService();
+    SystemModule module =
+        service.getOrCreateSystemModule("AnalyzerResults", "SysmeXT", "Results->Analyzer->SysmeXT");
+    Role role = service.getSystemRole("Results");
+    return service.bindRoleToModule(role, module);
+  }
 }

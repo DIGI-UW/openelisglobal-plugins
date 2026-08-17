@@ -1,0 +1,11 @@
+/bin/
+*.project
+plugins/*
+*.settings
+*.classpath
+analyzers/**/.gitignore
+**/target/
+*.vscode/*
+target/*
+.DS_Store
+lib/*.jar

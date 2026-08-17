@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openElisGlobalPlugin>
+<version>1.0</version>
+<analyzerImporter>
+<extension_point path="org.openelisglobal.plugin.AnalyzerImporterPlugin" >
+    <extension path="oe.plugin.analyzer.SysmexXPAnalyzer" />   
+    <description value="SysmexXPAnalyzer" />
+</extension_point>
+</analyzerImporter>
+<menu>
+    <extension_point path="org.openelisglobal.plugin.MenuPlugin" >
+    <extension path="oe.plugin.analyzer.SysmexXPAnalyzerMenu" />   
+    <description value="Menu for SysmexXPAnalyzer" />
+</extension_point>
+</menu>
+<permission>
+    <extension_point path="org.openelisglobal.plugin.PermissionPlugin" >
+        <extension path="oe.plugin.analyzer.SysmexXPAnalyzerPermission" />
+        <description value="SysmexXPAnalyzer permission" />
+    </extension_point>
+</permission>
+</openElisGlobalPlugin>

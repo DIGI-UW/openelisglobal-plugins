@@ -1,0 +1,50 @@
+﻿2026-01-31T00:23:13.5930929Z Post job cleanup.
+2026-01-31T00:23:13.6905281Z [command]/usr/bin/git version
+2026-01-31T00:23:13.6943274Z git version 2.52.0
+2026-01-31T00:23:13.6995125Z Temporarily overriding HOME='/home/runner/work/_temp/5b7442cb-b17d-4915-861d-51afea0ae1d4' before making global git config changes
+2026-01-31T00:23:13.6996402Z Adding repository directory to the temporary git global config as a safe directory
+2026-01-31T00:23:13.7001096Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/openelisglobal-plugins/openelisglobal-plugins/openelis-global-2
+2026-01-31T00:23:13.7035808Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-01-31T00:23:13.7068854Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-01-31T00:23:13.7291646Z Entering 'dataexport'
+2026-01-31T00:23:13.7335425Z Entering 'plugins'
+2026-01-31T00:23:13.7380236Z Entering 'tools/Liquibase-Outdated'
+2026-01-31T00:23:13.7425499Z Entering 'tools/Password-Migrator'
+2026-01-31T00:23:13.7472367Z Entering 'tools/astm-http-bridge'
+2026-01-31T00:23:13.7516728Z Entering 'tools/astm-mock-server'
+2026-01-31T00:23:13.7579910Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-01-31T00:23:13.7602391Z http.https://github.com/.extraheader
+2026-01-31T00:23:13.7613417Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-01-31T00:23:13.7644687Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-01-31T00:23:13.7869577Z Entering 'dataexport'
+2026-01-31T00:23:13.7893874Z http.https://github.com/.extraheader
+2026-01-31T00:23:13.7927698Z Entering 'plugins'
+2026-01-31T00:23:13.7952659Z http.https://github.com/.extraheader
+2026-01-31T00:23:13.7987557Z Entering 'tools/Liquibase-Outdated'
+2026-01-31T00:23:13.8012347Z http.https://github.com/.extraheader
+2026-01-31T00:23:13.8047691Z Entering 'tools/Password-Migrator'
+2026-01-31T00:23:13.8072929Z http.https://github.com/.extraheader
+2026-01-31T00:23:13.8106315Z Entering 'tools/astm-http-bridge'
+2026-01-31T00:23:13.8130988Z http.https://github.com/.extraheader
+2026-01-31T00:23:13.8165413Z Entering 'tools/astm-mock-server'
+2026-01-31T00:23:13.8190366Z http.https://github.com/.extraheader
+2026-01-31T00:23:13.8241727Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-01-31T00:23:13.8273997Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-01-31T00:23:13.8500122Z Entering 'dataexport'
+2026-01-31T00:23:13.8519049Z file:/home/runner/work/openelisglobal-plugins/openelisglobal-plugins/openelis-global-2/.git/modules/dataexport/config	remote.origin.url
+2026-01-31T00:23:13.8537463Z Entering 'plugins'
+2026-01-31T00:23:13.8556569Z file:/home/runner/work/openelisglobal-plugins/openelisglobal-plugins/openelis-global-2/.git/modules/plugins/config	remote.origin.url
+2026-01-31T00:23:13.8576028Z Entering 'tools/Liquibase-Outdated'
+2026-01-31T00:23:13.8595728Z file:/home/runner/work/openelisglobal-plugins/openelisglobal-plugins/openelis-global-2/.git/modules/tools/Liquibase-Outdated/config	remote.origin.url
+2026-01-31T00:23:13.8616135Z Entering 'tools/Password-Migrator'
+2026-01-31T00:23:13.8635475Z file:/home/runner/work/openelisglobal-plugins/openelisglobal-plugins/openelis-global-2/.git/modules/tools/Password-Migrator/config	remote.origin.url
+2026-01-31T00:23:13.8654834Z Entering 'tools/astm-http-bridge'
+2026-01-31T00:23:13.8673966Z file:/home/runner/work/openelisglobal-plugins/openelisglobal-plugins/openelis-global-2/.git/modules/tools/astm-http-bridge/config	remote.origin.url
+2026-01-31T00:23:13.8692928Z Entering 'tools/astm-mock-server'
+2026-01-31T00:23:13.8714507Z file:/home/runner/work/openelisglobal-plugins/openelisglobal-plugins/openelis-global-2/.git/modules/tools/astm-mock-server/config	remote.origin.url
+2026-01-31T00:23:13.8750559Z [command]/usr/bin/git config --file /home/runner/work/openelisglobal-plugins/openelisglobal-plugins/openelis-global-2/.git/modules/dataexport/config --name-only --get-regexp ^includeIf\.gitdir:
+2026-01-31T00:23:13.8781595Z [command]/usr/bin/git config --file /home/runner/work/openelisglobal-plugins/openelisglobal-plugins/openelis-global-2/.git/modules/plugins/config --name-only --get-regexp ^includeIf\.gitdir:
+2026-01-31T00:23:13.8812176Z [command]/usr/bin/git config --file /home/runner/work/openelisglobal-plugins/openelisglobal-plugins/openelis-global-2/.git/modules/tools/Liquibase-Outdated/config --name-only --get-regexp ^includeIf\.gitdir:
+2026-01-31T00:23:13.8838753Z [command]/usr/bin/git config --file /home/runner/work/openelisglobal-plugins/openelisglobal-plugins/openelis-global-2/.git/modules/tools/Password-Migrator/config --name-only --get-regexp ^includeIf\.gitdir:
+2026-01-31T00:23:13.8869820Z [command]/usr/bin/git config --file /home/runner/work/openelisglobal-plugins/openelisglobal-plugins/openelis-global-2/.git/modules/tools/astm-http-bridge/config --name-only --get-regexp ^includeIf\.gitdir:
+2026-01-31T00:23:13.8902992Z [command]/usr/bin/git config --file /home/runner/work/openelisglobal-plugins/openelisglobal-plugins/openelis-global-2/.git/modules/tools/astm-mock-server/config --name-only --get-regexp ^includeIf\.gitdir:

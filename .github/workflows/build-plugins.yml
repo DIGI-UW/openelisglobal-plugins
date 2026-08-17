@@ -1,0 +1,71 @@
+name: Build OpenELIS-Global-2 Plugins
+on:
+  release:
+    types: [published] 
+    
+env:
+  OE_VERSION: 3.2.1.3
+  OE_REF: develop
+
+jobs:
+  build-and-upload-plugins:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up JDK 21
+        uses: actions/setup-java@v1
+        with:
+          java-version: 21 
+      - name: Cache local Maven repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+              ${{ runner.os }}-maven- 
+      
+      - name: Checkout openelisglobal-plugins
+        uses: actions/checkout@v2
+        with:
+          repository: ${{github.repository}} 
+
+      - name: Checkout OpenELIS-Global-2 (tag)
+        uses: actions/checkout@v4
+        with:
+          repository: DIGI-UW/OpenELIS-Global-2
+          ref: ${{ env.OE_REF }}
+          path: openelis
+          submodules: recursive
+
+      - name: Build DataExport submodule (skip tests)
+        run: mvn -f openelis/dataexport/pom.xml clean install -DskipTests -Dmaven.test.skip=true
+
+      - name: Build OpenELIS classes (compile only - avoids test dependency resolution)
+        run: mvn -f openelis/pom.xml clean compile -Dspotless.check.skip=true
+
+      - name: Create and install OpenELIS jar dependency
+        run: |
+          jar cf openelisglobal-${{ env.OE_VERSION }}.jar -C openelis/target/classes .
+          mvn install:install-file -Dfile=openelisglobal-${{ env.OE_VERSION }}.jar -DgroupId=org.openelisglobal -DartifactId=openelisglobal -Dversion=${{ env.OE_VERSION }} -Dpackaging=jar
+
+      - name: Build openelisglobal-plugins
+        run: mvn clean install  
+
+      - name: check plugins
+        run: ls plugins  
+
+      - name: Compress Folder
+        run: |
+          tar -czf plugins.tar.gz -C plugins .
+          echo "FILE_PATH=plugins.tar.gz" >> $GITHUB_ENV
+          echo "FILE_NAME=plugins.tar.gz" >> $GITHUB_ENV   
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ${{ env.FILE_PATH }}
+          asset_name: ${{ env.FILE_NAME }}
+          asset_content_type: application/gzip  
+ 

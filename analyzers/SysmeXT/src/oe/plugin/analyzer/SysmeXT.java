@@ -16,55 +16,74 @@
 
 package oe.plugin.analyzer;
 
-
-import us.mn.state.health.lims.analyzerimport.analyzerreaders.AnalyzerLineInserter;
-import us.mn.state.health.lims.common.services.PluginAnalyzerService;
-import us.mn.state.health.lims.plugin.AnalyzerImporterPlugin;
+import static org.openelisglobal.common.services.PluginAnalyzerService.getInstance;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static us.mn.state.health.lims.common.services.PluginAnalyzerService.getInstance;
-
+import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
+import org.openelisglobal.common.services.PluginAnalyzerService;
+import org.openelisglobal.plugin.AnalyzerImporterPlugin;
 
 public class SysmeXT implements AnalyzerImporterPlugin {
 
+  public boolean connect() {
+    List<PluginAnalyzerService.TestMapping> nameMappinng =
+        new ArrayList<PluginAnalyzerService.TestMapping>();
 
-    public boolean connect(){
-        List<PluginAnalyzerService.TestMapping> nameMappinng = new ArrayList<PluginAnalyzerService.TestMapping>();
-        
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("GB_10_uL", "Numération des globules blancs"));
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("GR_100000_uL", "Numération des globules rouges"));
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("HBG_g_L", "Hémoglobine"));
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("HCT_10_NEG_1_PER", "Hématocrite"));
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("VGM_10_NEG_1_fL", "Volume Globulaire Moyen"));
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("CCMH_g_L", "Concentration Corpusculaire Moyenne en Hémoglobine"));
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("TCMH_10_NEG_1_pg", "Teneur Corpusculaire Moyenne en Hémoglobine"));
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("PLQ_10_3_uL", "Plaquette"));
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("NEUT_PER_10_NEG_1_PER", "Polynucléaires Neutrophiles (%)"));
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("LYMPH_PER_10_NEG_1_PER", "Lymphocytes (%)"));
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("MONO_PER_10_NEG_1_PER", "Monocytes (%)"));
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("EO_PER_10_NEG_1_PER", "Polynucléaires Eosinophiles (%)"));
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("BASO_PER_10_NEG_1_PER", "Polynucléaires basophiles (%)")); 
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("NEUT_COUNT_10_uL", "Polynucléaires Neutrophiles (Abs)"));
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("LYMPH_COUNT_10_uL", "Lymphocytes (Abs)"));
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("MONO_COUNT_10_uL", "Monocytes (Abs)"));
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("EO_COUNT_10_uL", "Polynucléaires Eosinophiles (Abs)"));
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("BASO_COUNT_10_uL", "Polynucléaires basophiles (Abs)"));      
-        
-        //SysmeXT
-        getInstance().addAnalyzerDatabaseParts("SysmeXT", "Plugin for SysmeXTi",nameMappinng);
-        getInstance().registerAnalyzer(this);
-        return true;
-    }
+    nameMappinng.add(
+        new PluginAnalyzerService.TestMapping("GB_10_uL", "Numération des globules blancs"));
+    nameMappinng.add(
+        new PluginAnalyzerService.TestMapping("GR_100000_uL", "Numération des globules rouges"));
+    nameMappinng.add(new PluginAnalyzerService.TestMapping("HBG_g_L", "Hémoglobine"));
+    nameMappinng.add(new PluginAnalyzerService.TestMapping("HCT_10_NEG_1_PER", "Hématocrite"));
+    nameMappinng.add(
+        new PluginAnalyzerService.TestMapping("VGM_10_NEG_1_fL", "Volume Globulaire Moyen"));
+    nameMappinng.add(
+        new PluginAnalyzerService.TestMapping(
+            "CCMH_g_L", "Concentration Corpusculaire Moyenne en Hémoglobine"));
+    nameMappinng.add(
+        new PluginAnalyzerService.TestMapping(
+            "TCMH_10_NEG_1_pg", "Teneur Corpusculaire Moyenne en Hémoglobine"));
+    nameMappinng.add(new PluginAnalyzerService.TestMapping("PLQ_10_3_uL", "Plaquette"));
+    nameMappinng.add(
+        new PluginAnalyzerService.TestMapping(
+            "NEUT_PER_10_NEG_1_PER", "Polynucléaires Neutrophiles (%)"));
+    nameMappinng.add(
+        new PluginAnalyzerService.TestMapping("LYMPH_PER_10_NEG_1_PER", "Lymphocytes (%)"));
+    nameMappinng.add(
+        new PluginAnalyzerService.TestMapping("MONO_PER_10_NEG_1_PER", "Monocytes (%)"));
+    nameMappinng.add(
+        new PluginAnalyzerService.TestMapping(
+            "EO_PER_10_NEG_1_PER", "Polynucléaires Eosinophiles (%)"));
+    nameMappinng.add(
+        new PluginAnalyzerService.TestMapping(
+            "BASO_PER_10_NEG_1_PER", "Polynucléaires basophiles (%)"));
+    nameMappinng.add(
+        new PluginAnalyzerService.TestMapping(
+            "NEUT_COUNT_10_uL", "Polynucléaires Neutrophiles (Abs)"));
+    nameMappinng.add(
+        new PluginAnalyzerService.TestMapping("LYMPH_COUNT_10_uL", "Lymphocytes (Abs)"));
+    nameMappinng.add(new PluginAnalyzerService.TestMapping("MONO_COUNT_10_uL", "Monocytes (Abs)"));
+    nameMappinng.add(
+        new PluginAnalyzerService.TestMapping(
+            "EO_COUNT_10_uL", "Polynucléaires Eosinophiles (Abs)"));
+    nameMappinng.add(
+        new PluginAnalyzerService.TestMapping(
+            "BASO_COUNT_10_uL", "Polynucléaires basophiles (Abs)"));
 
-    @Override
-    public boolean isTargetAnalyzer(List<String> lines) {
-        return lines.get(1) != null && lines.get(8).contains("60272");
-    }
+    // SysmeXT
+    getInstance().addAnalyzerDatabaseParts("SysmeXT", "Plugin for SysmeXTi", nameMappinng);
+    getInstance().registerAnalyzer(this);
+    return true;
+  }
 
-    @Override
-    public AnalyzerLineInserter getAnalyzerLineInserter() {
-        return new SysmeXTImplementation();
-    }
+  @Override
+  public boolean isTargetAnalyzer(List<String> lines) {
+    return lines.get(1) != null && lines.get(8).contains("60272");
+  }
+
+  @Override
+  public AnalyzerLineInserter getAnalyzerLineInserter() {
+    return new SysmeXTImplementation();
+  }
 }

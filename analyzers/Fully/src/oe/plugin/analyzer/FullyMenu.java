@@ -16,36 +16,42 @@
 
 package oe.plugin.analyzer;
 
-import us.mn.state.health.lims.common.services.PluginMenuService;
-import us.mn.state.health.lims.common.services.PluginMenuService.KnownMenu;
-import us.mn.state.health.lims.common.util.ConfigurationProperties;
-import us.mn.state.health.lims.menu.util.MenuUtil;
-import us.mn.state.health.lims.menu.valueholder.Menu;
-import us.mn.state.health.lims.plugin.MenuPlugin;
+import java.util.Locale;
+import org.openelisglobal.common.services.PluginMenuService;
+import org.openelisglobal.common.services.PluginMenuService.KnownMenu;
+import org.openelisglobal.menu.valueholder.Menu;
+import org.openelisglobal.plugin.MenuPlugin;
 
 public class FullyMenu extends MenuPlugin {
 
-	@Override
-	protected void insertMenu() {
-        PluginMenuService service = PluginMenuService.getInstance();
-        Menu menu = new Menu();
-		
-		menu.setParent(PluginMenuService.getInstance().getKnownMenu(KnownMenu.ANALYZER, "menu_results"));
-		//The order this analyzer will show on the menu relative to other analyzers
-		menu.setPresentationOrder(50);
-		//The id needs to be unique in the system
-		menu.setElementId("Fully_analyzer_plugin");
-		//This will always be "/AnalyzerResults.do?type=<The name of the analyzer in the database as specified in then Analyzer class call to addAnalyzerDatabaseParts(....) 
-		menu.setActionURL("/AnalyzerResults.do?type=FullyAnalyzer");
-		//The key used for the name of the analyzer on the menu.  Should not already exist in MessageResource.properties.
-		menu.setDisplayKey("banner.menu.results.Fullyanalyzer");
-		menu.setOpenInNewWindow(false);
+  @Override
+  protected void insertMenu() {
+    PluginMenuService service = PluginMenuService.getInstance();
+    Menu menu = new Menu();
 
-        service.addMenu(menu);
-		//Analyzer name in English
-        service.insertLanguageKeyValue("banner.menu.results.Fullyanalyzer","Biochemestry: Fully analyzer importer", ConfigurationProperties.LOCALE.ENGLISH.getRepresentation());
-		//Analyzer name in French
-        service.insertLanguageKeyValue("banner.menu.results.Fullyanalyzer","Biochimie: Fully", ConfigurationProperties.LOCALE.FRENCH.getRepresentation());
-	}
-	
+    menu.setParent(
+        PluginMenuService.getInstance().getKnownMenu(KnownMenu.ANALYZER, "menu_results"));
+    // The order this analyzer will show on the menu relative to other analyzers
+    menu.setPresentationOrder(50);
+    // The id needs to be unique in the system
+    menu.setElementId("Fully_analyzer_plugin");
+    // This will always be "/AnalyzerResults?type=<The name of the analyzer in
+    // the database as specified in then Analyzer class call to
+    // addAnalyzerDatabaseParts(....)
+    menu.setActionURL("/AnalyzerResults?type=FullyAnalyzer");
+    // The key used for the name of the analyzer on the menu. Should not already
+    // exist in MessageResource.properties.
+    menu.setDisplayKey("banner.menu.results.Fullyanalyzer");
+    menu.setOpenInNewWindow(false);
+
+    service.addMenu(menu);
+    // Analyzer name in English
+    service.insertLanguageKeyValue(
+        "banner.menu.results.Fullyanalyzer",
+        "Biochemestry: Fully analyzer importer",
+        Locale.ENGLISH.toLanguageTag());
+    // Analyzer name in French
+    service.insertLanguageKeyValue(
+        "banner.menu.results.Fullyanalyzer", "Biochimie: Fully", Locale.FRENCH.toLanguageTag());
+  }
 }

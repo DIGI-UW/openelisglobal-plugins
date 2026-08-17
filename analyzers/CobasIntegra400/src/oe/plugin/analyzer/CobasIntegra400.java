@@ -16,53 +16,49 @@
 
 package oe.plugin.analyzer;
 
-import us.mn.state.health.lims.analyzerimport.analyzerreaders.AnalyzerLineInserter;
-import us.mn.state.health.lims.common.services.PluginAnalyzerService;
-import us.mn.state.health.lims.plugin.AnalyzerImporterPlugin;
+import static org.openelisglobal.common.services.PluginAnalyzerService.getInstance;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static us.mn.state.health.lims.common.services.PluginAnalyzerService.getInstance;
-
+import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
+import org.openelisglobal.common.services.PluginAnalyzerService;
+import org.openelisglobal.plugin.AnalyzerImporterPlugin;
 
 public class CobasIntegra400 implements AnalyzerImporterPlugin {
 
+  public boolean connect() {
+    List<PluginAnalyzerService.TestMapping> nameMappinng =
+        new ArrayList<PluginAnalyzerService.TestMapping>();
 
-    public boolean connect(){
-        List<PluginAnalyzerService.TestMapping> nameMappinng = new ArrayList<PluginAnalyzerService.TestMapping>();
-        
-        
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("ALTL", "Transaminases ALTL"));
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("ASTL", "Transaminases ASTL"));
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("CREJ2", "Créatininémie"));
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("GLU3", "Glycémie"));
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("GLU2", "Glycémie"));
-        getInstance().addAnalyzerDatabaseParts("CobasIntegra400", "Plugin for Cobas Integra 400",nameMappinng);
-        getInstance().registerAnalyzer(this);
-        return true;
-        /* ---------------- 
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("ALTL", "Transaminases GPT (37°C)"));
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("ASTL", "Transaminases"));
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("CREJ2", "Créatinine"));
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("GLU2", "Glucose"));
-        
-        
-        getInstance().addAnalyzerDatabaseParts("CobasIntegra400", "Plugin for Cobas Integra 400",nameMappinng);
-        getInstance().registerAnalyzer(this);
-        return true;*/
-        
-       
-        
-    }
+    nameMappinng.add(new PluginAnalyzerService.TestMapping("ALTL", "Transaminases ALTL"));
+    nameMappinng.add(new PluginAnalyzerService.TestMapping("ASTL", "Transaminases ASTL"));
+    nameMappinng.add(new PluginAnalyzerService.TestMapping("CREJ2", "Créatininémie"));
+    nameMappinng.add(new PluginAnalyzerService.TestMapping("GLU3", "Glycémie"));
+    nameMappinng.add(new PluginAnalyzerService.TestMapping("GLU2", "Glycémie"));
+    getInstance()
+        .addAnalyzerDatabaseParts("CobasIntegra400", "Plugin for Cobas Integra 400", nameMappinng);
+    getInstance().registerAnalyzer(this);
+    return true;
+    /* ----------------
+    nameMappinng.add(new PluginAnalyzerService.TestMapping("ALTL", "Transaminases GPT (37°C)"));
+    nameMappinng.add(new PluginAnalyzerService.TestMapping("ASTL", "Transaminases"));
+    nameMappinng.add(new PluginAnalyzerService.TestMapping("CREJ2", "Créatinine"));
+    nameMappinng.add(new PluginAnalyzerService.TestMapping("GLU2", "Glucose"));
 
-    @Override
-    public boolean isTargetAnalyzer(List<String> lines) {
-        return lines.get(0) != null && lines.get(0).contains("COBAS INTEGRA400");
-    }
 
-    @Override
-    public AnalyzerLineInserter getAnalyzerLineInserter() {
-        return new CobasIntegra400Implementation();
-    }
+    getInstance().addAnalyzerDatabaseParts("CobasIntegra400", "Plugin for Cobas Integra 400",nameMappinng);
+    getInstance().registerAnalyzer(this);
+    return true;*/
+
+  }
+
+  @Override
+  public boolean isTargetAnalyzer(List<String> lines) {
+    return lines.get(0) != null && lines.get(0).contains("COBAS INTEGRA400");
+  }
+
+  @Override
+  public AnalyzerLineInserter getAnalyzerLineInserter() {
+    return new CobasIntegra400Implementation();
+  }
 }

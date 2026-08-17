@@ -16,51 +16,48 @@
 
 package oe.plugin.analyzer;
 
-import us.mn.state.health.lims.analyzerimport.analyzerreaders.AnalyzerLineInserter;
-import us.mn.state.health.lims.common.services.PluginAnalyzerService;
-import us.mn.state.health.lims.plugin.AnalyzerImporterPlugin;
+import static org.openelisglobal.common.services.PluginAnalyzerService.getInstance;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static us.mn.state.health.lims.common.services.PluginAnalyzerService.getInstance;
-
+import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
+import org.openelisglobal.common.services.PluginAnalyzerService;
+import org.openelisglobal.plugin.AnalyzerImporterPlugin;
 
 public class FacsPrestoAnalyzer implements AnalyzerImporterPlugin {
 
-    public boolean connect(){
-        List<PluginAnalyzerService.TestMapping> nameMappinng = new ArrayList<PluginAnalyzerService.TestMapping>();
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("CD4", "Dénombrement des lymphocytes CD4 (mm3)"));
-        nameMappinng.add(new PluginAnalyzerService.TestMapping("%CD4", "Dénombrement des lymphocytes  CD4 (%)"));
-        getInstance().addAnalyzerDatabaseParts("FacsPrestoAnalyzer", "Plugin for FacsPresto",nameMappinng);
-        getInstance().registerAnalyzer(this);
-        return true;
+  public boolean connect() {
+    List<PluginAnalyzerService.TestMapping> nameMappinng =
+        new ArrayList<PluginAnalyzerService.TestMapping>();
+    nameMappinng.add(
+        new PluginAnalyzerService.TestMapping("CD4", "Dénombrement des lymphocytes CD4 (mm3)"));
+    nameMappinng.add(
+        new PluginAnalyzerService.TestMapping("%CD4", "Dénombrement des lymphocytes  CD4 (%)"));
+    getInstance()
+        .addAnalyzerDatabaseParts("FacsPrestoAnalyzer", "Plugin for FacsPresto", nameMappinng);
+    getInstance().registerAnalyzer(this);
+    return true;
+  }
+
+  @Override
+  public boolean isTargetAnalyzer(List<String> lines) {
+
+    if (getColumnsLine(lines) < 0) return false;
+
+    return true;
+  }
+
+  @Override
+  public AnalyzerLineInserter getAnalyzerLineInserter() {
+    return new FacsPrestoAnalyzerImplementation();
+  }
+
+  public int getColumnsLine(List<String> lines) {
+    for (int k = 0; k < lines.size(); k++) {
+      System.out.println("***************" + k);
+      if (lines.get(k).contains("BD FACSPresto")) return k;
     }
 
-    @Override
-    public boolean isTargetAnalyzer(List<String> lines) {
-    
-    	if(getColumnsLine(lines)<0) return false;
-    	 
-    	return true;
-    	
-    }
-
-    @Override
-    public AnalyzerLineInserter getAnalyzerLineInserter() {
-        return new FacsPrestoAnalyzerImplementation();
-    }
-
-    public int getColumnsLine(List<String> lines) {
-    for(int k=0;k<lines.size();k++){
-                System.out.println("***************" + k);
-		if(lines.get(k).contains("BD FACSPresto"))
-               
-                                 
-		return k;
-			
-		}
-		
-		return -1;
-    }
+    return -1;
+  }
 }

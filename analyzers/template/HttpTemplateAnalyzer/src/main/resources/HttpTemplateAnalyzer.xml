@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openElisGlobalPlugin>
+<version>1.0</version>
+<analyzerImporter>
+<extension_point path="org.openelisglobal.plugin.AnalyzerImporterPlugin" >
+    <extension path="oe.plugin.analyzer.HttpTemplateAnalyzer" />   
+    <description value="HttpTemplateAnalyzer" />
+</extension_point>
+</analyzerImporter>
+<menu>
+    <extension_point path="org.openelisglobal.plugin.MenuPlugin" >
+    <extension path="oe.plugin.analyzer.HttpTemplateAnalyzerMenu" />   
+    <description value="Menu for HttpTemplateAnalyzer" />
+</extension_point>
+</menu>
+<permission>
+    <extension_point path="org.openelisglobal.plugin.PermissionPlugin" >
+        <extension path="oe.plugin.analyzer.HttpTemplateAnalyzerPermission" />
+        <description value="HttpTemplateAnalyzer permission" />
+    </extension_point>
+</permission>
+<servlet>
+    <extension_point path="org.openelisglobal.plugin.ServletPlugin" >
+        <extension path="oe.plugin.analyzer.HttpTemplateAnalyzerServlet" />
+        <servlet-path value="/HttpTemplateAnalyzerServlet" />
+        <servlet-name value="HttpTemplateAnalyzerServlet" />
+        <description value="HttpTemplateAnalyzer servlet" />
+    </extension_point>
+</servlet>
+</openElisGlobalPlugin>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openElisGlobalPlugin>
+  <version>1.0</version>
+  <analyzerImporter>
+    <extension_point path="org.openelisglobal.plugin.AnalyzerImporterPlugin">
+      <extension path="org.openelisglobal.plugins.analyzer.genericfile.GenericFileAnalyzer" />
+      <description value="GenericFile" />
+    </extension_point>
+  </analyzerImporter>
+</openElisGlobalPlugin>

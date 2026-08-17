@@ -1,0 +1,92 @@
+﻿2026-01-31T00:20:46.2894519Z ##[group]Run actions/checkout@v4
+2026-01-31T00:20:46.2895487Z with:
+2026-01-31T00:20:46.2896273Z   repository: DIGI-UW/openelisglobal-plugins
+2026-01-31T00:20:46.2897534Z   token: ***
+2026-01-31T00:20:46.2898239Z   ssh-strict: true
+2026-01-31T00:20:46.2898980Z   ssh-user: git
+2026-01-31T00:20:46.2899952Z   persist-credentials: true
+2026-01-31T00:20:46.2900799Z   clean: true
+2026-01-31T00:20:46.2901558Z   sparse-checkout-cone-mode: true
+2026-01-31T00:20:46.2902483Z   fetch-depth: 1
+2026-01-31T00:20:46.2903203Z   fetch-tags: false
+2026-01-31T00:20:46.2903963Z   show-progress: true
+2026-01-31T00:20:46.2904719Z   lfs: false
+2026-01-31T00:20:46.2905417Z   submodules: false
+2026-01-31T00:20:46.2906175Z   set-safe-directory: true
+2026-01-31T00:20:46.2906976Z env:
+2026-01-31T00:20:46.2907617Z   OE_REF: develop
+2026-01-31T00:20:46.2908674Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.10-7/x64
+2026-01-31T00:20:46.2910528Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.10-7/x64
+2026-01-31T00:20:46.2911923Z ##[endgroup]
+2026-01-31T00:20:46.3907699Z Syncing repository: DIGI-UW/openelisglobal-plugins
+2026-01-31T00:20:46.3910950Z ##[group]Getting Git version info
+2026-01-31T00:20:46.3913509Z Working directory is '/home/runner/work/openelisglobal-plugins/openelisglobal-plugins'
+2026-01-31T00:20:46.3963148Z [command]/usr/bin/git version
+2026-01-31T00:20:46.4058890Z git version 2.52.0
+2026-01-31T00:20:46.4085446Z ##[endgroup]
+2026-01-31T00:20:46.4102285Z Temporarily overriding HOME='/home/runner/work/_temp/e1deaa31-aea1-4c53-ad76-9193f0b6b6b1' before making global git config changes
+2026-01-31T00:20:46.4104950Z Adding repository directory to the temporary git global config as a safe directory
+2026-01-31T00:20:46.4109951Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/openelisglobal-plugins/openelisglobal-plugins
+2026-01-31T00:20:46.4156025Z Deleting the contents of '/home/runner/work/openelisglobal-plugins/openelisglobal-plugins'
+2026-01-31T00:20:46.4159019Z ##[group]Initializing the repository
+2026-01-31T00:20:46.4165203Z [command]/usr/bin/git init /home/runner/work/openelisglobal-plugins/openelisglobal-plugins
+2026-01-31T00:20:46.4266571Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-01-31T00:20:46.4269873Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-01-31T00:20:46.4272536Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-01-31T00:20:46.4273897Z hint: call:
+2026-01-31T00:20:46.4274556Z hint:
+2026-01-31T00:20:46.4275406Z hint: 	git config --global init.defaultBranch <name>
+2026-01-31T00:20:46.4276505Z hint:
+2026-01-31T00:20:46.4277501Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-01-31T00:20:46.4279689Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-01-31T00:20:46.4281317Z hint:
+2026-01-31T00:20:46.4282003Z hint: 	git branch -m <name>
+2026-01-31T00:20:46.4282801Z hint:
+2026-01-31T00:20:46.4284109Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-01-31T00:20:46.4287191Z Initialized empty Git repository in /home/runner/work/openelisglobal-plugins/openelisglobal-plugins/.git/
+2026-01-31T00:20:46.4290989Z [command]/usr/bin/git remote add origin https://github.com/DIGI-UW/openelisglobal-plugins
+2026-01-31T00:20:46.4334243Z ##[endgroup]
+2026-01-31T00:20:46.4335543Z ##[group]Disabling automatic garbage collection
+2026-01-31T00:20:46.4339923Z [command]/usr/bin/git config --local gc.auto 0
+2026-01-31T00:20:46.4373257Z ##[endgroup]
+2026-01-31T00:20:46.4374458Z ##[group]Setting up auth
+2026-01-31T00:20:46.4383511Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-01-31T00:20:46.4420743Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-01-31T00:20:46.4750734Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-01-31T00:20:46.4781114Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-01-31T00:20:46.5010998Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-01-31T00:20:46.5042556Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-01-31T00:20:46.5277868Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-01-31T00:20:46.5312806Z ##[endgroup]
+2026-01-31T00:20:46.5315009Z ##[group]Fetching the repository
+2026-01-31T00:20:46.5324172Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +d7cb17b83bf008e47952181d366ed514e0ebf748:refs/remotes/pull/33/merge
+2026-01-31T00:20:54.0463396Z From https://github.com/DIGI-UW/openelisglobal-plugins
+2026-01-31T00:20:54.0465551Z  * [new ref]         d7cb17b83bf008e47952181d366ed514e0ebf748 -> pull/33/merge
+2026-01-31T00:20:54.0496921Z ##[endgroup]
+2026-01-31T00:20:54.0497788Z ##[group]Determining the checkout info
+2026-01-31T00:20:54.0500120Z ##[endgroup]
+2026-01-31T00:20:54.0505017Z [command]/usr/bin/git sparse-checkout disable
+2026-01-31T00:20:54.0546224Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-01-31T00:20:54.0572494Z ##[group]Checking out the ref
+2026-01-31T00:20:54.0576874Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/33/merge
+2026-01-31T00:20:54.5237843Z Note: switching to 'refs/remotes/pull/33/merge'.
+2026-01-31T00:20:54.5238491Z 
+2026-01-31T00:20:54.5238880Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-01-31T00:20:54.5240391Z changes and commit them, and you can discard any commits you make in this
+2026-01-31T00:20:54.5241256Z state without impacting any branches by switching back to a branch.
+2026-01-31T00:20:54.5241740Z 
+2026-01-31T00:20:54.5242119Z If you want to create a new branch to retain commits you create, you may
+2026-01-31T00:20:54.5242886Z do so (now or later) by using -c with the switch command. Example:
+2026-01-31T00:20:54.5243343Z 
+2026-01-31T00:20:54.5243592Z   git switch -c <new-branch-name>
+2026-01-31T00:20:54.5243911Z 
+2026-01-31T00:20:54.5244092Z Or undo this operation with:
+2026-01-31T00:20:54.5244373Z 
+2026-01-31T00:20:54.5244537Z   git switch -
+2026-01-31T00:20:54.5244835Z 
+2026-01-31T00:20:54.5245204Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-01-31T00:20:54.5245774Z 
+2026-01-31T00:20:54.5246371Z HEAD is now at d7cb17b Merge e145e45b4f4ce6edcd9fe059da570a082177563b into 6d3beab273b2e5c5a878c105908e9a1803e83e41
+2026-01-31T00:20:54.5282205Z ##[endgroup]
+2026-01-31T00:20:54.5319606Z [command]/usr/bin/git log -1 --format=%H
+2026-01-31T00:20:54.5341680Z d7cb17b83bf008e47952181d366ed514e0ebf748

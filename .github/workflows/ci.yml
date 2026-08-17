@@ -1,0 +1,54 @@
+name: openelisglobal-plugins CI Build
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [develop]
+  workflow_dispatch:
+
+# The 2-table model and GenericASTM/GenericHL7 plugin support are on develop
+# since feat/011 merged (PR #2767).
+env:
+  OE_REF: develop
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: temurin
+
+      - name: Cache local Maven repository
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-plugins-${{ hashFiles('**/pom.xml') }}-oe-${{ env.OE_REF }}
+          restore-keys: |
+            ${{ runner.os }}-maven-plugins-
+
+      - name: Checkout openelisglobal-plugins
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+
+      - name: Checkout OpenELIS-Global-2
+        uses: actions/checkout@v4
+        with:
+          repository: DIGI-UW/OpenELIS-Global-2
+          ref: ${{ env.OE_REF }}
+          path: openelis-global-2
+          submodules: recursive
+
+      - name: Build dataexport
+        working-directory: openelis-global-2/dataexport
+        run: mvn clean install -DskipTests -Dmaven.test.skip=true
+
+      - name: Build and install OpenELIS-Global-2
+        working-directory: openelis-global-2
+        run: mvn clean install -DskipTests -Dspotless.check.skip=true
+
+      - name: Build openelisglobal-plugins
+        run: mvn clean install -DskipTests

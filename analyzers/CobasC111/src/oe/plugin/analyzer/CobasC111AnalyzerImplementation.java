@@ -16,189 +16,119 @@
 
 package oe.plugin.analyzer;
 
-import us.mn.state.health.lims.analyzer.dao.AnalyzerDAO;
-import us.mn.state.health.lims.analyzer.daoimpl.AnalyzerDAOImpl;
-import us.mn.state.health.lims.analyzer.valueholder.Analyzer;
-import us.mn.state.health.lims.analyzerimport.analyzerreaders.AnalyzerLineInserter;
-import us.mn.state.health.lims.analyzerresults.valueholder.AnalyzerResults;
-import us.mn.state.health.lims.common.util.DateUtil;
-import us.mn.state.health.lims.test.daoimpl.TestDAOImpl;
-import us.mn.state.health.lims.test.valueholder.Test;
-
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
+import org.openelisglobal.analyzerimport.analyzerreaders.AnalyzerLineInserter;
+import org.openelisglobal.analyzerresults.valueholder.AnalyzerResults;
+import org.openelisglobal.common.util.DateUtil;
+import org.openelisglobal.spring.util.SpringContext;
+import org.openelisglobal.test.service.TestService;
+import org.openelisglobal.test.valueholder.Test;
 
 public class CobasC111AnalyzerImplementation extends AnalyzerLineInserter {
-    
-	static String ANALYZER_ID;
-	//static String DATE_PATTERN = "yyyyMMddHH:mm";
-        static String DATE_PATTERN = "yyyyMMdd";
-        
-        private static final String CONTROL_ACCESSION_PREFIX = "PCC";
-        private static final String[] units = new String[100];
-        private static final int[] scaleIndex = new int[100];
-        private static final String DELIMITER = ";";
-        double result = Double.NaN;
-        String line;
-       	String[] data;
-        
-        
-        
-	static HashMap<String, Test> testNameMap = new HashMap<String, Test>();
-        static HashMap<String, String> testUnitMap = new HashMap<String, String>();
-	    
-	static{
-		
-            testNameMap.put("GLU2", new TestDAOImpl().getTestByName("Glucose"));
-            testNameMap.put("CREJ2", new TestDAOImpl().getTestByName("Créatinine"));
-            testNameMap.put("ALTL", new TestDAOImpl().getTestByName("Transaminases GPT (37°C)"));
-                
-                System.out.println(testNameMap);
-		
-		AnalyzerDAO analyzerDAO = new AnalyzerDAOImpl();
-		Analyzer analyzer = analyzerDAO.getAnalyzerByName("CobasC111Analyzer");
-		ANALYZER_ID = analyzer.getId();
-		
-		
-	} 
-       
-        
-        static{
-		
-                testUnitMap.put("GLU2", "/1|10^3/uL");
-		testUnitMap.put("CREJ2", "/1|10^6/uL");
-                testUnitMap.put("ALTL", "/1|g/dL");
-    	
-		System.out.println(testUnitMap);
-		
-		
-		
-	}
-    
-    /* (non-Javadoc)
-     * @see us.mn.state.health.lims.analyzerimport.analyzerreaders.AnalyzerLineInserter#insert(java.util.List, java.lang.String)
-     */
-    @Override
-    public boolean insert(List<String> lines, String currentUserId) {
-        List<AnalyzerResults> results = new ArrayList<AnalyzerResults>();
-        
-        for (Integer j = 1; j < lines.size(); j++) {        	
-        	System.out.println("processing line #: "  + j);
-        	line = lines.get(j);
-        	data = line.split(";");
-                
-        	if (line.length() == 0 || data.length == 0) {
-        		continue;
-        	}
-        	//String dateTime = "";
-        	
-        	String currentAccessionNumber = data [10].replace("\"", "").trim();
-                //--------------------------
-            if (currentAccessionNumber.contains("CHRSP")||currentAccessionNumber.startsWith(CONTROL_ACCESSION_PREFIX)) {         
-                
-        	//---------------------------
-        	if (data [3].contains("690") || data [3].contains("685") || data [3].contains("767")) { 
-                        String testKey = data [8].replace("\"", "").trim();
-                        //String date = data [4].replace("\"", "").concat(data [5].replace("\"", ""));
-                        String date = data [4].replace("\"", "");                       
-                              AnalyzerResults aResult = new AnalyzerResults();
-                                 
-                                aResult.setTestId(testNameMap.get(testKey).getId());	        		
-	        		aResult.setTestName(testNameMap.get(testKey).getName());
-                                aResult.setResult(data [12].replace("\"", "").trim());
-                                aResult.setAnalyzerId(ANALYZER_ID);
-                                aResult.setUnits(data [13].replace("\"", ""));
-                                aResult.setAccessionNumber(data [10].replace("\"", "").trim());
- //                               aResult.setReadOnly(CheckReadOnly (testKey));
-                                aResult.setIsControl(CheckControl (currentAccessionNumber));
-			        aResult.setCompleteDate(getTimestampFromDate(date));
-                                
-	            	
-	            	System.out.println("***" + aResult.getAccessionNumber() + " " + aResult.getCompleteDate() + " " + aResult.getResult());
-	            	
-                        results.add(aResult);
-                        
-                        
-	        		//else {
-                        //if (data[j].length() == 0) {
-	        		//	break;
-	        		//} 
-	        	     		
-	        	}
-            }
+
+  private static final String ANALYZER_NAME = "CobasC111Analyzer";
+  private static final String DATE_PATTERN = "yyyyMMdd";
+  private static final String CONTROL_ACCESSION_PREFIX = "PCC";
+  private static final String DELIMITER = ";";
+
+  // Lazy-initialized services
+  private TestService testService;
+  // Lazy-initialized data
+  private HashMap<String, Test> testNameMap;
+  private HashMap<String, String> testUnitMap;
+
+  double result = Double.NaN;
+  String line;
+  String[] data;
+
+  // Lazy getter for TestService
+  protected TestService getTestService() {
+    if (testService == null) {
+      testService = SpringContext.getBean(TestService.class);
+    }
+    return testService;
+  }
+
+  // Lazy getter for test name map
+  protected HashMap<String, Test> getTestNameMap() {
+    if (testNameMap == null) {
+      testNameMap = new HashMap<>();
+      testNameMap.put("GLU2", getTestService().getTestByName("Glucose"));
+      testNameMap.put("CREJ2", getTestService().getTestByName("Créatinine"));
+      testNameMap.put("ALTL", getTestService().getTestByName("Transaminases GPT (37°C)"));
+    }
+    return testNameMap;
+  }
+
+  // Lazy getter for test unit map
+  protected HashMap<String, String> getTestUnitMap() {
+    if (testUnitMap == null) {
+      testUnitMap = new HashMap<>();
+      testUnitMap.put("GLU2", "/1|10^3/uL");
+      testUnitMap.put("CREJ2", "/1|10^6/uL");
+      testUnitMap.put("ALTL", "/1|g/dL");
+    }
+    return testUnitMap;
+  }
+
+  @Override
+  public boolean insert(List<String> lines, String currentUserId) {
+    List<AnalyzerResults> results = new ArrayList<>();
+
+    for (int j = 1; j < lines.size(); j++) {
+      line = lines.get(j);
+      data = line.split(";");
+
+      if (line.length() == 0 || data.length == 0) {
+        continue;
+      }
+
+      String currentAccessionNumber = data[10].replace("\"", "").trim();
+      if (currentAccessionNumber.contains("CHRSP")
+          || currentAccessionNumber.startsWith(CONTROL_ACCESSION_PREFIX)) {
+
+        if (data[3].contains("690") || data[3].contains("685") || data[3].contains("767")) {
+          String testKey = data[8].replace("\"", "").trim();
+          String date = data[4].replace("\"", "");
+
+          Test test = getTestNameMap().get(testKey);
+          if (test == null) {
+            continue;
+          }
+
+          AnalyzerResults aResult = new AnalyzerResults();
+          aResult.setTestId(test.getId());
+          aResult.setTestName(test.getName());
+          aResult.setResult(data[12].replace("\"", "").trim());
+          aResult.setUnits(data[13].replace("\"", ""));
+          aResult.setAccessionNumber(data[10].replace("\"", "").trim());
+          aResult.setIsControl(CheckControl(currentAccessionNumber));
+          aResult.setCompleteDate(getTimestampFromDate(date));
+
+          results.add(aResult);
         }
-        return persistImport(currentUserId, results);
+      }
     }
+    return persistImport(currentUserId, results);
+  }
 
-  /*
-    
-   private String setUnitByTestKey(String testKey) {
-       
-         String unitKey = testUnitMap.get(testKey);
-                int debut = unitKey.indexOf("|");
-                int debutChaineUnit = 1 + debut;
-                String unit = unitKey.substring(debutChaineUnit); 
-        return unit;        
-    } 
-  
-   
-   private String setResultByTest(int i, String testKey) {
-       
-                String unitKey = testUnitMap.get(testKey);
-                int debut = unitKey.indexOf("|");
-                String scale = unitKey.substring(1, debut);
-                String operateur = unitKey.substring(0,1);
-                        if (operateur.equals("/")){
-                                    
-                                 try{
-                                      result = Double.parseDouble(data[i].trim())/Integer.parseInt(scale);
-		                     }catch( NumberFormatException nfe){
-					//no-op -- defaults to NAN
-                                        }
-                                  } 
-                                else if (operateur.equals("*")){
-                                    
-                                 try{
-                                      result = Double.parseDouble(data[i].trim())*Integer.parseInt(scale);
-		                     }catch( NumberFormatException nfe){
-					//no-op -- defaults to NAN
-                                        }
-                                }
-                                
-                       String TestResult=String.valueOf(result);
-              return TestResult;
-     } 
- */    
-   private boolean CheckControl (String AccessionPrefix){
-           
-            boolean IsControl= false;
-                    
-        if (AccessionPrefix.startsWith(CONTROL_ACCESSION_PREFIX)) {
-                IsControl = true;
-		}
-      return IsControl;
-  
-   }
- 
-   /*
- private void addValueToResults(List<AnalyzerResults> resultList, AnalyzerResults result){
-		resultList.add(result);
-
-		AnalyzerResults resultFromDB = readerUtil.createAnalyzerResultFromDB(result);
-		if(resultFromDB != null){
-			resultList.add(resultFromDB);
-		}    
- }  
-   */     
-    private Timestamp getTimestampFromDate(String dateTime) {
-        return DateUtil.convertStringDateToTimestampWithPattern(dateTime, DATE_PATTERN);
+  private boolean CheckControl(String AccessionPrefix) {
+    boolean IsControl = false;
+    if (AccessionPrefix.startsWith(CONTROL_ACCESSION_PREFIX)) {
+      IsControl = true;
     }
+    return IsControl;
+  }
 
-    @Override
-    public String getError() {
-        return "Cobas C111 analyzer unable to write to database";
-    }
+  private Timestamp getTimestampFromDate(String dateTime) {
+    return DateUtil.convertStringDateToTimestampWithPattern(dateTime, DATE_PATTERN);
+  }
+
+  @Override
+  public String getError() {
+    return "Cobas C111 analyzer unable to write to database";
+  }
 }

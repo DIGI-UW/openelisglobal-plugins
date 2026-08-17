@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openElisGlobalPlugin>
+    <version>1.0</version>
+    <analyzerImporter>
+        <extension_point path="org.openelisglobal.plugin.AnalyzerImporterPlugin">
+            <extension path="oe.plugin.analyzer.PocH100iAnalyzer" />
+            <description value="PocH100iAnalyzer" />
+        </extension_point>
+    </analyzerImporter>
+    <menu>
+        <extension_point path="org.openelisglobal.plugin.MenuPlugin">
+            <extension path="oe.plugin.analyzer.PocH100iAnalyzerMenu" />
+            <description value="Menu for PocH100iAnalyzer" />
+        </extension_point>
+    </menu>
+    <permission>
+        <extension_point path="org.openelisglobal.plugin.PermissionPlugin">
+            <extension path="oe.plugin.analyzer.PocH100iAnalyzerPermission" />
+            <description value="PocH100iAnalyzer permission" />
+        </extension_point>
+    </permission>
+</openElisGlobalPlugin>

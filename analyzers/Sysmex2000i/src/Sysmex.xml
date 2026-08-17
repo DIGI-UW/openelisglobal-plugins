@@ -2,19 +2,19 @@
 <openElisGlobalPlugin>
 <version>1.0</version>
 <analyzerImporter>
-<extension_point path="us.mn.state.health.lims.plugin.AnalyzerImporterPlugin" >
+<extension_point path="org.openelisglobal.plugin.AnalyzerImporterPlugin" >
     <extension path="oe.plugin.analyzer.SysmexAnalyzer" />   
     <description value="SysmeXT 2000i" />
 </extension_point>
 </analyzerImporter>
 <menu>
-    <extension_point path="us.mn.state.health.lims.plugin.MenuPlugin" >
+    <extension_point path="org.openelisglobal.plugin.MenuPlugin" >
     <extension path="oe.plugin.analyzer.SysmexMenu" />   
     <description value="Menu for SysmeXT 2000i" />
 </extension_point>
 </menu>
 <permission>
-    <extension_point path="us.mn.state.health.lims.plugin.PermissionPlugin" >
+    <extension_point path="org.openelisglobal.plugin.PermissionPlugin" >
         <extension path="oe.plugin.analyzer.SysmexPermission" />
         <description value="SysmeXT 2000i Analyzer permission" />
     </extension_point>

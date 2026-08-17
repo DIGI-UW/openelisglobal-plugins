@@ -1,0 +1,157 @@
+﻿2026-01-31T00:20:54.5522814Z ##[group]Run actions/checkout@v4
+2026-01-31T00:20:54.5523130Z with:
+2026-01-31T00:20:54.5523365Z   repository: DIGI-UW/OpenELIS-Global-2
+2026-01-31T00:20:54.5523670Z   ref: develop
+2026-01-31T00:20:54.5523897Z   path: openelis-global-2
+2026-01-31T00:20:54.5524143Z   submodules: recursive
+2026-01-31T00:20:54.5524521Z   token: ***
+2026-01-31T00:20:54.5524768Z   ssh-strict: true
+2026-01-31T00:20:54.5524985Z   ssh-user: git
+2026-01-31T00:20:54.5525212Z   persist-credentials: true
+2026-01-31T00:20:54.5525457Z   clean: true
+2026-01-31T00:20:54.5525685Z   sparse-checkout-cone-mode: true
+2026-01-31T00:20:54.5525947Z   fetch-depth: 1
+2026-01-31T00:20:54.5526165Z   fetch-tags: false
+2026-01-31T00:20:54.5526387Z   show-progress: true
+2026-01-31T00:20:54.5526621Z   lfs: false
+2026-01-31T00:20:54.5526839Z   set-safe-directory: true
+2026-01-31T00:20:54.5527097Z env:
+2026-01-31T00:20:54.5527293Z   OE_REF: develop
+2026-01-31T00:20:54.5527610Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.10-7/x64
+2026-01-31T00:20:54.5528135Z   JAVA_HOME_21_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.10-7/x64
+2026-01-31T00:20:54.5528527Z ##[endgroup]
+2026-01-31T00:20:54.6454713Z Syncing repository: DIGI-UW/OpenELIS-Global-2
+2026-01-31T00:20:54.6460967Z ##[group]Getting Git version info
+2026-01-31T00:20:54.6461964Z Working directory is '/home/runner/work/openelisglobal-plugins/openelisglobal-plugins/openelis-global-2'
+2026-01-31T00:20:54.6508868Z [command]/usr/bin/git version
+2026-01-31T00:20:54.6544178Z git version 2.52.0
+2026-01-31T00:20:54.6569548Z ##[endgroup]
+2026-01-31T00:20:54.6582811Z Temporarily overriding HOME='/home/runner/work/_temp/6a2d886c-a9ec-4ac9-b3a6-9a30ec861928' before making global git config changes
+2026-01-31T00:20:54.6584251Z Adding repository directory to the temporary git global config as a safe directory
+2026-01-31T00:20:54.6589077Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/openelisglobal-plugins/openelisglobal-plugins/openelis-global-2
+2026-01-31T00:20:54.6618173Z ##[group]Initializing the repository
+2026-01-31T00:20:54.6623917Z [command]/usr/bin/git init /home/runner/work/openelisglobal-plugins/openelisglobal-plugins/openelis-global-2
+2026-01-31T00:20:54.6658704Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-01-31T00:20:54.6659960Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-01-31T00:20:54.6660936Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-01-31T00:20:54.6661433Z hint: call:
+2026-01-31T00:20:54.6661768Z hint:
+2026-01-31T00:20:54.6662264Z hint: 	git config --global init.defaultBranch <name>
+2026-01-31T00:20:54.6662868Z hint:
+2026-01-31T00:20:54.6663465Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-01-31T00:20:54.6664447Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-01-31T00:20:54.6665200Z hint:
+2026-01-31T00:20:54.6665611Z hint: 	git branch -m <name>
+2026-01-31T00:20:54.6666090Z hint:
+2026-01-31T00:20:54.6666752Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-01-31T00:20:54.6668143Z Initialized empty Git repository in /home/runner/work/openelisglobal-plugins/openelisglobal-plugins/openelis-global-2/.git/
+2026-01-31T00:20:54.6673188Z [command]/usr/bin/git remote add origin https://github.com/DIGI-UW/OpenELIS-Global-2
+2026-01-31T00:20:54.6702259Z ##[endgroup]
+2026-01-31T00:20:54.6703013Z ##[group]Disabling automatic garbage collection
+2026-01-31T00:20:54.6707560Z [command]/usr/bin/git config --local gc.auto 0
+2026-01-31T00:20:54.6735176Z ##[endgroup]
+2026-01-31T00:20:54.6735912Z ##[group]Setting up auth
+2026-01-31T00:20:54.6742037Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-01-31T00:20:54.6771177Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-01-31T00:20:54.6987313Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-01-31T00:20:54.7016484Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-01-31T00:20:54.7234369Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-01-31T00:20:54.7263665Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-01-31T00:20:54.7485057Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-01-31T00:20:54.7518655Z ##[endgroup]
+2026-01-31T00:20:54.7526546Z ##[group]Fetching the repository
+2026-01-31T00:20:54.7527445Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +refs/heads/develop*:refs/remotes/origin/develop* +refs/tags/develop*:refs/tags/develop*
+2026-01-31T00:20:58.1520387Z From https://github.com/DIGI-UW/OpenELIS-Global-2
+2026-01-31T00:20:58.1520950Z  * [new branch]      develop       -> origin/develop
+2026-01-31T00:20:58.1521308Z  * [new branch]      develop_3.1.x -> origin/develop_3.1.x
+2026-01-31T00:20:58.1551643Z ##[endgroup]
+2026-01-31T00:20:58.1552306Z ##[group]Determining the checkout info
+2026-01-31T00:20:58.1559708Z [command]/usr/bin/git branch --list --remote origin/develop
+2026-01-31T00:20:58.1583110Z   origin/develop
+2026-01-31T00:20:58.1588793Z ##[endgroup]
+2026-01-31T00:20:58.1594883Z [command]/usr/bin/git sparse-checkout disable
+2026-01-31T00:20:58.1627845Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-01-31T00:20:58.1653969Z ##[group]Checking out the ref
+2026-01-31T00:20:58.1658395Z [command]/usr/bin/git checkout --progress --force -B develop refs/remotes/origin/develop
+2026-01-31T00:20:59.0404327Z Switched to a new branch 'develop'
+2026-01-31T00:20:59.0405997Z branch 'develop' set up to track 'origin/develop'.
+2026-01-31T00:20:59.0453102Z ##[endgroup]
+2026-01-31T00:20:59.0453572Z ##[group]Setting up auth for fetching submodules
+2026-01-31T00:20:59.0460793Z [command]/usr/bin/git config --global http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-01-31T00:20:59.0499503Z [command]/usr/bin/git config --global --unset-all url.https://github.com/.insteadOf
+2026-01-31T00:20:59.0528392Z [command]/usr/bin/git config --global --add url.https://github.com/.insteadOf git@github.com:
+2026-01-31T00:20:59.0557246Z [command]/usr/bin/git config --global --add url.https://github.com/.insteadOf org-13139799@github.com:
+2026-01-31T00:20:59.0582795Z ##[endgroup]
+2026-01-31T00:20:59.0583419Z ##[group]Fetching submodules
+2026-01-31T00:20:59.0587617Z [command]/usr/bin/git submodule sync --recursive
+2026-01-31T00:20:59.0829030Z [command]/usr/bin/git -c protocol.version=2 submodule update --init --force --depth=1 --recursive
+2026-01-31T00:20:59.1055707Z Submodule 'dataexport' (https://github.com/I-TECH-UW/dataexport.git) registered for path 'dataexport'
+2026-01-31T00:20:59.1058664Z Submodule 'plugins' (https://github.com/I-TECH-UW/openelisglobal-plugins.git) registered for path 'plugins'
+2026-01-31T00:20:59.1064383Z Submodule 'tools/Liquibase-Outdated' (https://github.com/I-TECH-UW/Liquibase-Outdated.git) registered for path 'tools/Liquibase-Outdated'
+2026-01-31T00:20:59.1068757Z Submodule 'tools/Password-Migrator' (https://github.com/I-TECH-UW/Password-Migrator.git) registered for path 'tools/Password-Migrator'
+2026-01-31T00:20:59.1073876Z Submodule 'tools/astm-http-bridge' (https://github.com/DIGI-UW/astm-http-bridge.git) registered for path 'tools/astm-http-bridge'
+2026-01-31T00:20:59.1078709Z Submodule 'tools/astm-mock-server' (https://github.com/DIGI-UW/astm-mock-server.git) registered for path 'tools/astm-mock-server'
+2026-01-31T00:20:59.1105411Z Cloning into '/home/runner/work/openelisglobal-plugins/openelisglobal-plugins/openelis-global-2/dataexport'...
+2026-01-31T00:20:59.4174868Z Cloning into '/home/runner/work/openelisglobal-plugins/openelisglobal-plugins/openelis-global-2/plugins'...
+2026-01-31T00:21:06.5103397Z Cloning into '/home/runner/work/openelisglobal-plugins/openelisglobal-plugins/openelis-global-2/tools/Liquibase-Outdated'...
+2026-01-31T00:21:07.1878506Z Cloning into '/home/runner/work/openelisglobal-plugins/openelisglobal-plugins/openelis-global-2/tools/Password-Migrator'...
+2026-01-31T00:21:07.4665072Z Cloning into '/home/runner/work/openelisglobal-plugins/openelisglobal-plugins/openelis-global-2/tools/astm-http-bridge'...
+2026-01-31T00:21:07.7592309Z Cloning into '/home/runner/work/openelisglobal-plugins/openelisglobal-plugins/openelis-global-2/tools/astm-mock-server'...
+2026-01-31T00:21:08.9047862Z From https://github.com/I-TECH-UW/dataexport
+2026-01-31T00:21:08.9048706Z  * branch            fad9327762a68620df1538bf71b2478bb666efec -> FETCH_HEAD
+2026-01-31T00:21:08.9134788Z Submodule path 'dataexport': checked out 'fad9327762a68620df1538bf71b2478bb666efec'
+2026-01-31T00:21:09.9651781Z From https://github.com/I-TECH-UW/openelisglobal-plugins
+2026-01-31T00:21:09.9652644Z  * branch            5e0a2b489817dfaa579b95f15b578d85715d2095 -> FETCH_HEAD
+2026-01-31T00:21:10.2461829Z Submodule path 'plugins': checked out '5e0a2b489817dfaa579b95f15b578d85715d2095'
+2026-01-31T00:21:10.4354020Z Submodule path 'tools/Liquibase-Outdated': checked out '31ea11d6e9927371c88144571086f37cbb3ae771'
+2026-01-31T00:21:10.4467622Z Submodule path 'tools/Password-Migrator': checked out '8cb7c73433440d40698c9fe00b8b9ef08082ebe7'
+2026-01-31T00:21:10.4599846Z Submodule path 'tools/astm-http-bridge': checked out 'bbe53425432bf1713eeceabd78be070b91166f0b'
+2026-01-31T00:21:11.0211554Z From https://github.com/DIGI-UW/astm-mock-server
+2026-01-31T00:21:11.0212327Z  * branch            090f316baa5d18d3a3275a3e0329848f90623542 -> FETCH_HEAD
+2026-01-31T00:21:11.0268366Z Submodule path 'tools/astm-mock-server': checked out '090f316baa5d18d3a3275a3e0329848f90623542'
+2026-01-31T00:21:11.0303445Z [command]/usr/bin/git submodule foreach --recursive git config --local gc.auto 0
+2026-01-31T00:21:11.0523349Z Entering 'dataexport'
+2026-01-31T00:21:11.0561091Z Entering 'plugins'
+2026-01-31T00:21:11.0598890Z Entering 'tools/Liquibase-Outdated'
+2026-01-31T00:21:11.0637708Z Entering 'tools/Password-Migrator'
+2026-01-31T00:21:11.0675411Z Entering 'tools/astm-http-bridge'
+2026-01-31T00:21:11.0713460Z Entering 'tools/astm-mock-server'
+2026-01-31T00:21:11.0759845Z ##[endgroup]
+2026-01-31T00:21:11.0760415Z ##[group]Persisting credentials for submodules
+2026-01-31T00:21:11.0767644Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'url\.https\:\/\/github\.com\/\.insteadOf' && git config --local --unset-all 'url.https://github.com/.insteadOf' || :"
+2026-01-31T00:21:11.0987507Z Entering 'dataexport'
+2026-01-31T00:21:11.1030246Z Entering 'plugins'
+2026-01-31T00:21:11.1072927Z Entering 'tools/Liquibase-Outdated'
+2026-01-31T00:21:11.1117055Z Entering 'tools/Password-Migrator'
+2026-01-31T00:21:11.1160475Z Entering 'tools/astm-http-bridge'
+2026-01-31T00:21:11.1203519Z Entering 'tools/astm-mock-server'
+2026-01-31T00:21:11.1260899Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local 'http.https://github.com/.extraheader' 'AUTHORIZATION: basic ***' && git config --local --show-origin --name-only --get-regexp remote.origin.url"
+2026-01-31T00:21:11.1480993Z Entering 'dataexport'
+2026-01-31T00:21:11.1519468Z file:/home/runner/work/openelisglobal-plugins/openelisglobal-plugins/openelis-global-2/.git/modules/dataexport/config	remote.origin.url
+2026-01-31T00:21:11.1538150Z Entering 'plugins'
+2026-01-31T00:21:11.1577422Z file:/home/runner/work/openelisglobal-plugins/openelisglobal-plugins/openelis-global-2/.git/modules/plugins/config	remote.origin.url
+2026-01-31T00:21:11.1597013Z Entering 'tools/Liquibase-Outdated'
+2026-01-31T00:21:11.1635330Z file:/home/runner/work/openelisglobal-plugins/openelisglobal-plugins/openelis-global-2/.git/modules/tools/Liquibase-Outdated/config	remote.origin.url
+2026-01-31T00:21:11.1656386Z Entering 'tools/Password-Migrator'
+2026-01-31T00:21:11.1694178Z file:/home/runner/work/openelisglobal-plugins/openelisglobal-plugins/openelis-global-2/.git/modules/tools/Password-Migrator/config	remote.origin.url
+2026-01-31T00:21:11.1714143Z Entering 'tools/astm-http-bridge'
+2026-01-31T00:21:11.1752640Z file:/home/runner/work/openelisglobal-plugins/openelisglobal-plugins/openelis-global-2/.git/modules/tools/astm-http-bridge/config	remote.origin.url
+2026-01-31T00:21:11.1771695Z Entering 'tools/astm-mock-server'
+2026-01-31T00:21:11.1808401Z file:/home/runner/work/openelisglobal-plugins/openelisglobal-plugins/openelis-global-2/.git/modules/tools/astm-mock-server/config	remote.origin.url
+2026-01-31T00:21:11.1874779Z [command]/usr/bin/git submodule foreach --recursive git config --local --add 'url.https://github.com/.insteadOf' 'git@github.com:'
+2026-01-31T00:21:11.2092081Z Entering 'dataexport'
+2026-01-31T00:21:11.2129698Z Entering 'plugins'
+2026-01-31T00:21:11.2167140Z Entering 'tools/Liquibase-Outdated'
+2026-01-31T00:21:11.2206222Z Entering 'tools/Password-Migrator'
+2026-01-31T00:21:11.2243896Z Entering 'tools/astm-http-bridge'
+2026-01-31T00:21:11.2281574Z Entering 'tools/astm-mock-server'
+2026-01-31T00:21:11.2335992Z [command]/usr/bin/git submodule foreach --recursive git config --local --add 'url.https://github.com/.insteadOf' 'org-13139799@github.com:'
+2026-01-31T00:21:11.2550287Z Entering 'dataexport'
+2026-01-31T00:21:11.2588276Z Entering 'plugins'
+2026-01-31T00:21:11.2625476Z Entering 'tools/Liquibase-Outdated'
+2026-01-31T00:21:11.2664391Z Entering 'tools/Password-Migrator'
+2026-01-31T00:21:11.2701132Z Entering 'tools/astm-http-bridge'
+2026-01-31T00:21:11.2738112Z Entering 'tools/astm-mock-server'
+2026-01-31T00:21:11.2783497Z ##[endgroup]
+2026-01-31T00:21:11.2819686Z [command]/usr/bin/git log -1 --format=%H
+2026-01-31T00:21:11.2840901Z b04dd7851ddceea8130cb496fdc4e44e47c6c7f4

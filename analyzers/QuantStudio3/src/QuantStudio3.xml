@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openElisGlobalPlugin>
+<version>1.0</version>
+<analyzerImporter>
+<extension_point path="org.openelisglobal.plugin.AnalyzerImporterPlugin" >
+    <extension path="oe.plugin.analyzer.QuantStudio3Analyzer" />   
+    <description value="QuantStudio3" />
+</extension_point>
+</analyzerImporter>
+<menu>
+    <extension_point path="org.openelisglobal.plugin.MenuPlugin" >
+    <extension path="oe.plugin.analyzer.QuantStudio3Menu" />   
+    <description value="Menu for QuantStudio3" />
+</extension_point>
+</menu>
+<permission>
+    <extension_point path="org.openelisglobal.plugin.PermissionPlugin" >
+        <extension path="oe.plugin.analyzer.QuantStudio3Permission" />
+        <description value="QuantStudio3 Analyzer permission" />
+    </extension_point>
+</permission>
+</openElisGlobalPlugin>

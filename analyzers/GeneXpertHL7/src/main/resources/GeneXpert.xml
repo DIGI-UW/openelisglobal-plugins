@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openElisGlobalPlugin>
+<version>1.0</version>
+<analyzerImporter>
+<extension_point path="org.openelisglobal.plugin.AnalyzerImporterPlugin" >
+    <extension path="oe.plugin.analyzer.GeneXpertAnalyzer" />   
+    <description value="GeneXpertAnalyzer" />
+</extension_point>
+</analyzerImporter>
+<menu>
+    <extension_point path="org.openelisglobal.plugin.MenuPlugin" >
+    <extension path="oe.plugin.analyzer.GeneXpertMenu" />   
+    <description value="Menu for GeneXpert" />
+</extension_point>
+</menu>
+<permission>
+    <extension_point path="org.openelisglobal.plugin.PermissionPlugin" >
+        <extension path="oe.plugin.analyzer.GeneXpertPermission" />
+        <description value="GeneXpert Analyzer permission" />
+    </extension_point>
+</permission>
+<servlet>
+    <extension_point path="org.openelisglobal.plugin.ServletPlugin" >
+        <extension path="oe.plugin.analyzer.GeneXpertServlet" />
+        <servlet-path value="/GeneXpertServlet" />
+        <servlet-name value="GeneXpertServlet" />
+        <description value="GeneXpert Analyzer servlet" />
+    </extension_point>
+</servlet>
+</openElisGlobalPlugin>
